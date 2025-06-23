@@ -6,3 +6,6 @@ Django==5.1
 python-dotenv==1.1.0
 
 pandas==2.3.0 
+
+scikit-learn
+pycaret

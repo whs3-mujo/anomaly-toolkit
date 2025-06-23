@@ -1,0 +1,15 @@
+<!-- apps/ai/templates/ai/home.html -->
+<h1>AI 테스트용</h1>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">탐지 실행</button>
+</form>
+
+{% if result %}
+  <div>
+    {{ result|safe }}
+  </div>
+{% endif %}
+
