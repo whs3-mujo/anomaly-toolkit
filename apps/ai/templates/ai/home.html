@@ -1,4 +1,6 @@
-<!-- home.html -->
+<!-- apps/ai/templates/ai/home.html -->
+<h1>AI 테스트용</h1>
+
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
   {{ form.as_p }}
@@ -10,3 +12,4 @@
     {{ result|safe }}
   </div>
 {% endif %}
+
