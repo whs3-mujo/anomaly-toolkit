@@ -1,3 +1,8 @@
-# 파이썬 버전은 3.10 이상으로 설정
+# Python >=3.10
+# Django 기반 웹 프레임워크
 Django==5.1
-python-dotenv==1.1.0 # 환경 변수 관리
+
+# .env 파일로 환경변수 로딩
+python-dotenv==1.1.0
+
+pandas==2.3.0 
