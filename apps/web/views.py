@@ -28,21 +28,24 @@ def save_to_media(uploaded_file):
 
 
 def upload_view(request):
-    """
-    1) 업로드 폼 보여주기
-    2) POST 시 파일 저장 → 가짜 task_id 생성 → Progress 페이지로 리다이렉트
-    """
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             path = save_to_media(form.cleaned_data['datafile'])
-            task_id = uuid.uuid4()  # 실제론 Celery task id 등
-            # TODO: 여기에 detect_anomalies를 비동기로 실행하도록 연결
-            return redirect('progress', task_id=task_id)
+
+            # 분석 즉시 실행
+            result_html = detect_anomalies(path)
+
+            # 결과를 dashboard.html에 전달 (또는 새 페이지)
+            return render(request, 'web/dashboard.html', {
+                'result_html': result_html,
+                'filename': os.path.basename(path),
+            })
     else:
         form = UploadFileForm()
 
-    return render(request, 'web/upload.html', { 'form': form })
+    return render(request, 'web/upload.html', {'form': form})
+
 
 
 def progress_view(request, task_id):

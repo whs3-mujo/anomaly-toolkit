@@ -1,0 +1,27 @@
+<!-- app/web/templates/web/info.html -->
+<!doctype html>
+<html>
+  <head><title>Task Details</title></head>
+  <body>
+    <h1>Task Details</h1>
+    <table>
+      <tr><th>Input File</th><td id="fn"></td></tr>
+      <tr><th>Preprocessing</th><td id="pp"></td></tr>
+      <tr><th>Model</th><td id="mdl"></td></tr>
+      <tr><th>Progress</th><td id="prg"></td></tr>
+      <tr><th>ETA (s)</th><td id="eta"></td></tr>
+    </table>
+    <script>
+      const taskId = "{{ task_id }}";
+      fetch(`/upload/${taskId}/info`)
+        .then(r => r.json())
+        .then(j => {
+          document.getElementById('fn').textContent = j.filename;
+          document.getElementById('pp').textContent = j.preprocessing;
+          document.getElementById('mdl').textContent = j.model;
+          document.getElementById('prg').textContent = j.progress + '%';
+          document.getElementById('eta').textContent = j.eta;
+        });
+    </script>
+  </body>
+</html>

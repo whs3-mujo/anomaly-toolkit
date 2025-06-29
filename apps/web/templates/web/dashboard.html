@@ -1,18 +1,14 @@
+{% load static %}
 <!doctype html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>Dashboard</title>
-</head>
-<body>
-  <h1>Dashboard</h1>
-  <p>✨ 여기에 시간별·사용자별 차트와 요약 테이블이 표시됩니다.</p>
-</body>
+  <head>
+    <title>Dashboard</title>
+  </head>
+  <body>
+    <h1>분석 결과</h1>
+    <p>업로드한 파일: {{ filename }}</p>
+    <div>
+      {{ result_html|safe }}
+    </div>
+  </body>
 </html>
-
-<!--
-/upload/ 에서 파일 업로드
-
-업로드 직후 /progress/<uuid>/ 로 이동해 진행률 확인
-
-완료 시 /dashboard/ 로 리다이렉트-->

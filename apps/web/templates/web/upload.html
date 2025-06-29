@@ -1,16 +1,32 @@
-{% load static %}
+<!-- app/web/templates/web/upload.html -->
+ {% load static %}
 <!doctype html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>로그 업로드</title>
-</head>
-<body>
-  <h1>Log File Upload</h1>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Upload</button>
-  </form>
-</body>
+  <head>
+    <title>Anomaly Detection – Upload</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  </head>
+  <body>
+    <div class="upload-container">
+      <h1>Anomaly Detection</h1>
+      {% if error %}
+        <p class="error">{{ error }}</p>
+      {% endif %}
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="logfile">Log File Upload</label>
+        <input type="file" name="logfile" id="logfile" accept=".log,.txt,.csv" required>
+        <p>* Please .log, .txt, .csv file</p>
+
+        <!-- (선택) 컬럼/행 필터 UI -->
+        <details>
+          <summary>File Filter</summary>
+          <label>Exclude Column: <input type="text" name="exclude_col" placeholder="e.g. Date"></label>
+          <label>Exclude Row: <input type="text" name="exclude_row" placeholder="e.g. 2025-06-13"></label>
+        </details>
+
+        <button type="submit">Upload</button>
+      </form>
+    </div>
+  </body>
 </html>

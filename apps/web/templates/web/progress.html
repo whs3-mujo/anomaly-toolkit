@@ -1,32 +1,37 @@
+<!-- app/web/templates/web/progress.html -->
 <!doctype html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>Processing...</title>
-</head>
-<body>
-  <h1>Running Model...</h1>
-  <div id="progress">0%</div>
+  <head>
+    <title>Running Model</title>
+    <style>
+      #progress-bar { width: 80%; background: #eee; margin: 1em auto; }
+      #progress { height: 1.5em; background: #3b7; width: 0%; transition: width 0.3s; }
+    </style>
+  </head>
+  <body>
+    <div class="running">
+      <h1>Running Model..</h1>
+      <div id="progress-bar"><div id="progress"></div></div>
+      <p id="percent">0%</p>
+      <p><a id="details-link" href="#">View Task Details</a></p>
+    </div>
 
-  <script>
-    const taskId = "{{ task_id }}";
-    function poll() {
-      fetch(`/progress/${taskId}/`)
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById('progress').innerText = data.progress + '%';
-          if (data.progress < 100) {
-            setTimeout(poll, 1000);
-          } else {
-            window.location.href = "/dashboard/";
-          }
-        });
-    }
-    poll();
-  </script>
-</body>
+    <script>
+      const taskId = "{{ task_id }}";
+      const update = () => {
+        fetch(`/upload/${taskId}/status`)
+          .then(r => r.json())
+          .then(data => {
+            document.getElementById('progress').style.width = data.progress + '%';
+            document.getElementById('percent').textContent = data.progress + '%';
+            if (data.progress < 100) {
+              setTimeout(update, 500);
+            } else {
+              document.getElementById('details-link').href = `/upload/${taskId}/info`;
+            }
+          });
+      };
+      update();
+    </script>
+  </body>
 </html>
-
-<!--주의: 위 템플릿에서 task_id 컨텍스트 변수를 넘기려면, progress_view 대신
-upload_view에서 리다이렉트가 아니라 직접 렌더링(render)하는 방식을 쓰거나,
-URL 파라미터를 JS에서 가져오는 로직을 추가해야 합니다.-->
