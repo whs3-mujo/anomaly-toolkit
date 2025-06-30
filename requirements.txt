@@ -5,7 +5,7 @@ Django==5.1
 # .env 파일로 환경변수 로딩
 python-dotenv==1.1.0
 
-pandas==2.3.0 
+pandas==2.1.4
 
-scikit-learn
-pycaret
+scikit-learn==1.4.2
+pycaret==3.3.2
