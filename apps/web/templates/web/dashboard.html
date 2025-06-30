@@ -1,18 +1,450 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <title>Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>분석 대시보드</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+        }
+        
+        /* 스피너 애니메이션 */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 히스토리 아이템 스타일 */
+        .history-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .history-item:hover {
+            background: #f8f9fa;
+            border-color: #007bff;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+        }
+
+        .history-item.selected {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .history-item .filename {
+            font-weight: 600;
+            color: #212529;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-item .meta {
+            font-size: 0.75rem;
+            color: #6c757d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-type-badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        /* 결과 패널 스타일 */
+        .result-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-content {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+    </style>
 </head>
 <body>
-  <h1>Dashboard</h1>
-  <p>✨ 여기에 시간별·사용자별 차트와 요약 테이블이 표시됩니다.</p>
+
+<div style="display: flex; height: 100vh;">
+
+  <!-- 분석 히스토리 목록 -->
+  <div id="history-sidebar" style="width: 300px; background: linear-gradient(145deg, #f8f9fa, #e9ecef); padding: 1rem; overflow-y: auto; border-right: 1px solid #dee2e6; box-shadow: 2px 0 10px rgba(0,0,0,0.1);">
+    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+      <h3 style="margin: 0; color: #495057; font-size: 1.1rem;">📊 분석 히스토리</h3>
+    </div>
+    
+    <!-- 로딩 스피너 -->
+    <div id="loading-spinner" style="text-align: center; padding: 2rem; display: none;">
+      <div style="border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+      <p style="margin-top: 1rem; color: #6c757d;">로딩 중...</p>
+    </div>
+    
+    <!-- 히스토리 목록 -->
+    <div id="history-list">
+      <p style="text-align: center; color: #6c757d; padding: 2rem;">히스토리를 불러오는 중...</p>
+    </div>
+  </div>
+
+  <!-- 분석 결과 패널 -->
+  <div id="result-panel" style="flex: 1; padding: 2rem; overflow-y: auto; background: #ffffff;">
+    <div id="welcome-message" style="text-align: center; padding: 4rem 2rem; color: #6c757d;">
+      <div style="font-size: 4rem; margin-bottom: 1rem;">📈</div>
+      <h2 style="color: #495057; margin-bottom: 1rem;">분석 결과 대시보드</h2>
+      <p>좌측에서 분석 히스토리를 선택하면 결과를 확인할 수 있습니다.</p>
+    </div>
+    
+    <!-- 분석 결과 표시 영역 -->
+    <div id="analysis-result" style="display: none;">
+      <!-- 여기에 분석 결과가 동적으로 로드됩니다 -->
+    </div>
+  </div>
+
+</div>
+
+<!-- 우클릭 컨텍스트 메뉴 -->
+<div id="context-menu" style="display: none; position: absolute; background: white; border: 1px solid #dee2e6; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 140px;">
+  <div onclick="renameAnalysis()" style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f8f9fa; color: #007bff;">
+    ✏️ 이름 변경
+  </div>
+  <div onclick="deleteAnalysis()" style="padding: 10px 15px; cursor: pointer; color: #dc3545;">
+    🗑️ 삭제
+  </div>
+</div>
+
+<script>
+let currentSessionId = null;
+let analysisHistory = [];
+
+// 페이지 로드 시 히스토리 불러오기
+document.addEventListener('DOMContentLoaded', function() {
+  loadAnalysisHistory();
+});
+
+// 분석 히스토리 불러오기
+function loadAnalysisHistory() {
+  showLoading(true);
+  
+  fetch('/api/analysis/history/')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        analysisHistory = data.history;
+        renderHistoryList(data.history);
+      } else {
+        showError('히스토리를 불러오는데 실패했습니다: ' + data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showError('네트워크 오류가 발생했습니다.');
+    })
+    .finally(() => {
+      showLoading(false);
+    });
+}
+
+// 히스토리 목록 렌더링 (완료된 분석만)
+function renderHistoryList(history) {
+  const listContainer = document.getElementById('history-list');
+  
+  if (history.length === 0) {
+    listContainer.innerHTML = `
+      <div style="text-align: center; padding: 2rem; color: #6c757d;">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">📭</div>
+        <p>완료된 분석이 없습니다.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const historyHTML = history.map(item => `
+    <div class="history-item" data-session-id="${item.session_id}" onclick="loadAnalysisDetail('${item.session_id}')">
+      <span class="filename" title="${item.full_filename}">${item.filename}</span>
+      <div class="meta">
+        <span>${item.created_at}</span>
+        <span class="file-type-badge">${item.file_type.toUpperCase()}</span>
+      </div>
+      <div class="meta" style="margin-top: 4px;">
+        <span>${item.file_size}</span>
+        <span style="color: #28a745;">✓ 완료</span>
+      </div>
+    </div>
+  `).join('');
+
+  listContainer.innerHTML = historyHTML;
+
+  // 우클릭 이벤트 추가
+  document.querySelectorAll('.history-item').forEach(item => {
+    item.addEventListener('contextmenu', handleContextMenu);
+  });
+}
+
+// 분석 결과 상세 정보 로드
+function loadAnalysisDetail(sessionId) {
+  // 이전 선택 해제
+  document.querySelectorAll('.history-item').forEach(item => {
+    item.classList.remove('selected');
+  });
+  
+  // 현재 선택 표시
+  document.querySelector(`[data-session-id="${sessionId}"]`).classList.add('selected');
+  currentSessionId = sessionId;
+
+  // 웰컴 메시지 숨기기
+  document.getElementById('welcome-message').style.display = 'none';
+  
+  // 로딩 표시
+  const resultPanel = document.getElementById('analysis-result');
+  resultPanel.style.display = 'block';
+  resultPanel.innerHTML = `
+    <div style="text-align: center; padding: 2rem;">
+      <div style="border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+      <p style="margin-top: 1rem; color: #6c757d;">분석 결과를 불러오는 중...</p>
+    </div>
+  `;
+
+  // API 호출
+  fetch(`/api/analysis/detail/${sessionId}/`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        renderAnalysisResult(data.session);
+      } else {
+        showError('분석 결과를 불러오는데 실패했습니다: ' + data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showError('네트워크 오류가 발생했습니다.');
+    });
+}
+
+// 분석 결과 렌더링
+function renderAnalysisResult(session) {
+  const resultPanel = document.getElementById('analysis-result');
+  
+  let resultHTML = `
+    <div class="result-header">
+      <h2 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">${session.filename}</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; opacity: 0.9;">
+        <span>분석 완료: ${session.completed_at}</span>
+        <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px;">✓ 완료</span>
+      </div>
+    </div>
+  `;
+
+  // 분석 결과 표시
+  if (session.analysis_result) {
+    resultHTML += `
+      <div class="result-content">
+        <h3 style="margin-bottom: 1rem; color: #495057;">📊 분석 결과</h3>
+        <div style="background: white; padding: 1.5rem; border-radius: 4px; border-left: 4px solid #28a745;">
+          ${formatAnalysisResult(session.analysis_result)}
+        </div>
+      </div>
+    `;
+  } else {
+    resultHTML += `
+      <div class="result-content">
+        <h3 style="margin-bottom: 1rem; color: #6c757d;">📄 분석 결과 없음</h3>
+        <p style="color: #6c757d;">분석 결과 데이터가 없습니다.</p>
+      </div>
+    `;
+  }
+
+  resultPanel.innerHTML = resultHTML;
+}
+
+// 분석 결과를 보기 좋게 포맷팅
+function formatAnalysisResult(result) {
+  if (!result || typeof result !== 'object') {
+    return '<p>분석 결과를 표시할 수 없습니다.</p>';
+  }
+
+  let html = '';
+  
+  // 요약 정보 우선 표시
+  if (result.summary) {
+    html += `<div style="background: #e8f5e8; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+      <h4 style="margin: 0 0 0.5rem 0; color: #2d5a2d;">📋 요약</h4>
+      <p style="margin: 0; color: #2d5a2d;">${result.summary}</p>
+    </div>`;
+  }
+
+  // 기타 정보들을 카드 형태로 표시
+  const keys = Object.keys(result).filter(key => key !== 'summary');
+  if (keys.length > 0) {
+    html += '<div style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">';
+    
+    keys.forEach(key => {
+      const value = result[key];
+      let displayValue = '';
+      
+      if (typeof value === 'object' && value !== null) {
+        if (Array.isArray(value)) {
+          displayValue = value.length > 0 ? value.join(', ') : '없음';
+        } else {
+          displayValue = JSON.stringify(value, null, 2);
+        }
+      } else {
+        displayValue = String(value);
+      }
+      
+      html += `
+        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border: 1px solid #e9ecef;">
+          <h5 style="margin: 0 0 0.5rem 0; color: #495057; text-transform: capitalize;">${key.replace('_', ' ')}</h5>
+          <div style="color: #6c757d; font-size: 0.9rem; white-space: pre-wrap;">${displayValue}</div>
+        </div>
+      `;
+    });
+    
+    html += '</div>';
+  }
+
+  return html;
+}
+
+// 우클릭 메뉴 처리
+function handleContextMenu(e) {
+  e.preventDefault();
+  const menu = document.getElementById('context-menu');
+  menu.style.display = 'block';
+  menu.style.left = `${e.pageX}px`;
+  menu.style.top = `${e.pageY}px`;
+  menu.dataset.sessionId = e.currentTarget.dataset.sessionId;
+}
+
+// 외부 클릭 시 컨텍스트 메뉴 닫기
+document.addEventListener('click', function() {
+  document.getElementById('context-menu').style.display = 'none';
+});
+
+// 분석 세션명 변경
+function renameAnalysis() {
+  const sessionId = document.getElementById('context-menu').dataset.sessionId;
+  const currentItem = analysisHistory.find(item => item.session_id === sessionId);
+  
+  if (!currentItem) return;
+  
+  const newName = prompt('새 이름을 입력하세요:', currentItem.full_filename);
+  
+  if (newName && newName.trim() && newName !== currentItem.full_filename) {
+    fetch(`/api/analysis/rename/${sessionId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({ filename: newName.trim() })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        loadAnalysisHistory(); // 히스토리 새로고침
+        alert('이름이 변경되었습니다.');
+      } else {
+        alert('이름 변경 실패: ' + data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('네트워크 오류가 발생했습니다.');
+    });
+  }
+}
+
+// 분석 삭제
+function deleteAnalysis() {
+  const sessionId = document.getElementById('context-menu').dataset.sessionId;
+  
+  if (!confirm('이 분석 기록을 삭제하시겠습니까?')) {
+    return;
+  }
+
+  fetch(`/api/analysis/delete/${sessionId}/`, {
+    method: 'DELETE'
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // 히스토리 새로고침
+      loadAnalysisHistory();
+      
+      // 현재 선택된 세션이 삭제된 경우 웰컴 메시지 표시
+      if (currentSessionId === sessionId) {
+        document.getElementById('welcome-message').style.display = 'block';
+        document.getElementById('analysis-result').style.display = 'none';
+        currentSessionId = null;
+      }
+      
+      alert('분석 기록이 삭제되었습니다.');
+    } else {
+      alert('삭제 실패: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('네트워크 오류가 발생했습니다.');
+  });
+}
+
+// 로딩 표시/숨김
+function showLoading(show) {
+  document.getElementById('loading-spinner').style.display = show ? 'block' : 'none';
+  document.getElementById('history-list').style.display = show ? 'none' : 'block';
+}
+
+// 에러 메시지 표시
+function showError(message) {
+  const listContainer = document.getElementById('history-list');
+  listContainer.innerHTML = `
+    <div style="text-align: center; padding: 2rem; color: #dc3545;">
+      <div style="font-size: 2rem; margin-bottom: 1rem;">❌</div>
+      <p>${message}</p>
+      <button onclick="loadAnalysisHistory()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">다시 시도</button>
+    </div>
+  `;
+}
+
+// CSRF 토큰 가져오기
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script>
+
 </body>
 </html>
-
-<!--
-/upload/ 에서 파일 업로드
-
-업로드 직후 /progress/<uuid>/ 로 이동해 진행률 확인
-
-완료 시 /dashboard/ 로 리다이렉트-->
