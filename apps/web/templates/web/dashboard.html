@@ -11,13 +11,11 @@
             background: #f5f7fa;
         }
         
-        /* 스피너 애니메이션 */
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
 
-        /* 히스토리 아이템 스타일 */
         .history-item {
             background: white;
             border: 1px solid #e9ecef;
@@ -69,7 +67,6 @@
             color: #1976d2;
         }
 
-        /* 결과 패널 스타일 */
         .result-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -90,25 +87,21 @@
 
 <div style="display: flex; height: 100vh;">
 
-  <!-- 분석 히스토리 목록 -->
   <div id="history-sidebar" style="width: 300px; background: linear-gradient(145deg, #f8f9fa, #e9ecef); padding: 1rem; overflow-y: auto; border-right: 1px solid #dee2e6; box-shadow: 2px 0 10px rgba(0,0,0,0.1);">
     <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-      <h3 style="margin: 0; color: #495057; font-size: 1.1rem;">📊 분석 히스토리</h3>
+      <h3 style="margin: 0; color: #495057; font-size: 1.1rem;">분석 히스토리</h3>
     </div>
     
-    <!-- 로딩 스피너 -->
     <div id="loading-spinner" style="text-align: center; padding: 2rem; display: none;">
       <div style="border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
       <p style="margin-top: 1rem; color: #6c757d;">로딩 중...</p>
     </div>
     
-    <!-- 히스토리 목록 -->
     <div id="history-list">
       <p style="text-align: center; color: #6c757d; padding: 2rem;">히스토리를 불러오는 중...</p>
     </div>
   </div>
 
-  <!-- 분석 결과 패널 -->
   <div id="result-panel" style="flex: 1; padding: 2rem; overflow-y: auto; background: #ffffff;">
     <div id="welcome-message" style="text-align: center; padding: 4rem 2rem; color: #6c757d;">
       <div style="font-size: 4rem; margin-bottom: 1rem;">📈</div>
@@ -116,15 +109,13 @@
       <p>좌측에서 분석 히스토리를 선택하면 결과를 확인할 수 있습니다.</p>
     </div>
     
-    <!-- 분석 결과 표시 영역 -->
     <div id="analysis-result" style="display: none;">
-      <!-- 여기에 분석 결과가 동적으로 로드됩니다 -->
     </div>
   </div>
 
 </div>
 
-<!-- 우클릭 컨텍스트 메뉴 -->
+<!-- 우클릭 메뉴 -->
 <div id="context-menu" style="display: none; position: absolute; background: white; border: 1px solid #dee2e6; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 140px;">
   <div onclick="renameAnalysis()" style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f8f9fa; color: #007bff;">
     ✏️ 이름 변경
@@ -166,7 +157,6 @@ function loadAnalysisHistory() {
     });
 }
 
-// 히스토리 목록 렌더링 (완료된 분석만)
 function renderHistoryList(history) {
   const listContainer = document.getElementById('history-list');
   
@@ -174,25 +164,23 @@ function renderHistoryList(history) {
     listContainer.innerHTML = `
       <div style="text-align: center; padding: 2rem; color: #6c757d;">
         <div style="font-size: 2rem; margin-bottom: 1rem;">📭</div>
-        <p>완료된 분석이 없습니다.</p>
+        <p>분석 기록이 없습니다.</p>
       </div>
     `;
     return;
   }
 
-  const historyHTML = history.map(item => `
+  const historyHTML = history.map(item => {
+    return `
     <div class="history-item" data-session-id="${item.session_id}" onclick="loadAnalysisDetail('${item.session_id}')">
       <span class="filename" title="${item.full_filename}">${item.filename}</span>
       <div class="meta">
         <span>${item.created_at}</span>
         <span class="file-type-badge">${item.file_type.toUpperCase()}</span>
       </div>
-      <div class="meta" style="margin-top: 4px;">
-        <span>${item.file_size}</span>
-        <span style="color: #28a745;">✓ 완료</span>
-      </div>
     </div>
-  `).join('');
+    `;
+  }).join('');
 
   listContainer.innerHTML = historyHTML;
 
@@ -204,19 +192,15 @@ function renderHistoryList(history) {
 
 // 분석 결과 상세 정보 로드
 function loadAnalysisDetail(sessionId) {
-  // 이전 선택 해제
   document.querySelectorAll('.history-item').forEach(item => {
     item.classList.remove('selected');
   });
   
-  // 현재 선택 표시
   document.querySelector(`[data-session-id="${sessionId}"]`).classList.add('selected');
   currentSessionId = sessionId;
 
-  // 웰컴 메시지 숨기기
   document.getElementById('welcome-message').style.display = 'none';
   
-  // 로딩 표시
   const resultPanel = document.getElementById('analysis-result');
   resultPanel.style.display = 'block';
   resultPanel.innerHTML = `
@@ -226,7 +210,7 @@ function loadAnalysisDetail(sessionId) {
     </div>
   `;
 
-  // API 호출
+  // API 호출(분석 결과 화면 표시)
   fetch(`/api/analysis/detail/${sessionId}/`)
     .then(response => response.json())
     .then(data => {
@@ -250,8 +234,8 @@ function renderAnalysisResult(session) {
     <div class="result-header">
       <h2 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">${session.filename}</h2>
       <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; opacity: 0.9;">
-        <span>분석 완료: ${session.completed_at}</span>
-        <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px;">✓ 완료</span>
+        <span>분석 완료: ${session.created_at}</span>
+        <span style="background: #28a745; padding: 4px 8px; border-radius: 12px;">완료</span>
       </div>
     </div>
   `;
@@ -260,7 +244,7 @@ function renderAnalysisResult(session) {
   if (session.analysis_result) {
     resultHTML += `
       <div class="result-content">
-        <h3 style="margin-bottom: 1rem; color: #495057;">📊 분석 결과</h3>
+        <h3 style="margin-bottom: 1rem; color: #495057;">분석 결과</h3>
         <div style="background: white; padding: 1.5rem; border-radius: 4px; border-left: 4px solid #28a745;">
           ${formatAnalysisResult(session.analysis_result)}
         </div>
@@ -269,8 +253,10 @@ function renderAnalysisResult(session) {
   } else {
     resultHTML += `
       <div class="result-content">
-        <h3 style="margin-bottom: 1rem; color: #6c757d;">📄 분석 결과 없음</h3>
-        <p style="color: #6c757d;">분석 결과 데이터가 없습니다.</p>
+        <h3 style="margin-bottom: 1rem; color: #6c757d;">분석 결과 없음</h3>
+        <div style="background: white; padding: 1.5rem; border-radius: 4px; border-left: 4px solid #6c757d;">
+          <p style="color: #6c757d; margin: 0;">분석 결과 데이터가 없습니다.</p>
+        </div>
       </div>
     `;
   }
@@ -278,7 +264,6 @@ function renderAnalysisResult(session) {
   resultPanel.innerHTML = resultHTML;
 }
 
-// 분석 결과를 보기 좋게 포맷팅
 function formatAnalysisResult(result) {
   if (!result || typeof result !== 'object') {
     return '<p>분석 결과를 표시할 수 없습니다.</p>';
@@ -286,7 +271,6 @@ function formatAnalysisResult(result) {
 
   let html = '';
   
-  // 요약 정보 우선 표시
   if (result.summary) {
     html += `<div style="background: #e8f5e8; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
       <h4 style="margin: 0 0 0.5rem 0; color: #2d5a2d;">📋 요약</h4>
@@ -294,8 +278,7 @@ function formatAnalysisResult(result) {
     </div>`;
   }
 
-  // 기타 정보들을 카드 형태로 표시
-  const keys = Object.keys(result).filter(key => key !== 'summary');
+  const keys = Object.keys(result).filter(key => key !== 'summary' && key !== 'error');
   if (keys.length > 0) {
     html += '<div style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">';
     
@@ -327,7 +310,6 @@ function formatAnalysisResult(result) {
   return html;
 }
 
-// 우클릭 메뉴 처리
 function handleContextMenu(e) {
   e.preventDefault();
   const menu = document.getElementById('context-menu');
@@ -337,12 +319,10 @@ function handleContextMenu(e) {
   menu.dataset.sessionId = e.currentTarget.dataset.sessionId;
 }
 
-// 외부 클릭 시 컨텍스트 메뉴 닫기
 document.addEventListener('click', function() {
   document.getElementById('context-menu').style.display = 'none';
 });
 
-// 분석 세션명 변경
 function renameAnalysis() {
   const sessionId = document.getElementById('context-menu').dataset.sessionId;
   const currentItem = analysisHistory.find(item => item.session_id === sessionId);
@@ -390,10 +370,8 @@ function deleteAnalysis() {
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      // 히스토리 새로고침
       loadAnalysisHistory();
       
-      // 현재 선택된 세션이 삭제된 경우 웰컴 메시지 표시
       if (currentSessionId === sessionId) {
         document.getElementById('welcome-message').style.display = 'block';
         document.getElementById('analysis-result').style.display = 'none';
@@ -411,13 +389,11 @@ function deleteAnalysis() {
   });
 }
 
-// 로딩 표시/숨김
 function showLoading(show) {
   document.getElementById('loading-spinner').style.display = show ? 'block' : 'none';
   document.getElementById('history-list').style.display = show ? 'none' : 'block';
 }
 
-// 에러 메시지 표시
 function showError(message) {
   const listContainer = document.getElementById('history-list');
   listContainer.innerHTML = `
