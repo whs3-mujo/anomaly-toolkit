@@ -47,7 +47,12 @@ def detect_anomalies(file_path):
     detected.to_csv("pycaret_detected_anomalies.csv", index=False)
 
     # 8. 결과를 HTML 테이블 + 요약 문자열로 반환
-    summary = f"<p>📌 이상치 {count_anomaly:,}건 / 전체 {total:,}건</p>"
-    table_html = results.to_html(index=False, classes="table table-sm")
+    result = {
+        "summary": f"📌 이상치 {count_anomaly:,}건 / 전체 {total:,}건",
+        "anomaly_count": int(count_anomaly),
+        "total": int(total),
+        "table_html": results.to_html(index=False, classes="table table-sm"),
+        # 추가로 다운로드 버튼, 등등 추가 정보 연결
 
-    return summary + table_html
+    }
+    return result
