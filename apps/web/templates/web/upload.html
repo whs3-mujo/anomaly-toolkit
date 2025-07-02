@@ -15,7 +15,7 @@
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <label for="logfile">Log File Upload</label>
-        <input type="file" name="logfile" id="logfile" accept=".log,.txt,.csv" required>
+        <input type="file" name="datafile" id="logfile" accept=".log,.txt,.csv" required>
         <p>* Please .log, .txt, .csv file</p>
 
         <!-- (선택) 컬럼/행 필터 UI -->

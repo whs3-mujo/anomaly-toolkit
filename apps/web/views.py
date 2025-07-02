@@ -1,10 +1,13 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from .forms import UploadFileForm
 from .models import AnalysisSession
 import uuid
 import json
+import os
+from django.conf import settings
 
 def dashboard_view(request):
     return render(request, 'web/dashboard.html')
@@ -123,3 +126,44 @@ def rename_analysis_session(request, session_id):
             'success': False,
             'error': str(e),
         }, status=500)
+
+
+@require_http_methods(["GET", "POST"])
+def upload_view(request):
+    if request.method == "POST":
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            file = form.cleaned_data['datafile']
+            try:
+                # 파일 저장
+                save_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
+                os.makedirs(save_dir, exist_ok=True)
+                save_path = os.path.join(save_dir, file.name)
+                with open(save_path, "wb+") as dest:
+                    for chunk in file.chunks():
+                        dest.write(chunk)
+                print(f"파일 저장 완료: {save_path}")
+
+                # 이상 탐지
+                from .ai_script import detect_anomalies
+                analysis_result = detect_anomalies(save_path)
+                print(f"분석 결과: {analysis_result}")
+
+                # DB 저장
+                AnalysisSession.objects.create(
+                    session_id=str(uuid.uuid4()),
+                    original_filename=file.name,
+                    file_path=save_path,
+                    file_type=os.path.splitext(file.name)[-1][1:].upper(),
+                    analysis_result=analysis_result,
+                )
+                print("DB 저장 완료")
+                return redirect("dashboard")
+            except Exception as e:
+                print(f"업로드 중 오류: {e}")
+                return render(request, "web/upload.html", {"form": form, "error": str(e)})
+        else:
+            print("폼이 유효하지 않음:", form.errors)
+    else:
+        form = UploadFileForm()
+    return render(request, "web/upload.html", {"form": form})
