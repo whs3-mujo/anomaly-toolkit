@@ -81,6 +81,26 @@
             border-radius: 8px;
             padding: 1.5rem;
         }
+
+        .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+    }
+    .table th, .table td {
+      border: 1px solid #dee2e6;
+      padding: 4px 8px;
+      text-align: right;
+    }
+    .table th {
+      background: #f1f3f5;
+      color: #495057;
+      font-weight: 600;
+    }
+    .table tr:nth-child(even) {
+      background: #f8f9fa;
+    }
     </style>
 </head>
 <body>
@@ -270,7 +290,8 @@ function formatAnalysisResult(result) {
   }
 
   let html = '';
-  
+
+  // 요약(상단)
   if (result.summary) {
     html += `<div style="background: #e8f5e8; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
       <h4 style="margin: 0 0 0.5rem 0; color: #2d5a2d;">📋 요약</h4>
@@ -278,14 +299,31 @@ function formatAnalysisResult(result) {
     </div>`;
   }
 
-  const keys = Object.keys(result).filter(key => key !== 'summary' && key !== 'error');
+  // 주요 수치(카드)만 한 줄에 가로로
+  const mainKeys = ['anomaly_count', 'total'];
+  const mainCards = mainKeys.filter(key => key in result);
+  if (mainCards.length > 0) {
+    html += `<div style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem;">`;
+    mainCards.forEach(key => {
+      html += `
+        <div style="flex:1; background: #f8f9fa; padding: 1.2rem; border-radius: 6px; border: 1px solid #e9ecef; text-align: center;">
+          <div style="font-size: 1.2rem; color: #495057; font-weight: 600;">${key.replace('_', ' ').toUpperCase()}</div>
+          <div style="font-size: 2rem; color: #007bff; font-weight: bold; margin-top: 0.3rem;">${result[key]}</div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  // 기타 정보(카드) - mainKeys, summary, error, table_html 제외
+  const keys = Object.keys(result).filter(
+    key => !mainKeys.includes(key) && key !== 'summary' && key !== 'error' && key !== 'table_html'
+  );
   if (keys.length > 0) {
-    html += '<div style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">';
-    
+    html += '<div style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 1.5rem;">';
     keys.forEach(key => {
       const value = result[key];
       let displayValue = '';
-      
       if (typeof value === 'object' && value !== null) {
         if (Array.isArray(value)) {
           displayValue = value.length > 0 ? value.join(', ') : '없음';
@@ -295,7 +333,6 @@ function formatAnalysisResult(result) {
       } else {
         displayValue = String(value);
       }
-      
       html += `
         <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border: 1px solid #e9ecef;">
           <h5 style="margin: 0 0 0.5rem 0; color: #495057; text-transform: capitalize;">${key.replace('_', ' ')}</h5>
@@ -303,10 +340,17 @@ function formatAnalysisResult(result) {
         </div>
       `;
     });
-    
     html += '</div>';
   }
 
+  // 표(table_html)는 항상 맨 아래에
+  if (result.table_html) {
+    html += `
+      <div style="margin-top:1.5rem; overflow-x:auto; background:white; border-radius:6px; border:1px solid #e9ecef; padding:1rem;">
+        ${result.table_html}
+      </div>
+    `;
+  }
   return html;
 }
 
