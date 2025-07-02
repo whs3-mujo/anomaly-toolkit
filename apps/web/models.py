@@ -20,6 +20,7 @@ class AnalysisSession(models.Model):
     # 메타데이터
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+#    analysis_type = models.CharField(max_length=50, default='default_type')
     
     class Meta:
         ordering = ['-created_at']
