@@ -42,7 +42,7 @@ def detect_anomalies(file_path):
     count_anomaly = int(results['Anomaly'].sum())
     total         = len(results)
 
-    # 7. 이상 탐지된 항목만 CSV로 저장 (원하면)
+    # 7. 이상 탐지된 항목만 추출
     detected = results[results['Anomaly'] == 1]
     detected.to_csv("pycaret_detected_anomalies.csv", index=False)
 
@@ -51,8 +51,7 @@ def detect_anomalies(file_path):
         "summary": f"📌 이상치 {count_anomaly:,}건 / 전체 {total:,}건",
         "anomaly_count": int(count_anomaly),
         "total": int(total),
-        "table_html": results.to_html(index=False, classes="table table-sm"),
-        # 추가로 다운로드 버튼, 등등 추가 정보 연결
-
+        # ★ 이상치(Anomaly==1)만 표로 보여줌
+        "table_html": detected.to_html(index=False, classes="table table-sm") if count_anomaly > 0 else "<p>이상치가 없습니다.</p>",
     }
     return result
