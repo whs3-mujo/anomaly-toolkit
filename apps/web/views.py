@@ -1,68 +1,125 @@
-import os
-import uuid
-
-from django.conf import settings
-from django.shortcuts import render, redirect
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
-
-from .forms import UploadFileForm
-from ai_script import detect_anomalies
-
-
-def save_to_media(uploaded_file):
-    """
-    MEDIA_ROOT 아래에 uuid_파일명 으로 저장하고
-    저장된 파일 경로를 반환.
-    """
-    upload_dir = settings.MEDIA_ROOT
-    os.makedirs(upload_dir, exist_ok=True)
-
-    filename = f"{uuid.uuid4().hex}_{uploaded_file.name}"
-    file_path = os.path.join(upload_dir, filename)
-
-    with open(file_path, 'wb+') as dest:
-        for chunk in uploaded_file.chunks():
-            dest.write(chunk)
-
-    return file_path
-
-
-def upload_view(request):
-    """
-    1) 업로드 폼 보여주기
-    2) POST 시 파일 저장 → 가짜 task_id 생성 → Progress 페이지로 리다이렉트
-    """
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            path = save_to_media(form.cleaned_data['datafile'])
-            task_id = uuid.uuid4()  # 실제론 Celery task id 등
-            # TODO: 여기에 detect_anomalies를 비동기로 실행하도록 연결
-            return redirect('progress', task_id=task_id)
-    else:
-        form = UploadFileForm()
-
-    return render(request, 'web/upload.html', { 'form': form })
-
-
-def progress_view(request, task_id):
-    """
-    클라이언트에서 JS 폴링으로 호출할 JSON API.
-    실제 progress 정보는 Celery나 DB에서 조회하게 구현하세요.
-    """
-    # TODO: 실제 진행률 로직 연결
-    fake_progress = 45  # 임시: 0~100 사이 숫자
-    status = 'Processing' if fake_progress < 100 else 'Complete'
-    return JsonResponse({
-        'task_id': str(task_id),
-        'progress': fake_progress,
-        'status': status,
-    })
-
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from .models import AnalysisSession
+import uuid
+import json
 
 def dashboard_view(request):
-    """
-    대시보드 페이지 (현재는 빈 틀)
-    이후 ai 결과를 가공해서 context에 담아주세요.
-    """
-    return render(request, 'web/dashboard.html', {})
+    return render(request, 'web/dashboard.html')
+
+
+def get_analysis_history(request):
+    """분석 히스토리 목록 반환"""
+    try:
+        sessions = AnalysisSession.objects.all().order_by('-created_at')
+        
+        # JSON 형태로 변환
+        history_data = []
+        for session in sessions:
+            history_data.append({
+                'id': session.id,
+                'session_id': session.session_id,
+                'filename': session.get_short_filename(),
+                'full_filename': session.original_filename,
+                'file_type': session.file_type,
+                'created_at': session.created_at.strftime('%Y-%m-%d %H:%M'),
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'history': history_data,
+            'total': len(history_data)
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+def get_analysis_detail(request, session_id):
+    """특정 분석 결과 상세 정보 반환"""
+    try:
+        session = get_object_or_404(AnalysisSession, session_id=session_id)
+        
+        return JsonResponse({
+            'success': True,
+            'session': {
+                'id': session.id,
+                'session_id': session.session_id,
+                'filename': session.original_filename,
+                'file_type': session.file_type,
+                'created_at': session.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'analysis_result': session.analysis_result,
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+        }, status=500)
+
+
+def create_analysis_session(filename, file_path, file_type, analysis_result):
+    """새로운 분석 세션 생성 (완료된 분석 결과와 함께)"""
+    session_id = str(uuid.uuid4())
+    
+    # 분석 세션 생성 (완료된 결과와 함께)
+    analysis_session = AnalysisSession.objects.create(
+        session_id=session_id,
+        original_filename=filename,
+        file_path=file_path,
+        file_type=file_type,
+        analysis_result=analysis_result
+    )
+    
+    return analysis_session
+
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def delete_analysis_session(request, session_id):
+    """분석 세션 삭제"""
+    try:
+        session = get_object_or_404(AnalysisSession, session_id=session_id)
+        session.delete()
+        
+        return JsonResponse({'success': True, 'message': '분석 기록이 삭제되었습니다.'})
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+        }, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def rename_analysis_session(request, session_id):
+    """분석 세션 이름 변경"""
+    try:
+        session = get_object_or_404(AnalysisSession, session_id=session_id)
+        
+        # 새 파일명 받기
+        data = json.loads(request.body)
+        new_filename = data.get('filename', '').strip()
+        
+        if not new_filename:
+            return JsonResponse({'success': False, 'error': '파일명을 입력해주세요.'}, status=400)
+        
+        # 파일명 업데이트
+        session.original_filename = new_filename
+        session.save()
+        
+        return JsonResponse({'success': True, 'message': '파일명이 변경되었습니다.'})
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+        }, status=500)
