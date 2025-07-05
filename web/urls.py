@@ -14,6 +14,7 @@ app_name = 'web'
 #]
 
 urlpatterns = [
+    path("", views.redirect_dashboard, name="root-redirect"),
     path("upload/", views.upload_view, name="upload"),
     path("dashboard/", views.dashboard_view, name="dashboard"),
     path("api/analysis/history/", views.get_analysis_history, name="analysis_history"),

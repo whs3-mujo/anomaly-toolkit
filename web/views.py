@@ -9,6 +9,9 @@ import json
 import os
 from django.conf import settings
 
+def redirect_dashboard(request):
+    return redirect('web:dashboard')
+
 def dashboard_view(request):
     return render(request, 'web/dashboard.html')
 
@@ -158,7 +161,7 @@ def upload_view(request):
                     analysis_result=analysis_result,
                 )
                 print("DB 저장 완료")
-                return redirect("dashboard")
+                return redirect("web:dashboard")
             except Exception as e:
                 print(f"업로드 중 오류: {e}")
                 return render(request, "web/upload.html", {"form": form, "error": str(e)})
