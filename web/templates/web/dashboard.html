@@ -300,7 +300,37 @@ function renderAnalysisResult(session) {
 
 // 분석 결과 표 + 다운로드 버튼
 function formatAnalysisResult(result, session) {
-  let html = "";
+  if (!result || typeof result !== 'object') {
+    return '<p>분석 결과를 표시할 수 없습니다.</p>';
+  }
+
+  let html = '';
+
+  // 1. 요약(상단)
+  if (result.summary) {
+    html += `<div style="background: #e8f5e8; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+      <h4 style="margin: 0 0 0.5rem 0; color: #2d5a2d;">📋 요약</h4>
+      <p style="margin: 0; color: #2d5a2d;">${result.summary}</p>
+    </div>`;
+  }
+
+  // 2. 주요 수치(카드) 한 줄에 가로로
+  const mainKeys = ['anomaly_count', 'total'];
+  const mainCards = mainKeys.filter(key => key in result);
+  if (mainCards.length > 0) {
+    html += `<div style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem;">`;
+    mainCards.forEach(key => {
+      html += `
+        <div style="flex:1; background: #f8f9fa; padding: 1.2rem; border-radius: 6px; border: 1px solid #e9ecef; text-align: center;">
+          <div style="font-size: 1.2rem; color: #495057; font-weight: 600;">${key.replace('_', ' ').toUpperCase()}</div>
+          <div style="font-size: 2rem; color: #007bff; font-weight: bold; margin-top: 0.3rem;">${result[key]}</div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  // 3. 다운로드 버튼 + 표(table_html)
   if (result.table_html) {
     if (session && session.session_id && session.filename) {
       html += `
@@ -312,8 +342,13 @@ function formatAnalysisResult(result, session) {
         </div>
       `;
     }
-    html += result.table_html;
+    html += `
+      <div style="margin-top:1.5rem; overflow-x:auto; background:white; border-radius:6px; border:1px solid #e9ecef; padding:1rem;">
+        ${result.table_html}
+      </div>
+    `;
   }
+
   return html;
 }
 
