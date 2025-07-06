@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <header>
+    <nav>
+      <a href="{% url 'web:dashboard' %}">Home</a> |
+      <a href="{% url 'web:upload' %}">Upload</a> |
+    </nav>
+    </header>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>분석 대시보드</title>
@@ -246,10 +252,18 @@ function loadAnalysisDetail(sessionId) {
     });
 }
 
-// 분석 결과 렌더링
+// 분석 결과 렌더링 함수
 function renderAnalysisResult(session) {
   const resultPanel = document.getElementById('analysis-result');
-  
+  if (!session) {
+    resultPanel.innerHTML = `
+      <div style="text-align:center; color:#dc3545; padding:2rem;">
+        <div style="font-size:2rem; margin-bottom:1rem;">❌</div>
+        <p>분석 결과 세션 정보를 불러올 수 없습니다.</p>
+      </div>
+    `;
+    return;
+  }
   let resultHTML = `
     <div class="result-header">
       <h2 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">${session.filename}</h2>
@@ -260,13 +274,12 @@ function renderAnalysisResult(session) {
     </div>
   `;
 
-  // 분석 결과 표시
   if (session.analysis_result) {
     resultHTML += `
       <div class="result-content">
         <h3 style="margin-bottom: 1rem; color: #495057;">분석 결과</h3>
         <div style="background: white; padding: 1.5rem; border-radius: 4px; border-left: 4px solid #28a745;">
-          ${formatAnalysisResult(session.analysis_result)}
+          ${formatAnalysisResult(session.analysis_result, session)}
         </div>
       </div>
     `;
@@ -282,74 +295,24 @@ function renderAnalysisResult(session) {
   }
 
   resultPanel.innerHTML = resultHTML;
+  setTimeout(bindTableRowClick, 100);
 }
 
-function formatAnalysisResult(result) {
-  if (!result || typeof result !== 'object') {
-    return '<p>분석 결과를 표시할 수 없습니다.</p>';
-  }
-
-  let html = '';
-
-  // 요약(상단)
-  if (result.summary) {
-    html += `<div style="background: #e8f5e8; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-      <h4 style="margin: 0 0 0.5rem 0; color: #2d5a2d;">📋 요약</h4>
-      <p style="margin: 0; color: #2d5a2d;">${result.summary}</p>
-    </div>`;
-  }
-
-  // 주요 수치(카드)만 한 줄에 가로로
-  const mainKeys = ['anomaly_count', 'total'];
-  const mainCards = mainKeys.filter(key => key in result);
-  if (mainCards.length > 0) {
-    html += `<div style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem;">`;
-    mainCards.forEach(key => {
-      html += `
-        <div style="flex:1; background: #f8f9fa; padding: 1.2rem; border-radius: 6px; border: 1px solid #e9ecef; text-align: center;">
-          <div style="font-size: 1.2rem; color: #495057; font-weight: 600;">${key.replace('_', ' ').toUpperCase()}</div>
-          <div style="font-size: 2rem; color: #007bff; font-weight: bold; margin-top: 0.3rem;">${result[key]}</div>
-        </div>
-      `;
-    });
-    html += `</div>`;
-  }
-
-  // 기타 정보(카드) - mainKeys, summary, error, table_html 제외
-  const keys = Object.keys(result).filter(
-    key => !mainKeys.includes(key) && key !== 'summary' && key !== 'error' && key !== 'table_html'
-  );
-  if (keys.length > 0) {
-    html += '<div style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 1.5rem;">';
-    keys.forEach(key => {
-      const value = result[key];
-      let displayValue = '';
-      if (typeof value === 'object' && value !== null) {
-        if (Array.isArray(value)) {
-          displayValue = value.length > 0 ? value.join(', ') : '없음';
-        } else {
-          displayValue = JSON.stringify(value, null, 2);
-        }
-      } else {
-        displayValue = String(value);
-      }
-      html += `
-        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border: 1px solid #e9ecef;">
-          <h5 style="margin: 0 0 0.5rem 0; color: #495057; text-transform: capitalize;">${key.replace('_', ' ')}</h5>
-          <div style="color: #6c757d; font-size: 0.9rem; white-space: pre-wrap;">${displayValue}</div>
-        </div>
-      `;
-    });
-    html += '</div>';
-  }
-
-  // 표(table_html)는 항상 맨 아래에
+// 분석 결과 표 + 다운로드 버튼
+function formatAnalysisResult(result, session) {
+  let html = "";
   if (result.table_html) {
-    html += `
-      <div style="margin-top:1.5rem; overflow-x:auto; background:white; border-radius:6px; border:1px solid #e9ecef; padding:1rem;">
-        ${result.table_html}
-      </div>
-    `;
+    if (session && session.session_id && session.filename) {
+      html += `
+        <div style="margin-bottom: 1rem; text-align: right;">
+          <button onclick="downloadCSV('${session.session_id}', '${session.filename}')"
+            style="background:#1976d2; color:white; border:none; border-radius:6px; padding:6px 16px; font-size:0.95rem; font-weight:500; cursor:pointer; transition:background 0.2s;">
+            CSV 다운로드
+          </button>
+        </div>
+      `;
+    }
+    html += result.table_html;
   }
   return html;
 }
@@ -463,6 +426,35 @@ function getCookie(name) {
     }
   }
   return cookieValue;
+}
+
+function downloadCSV(sessionId, filename) {
+  fetch(`/api/analysis/download/${sessionId}/?format=csv`)
+    .then(response => {
+      if (!response.ok) throw new Error('다운로드 실패');
+      return response.blob();
+    })
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    })
+    .catch(() => alert('CSV 다운로드에 실패했습니다.'));
+}
+
+function bindTableRowClick() {
+  // 표가 있으면 각 row에 클릭 이벤트 바인딩 (XAI 상세 설명 등)
+  document.querySelectorAll('.result-content table tbody tr').forEach(row => {
+    row.style.cursor = 'pointer';
+    row.addEventListener('click', function() {
+      alert('XAI 상세 설명 준비중입니다.');
+    });
+  });
 }
 </script>
 

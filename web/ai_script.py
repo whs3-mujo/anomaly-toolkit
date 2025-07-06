@@ -5,14 +5,17 @@ from sklearn.preprocessing import StandardScaler
 from pycaret.anomaly import setup, create_model, assign_model
 import category_encoders as ce
 
-def detect_anomalies(file_path):
+def detect_anomalies(file_path, exclude_columns=None):
     """
-    업로드된 CSV 파일 경로(file_path)를 받아
+    업로드된 CSV 파일 경로(file_path)와 제외할 칼럼 리스트(exclude_columns)를 받아
     1) 전처리 → 2) PyCaret 이상 탐지 → 3) HTML 테이블 형태 결과 반환
     """
-
     # 1. 데이터 불러오기
     data = pd.read_csv(file_path, index_col=0).dropna()
+
+    # 제외할 칼럼이 있으면 제거
+    if exclude_columns:
+        data = data.drop(columns=[col for col in exclude_columns if col in data.columns])
 
     # 2. 숫자형 / 문자형 분리
     numeric_cols     = data.select_dtypes(include=['int64', 'float64']).columns
