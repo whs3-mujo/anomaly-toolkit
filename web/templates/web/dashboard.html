@@ -429,7 +429,7 @@ function getCookie(name) {
 }
 
 function downloadCSV(sessionId, filename) {
-  fetch(`/api/analysis/download/${sessionId}/?format=csv`)
+  fetch(`/api/analysis/download/${sessionId}/`)
     .then(response => {
       if (!response.ok) throw new Error('다운로드 실패');
       return response.blob();

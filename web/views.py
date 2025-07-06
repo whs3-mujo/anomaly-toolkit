@@ -227,18 +227,23 @@ def save_uploaded_file(file):
 def download_analysis_csv(request, session_id):
     """분석 결과(이상치만) CSV 다운로드"""
     session = get_object_or_404(AnalysisSession, session_id=session_id)
-    result = session.analysis_result
-    # 이상치 표가 없으면 에러
-    if not result or "table_html" not in result:
-        return HttpResponse("No result", status=404)
-    table_html = result["table_html"]
-    if not table_html.strip().startswith("<table"):
-        return HttpResponse("No anomaly table to download.", status=404)
+    result = session.analysis_result or {}
+
+    # JSON 목록(records) 가져오기
+    records = result.get("records", [])
+    if not records:
+        return HttpResponse("이상치 레코드가 없습니다.", status=404)
+
     try:
-        df = pd.read_html(table_html)[0]
+        # JSON → DataFrame → CSV
+        df = pd.DataFrame(records)
         csv_data = df.to_csv(index=False, encoding="utf-8-sig")
+
         response = HttpResponse(csv_data, content_type="text/csv")
-        response['Content-Disposition'] = f'attachment; filename="{session.original_filename}.csv"'
+        response['Content-Disposition'] = (
+            f'attachment; filename="{session.original_filename}.csv"'
+        )
         return response
+
     except Exception as e:
-        return HttpResponse(f"Error: {e}", status=500)
+        return HttpResponse(f"CSV 생성 중 오류: {e}", status=500)

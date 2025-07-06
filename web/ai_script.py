@@ -49,12 +49,16 @@ def detect_anomalies(file_path, exclude_columns=None):
     detected = results[results['Anomaly'] == 1]
     detected.to_csv("pycaret_detected_anomalies.csv", index=False)
 
+    # 이상치 DataFrame 을 바로 JSON 기록용 리스트로 변환
+    records = detected.to_dict(orient='records')
     # 8. 결과를 HTML 테이블 + 요약 문자열로 반환
     result = {
         "summary": f"📌 이상치 {count_anomaly:,}건 / 전체 {total:,}건",
-        "anomaly_count": int(count_anomaly),
-        "total": int(total),
-        # ★ 이상치(Anomaly==1)만 표로 보여줌
-        "table_html": detected.to_html(index=False, classes="table table-sm") if count_anomaly > 0 else "<p>이상치가 없습니다.</p>",
+         "anomaly_count": int(count_anomaly),
+         "total": int(total),
+         "table_html": detected.to_html(
+             index=False, classes="table table-sm"
+         ) if count_anomaly > 0 else "<p>이상치가 없습니다.</p>",
+        "records": detected.to_dict(orient="records"),
     }
     return result
