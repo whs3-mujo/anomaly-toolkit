@@ -107,6 +107,14 @@
     .table tr:nth-child(even) {
       background: #f8f9fa;
     }
+
+    .selected-row {
+      background-color: #e3f2fd !important;  /* 로그 열 누르면 색칠할 파란색 */
+    }
+    table tbody tr:hover {
+      background-color: #f1f3f5;  /* 마우스 오버시 부드러운 회색 */
+      cursor: pointer; /*클릭가능한 마우스 모양? 으로 바꿔줌*/
+    }
     </style>
 </head>
 <body>
@@ -295,6 +303,7 @@ function renderAnalysisResult(session) {
   }
 
   resultPanel.innerHTML = resultHTML;
+  attachShapClickHandlers();
   setTimeout(bindTableRowClick, 100);
 }
 
@@ -482,15 +491,38 @@ function downloadCSV(sessionId, filename) {
     .catch(() => alert('CSV 다운로드에 실패했습니다.'));
 }
 
-function bindTableRowClick() {
-  // 표가 있으면 각 row에 클릭 이벤트 바인딩 (XAI 상세 설명 등)
-  document.querySelectorAll('.result-content table tbody tr').forEach(row => {
-    row.style.cursor = 'pointer';
-    row.addEventListener('click', function() {
-      alert('XAI 상세 설명 준비중입니다.');
+function attachShapClickHandlers() {
+  const rows = document.querySelectorAll("table tbody tr");
+  console.log("[SHAP DEBUG] 행 개수:", rows.length);
+
+  rows.forEach((row, index) => {
+    row.addEventListener("click", () => {
+      console.log(`[SHAP DEBUG] ${index}번 행 클릭 → SHAP 요청`);
+
+      // 이전 선택된 행에서 강조 스타일 제거
+      document.querySelectorAll("table tbody tr").forEach(r => {
+        r.classList.remove("selected-row");
+      });
+
+      // 현재 클릭된 행에 강조 스타일 추가
+      row.classList.add("selected-row");
+
+      // SHAP 설명 그래프 요청
+      fetch(`/api/analysis/explain/${currentSessionId}/${index}/`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById("shap-plot").innerHTML = data.plot_html;
+          } else {
+            document.getElementById("shap-plot").innerHTML =
+              `<p style="color:red;">SHAP 오류: ${data.error}</p>`;
+          }
+        });
     });
   });
 }
+
+
 </script>
 
 </body>
