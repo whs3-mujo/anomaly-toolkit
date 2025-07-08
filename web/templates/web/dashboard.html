@@ -13,6 +13,8 @@
     <style>
         body {
             margin: 0;
+            height: 100vh;          
+            overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f7fa;
         }
@@ -115,6 +117,14 @@
       background-color: #f1f3f5;  /* 마우스 오버시 부드러운 회색 */
       cursor: pointer; /*클릭가능한 마우스 모양? 으로 바꿔줌*/
     }
+
+    .table thead th { /*맨 위 행(로그 열 정보)는 아래로 스크롤해도 고정 */
+      position: sticky;
+      top: 0;
+      background: #f1f3f5;
+      z-index: 2;
+    }
+
     </style>
 </head>
 <body>
@@ -352,8 +362,23 @@ function formatAnalysisResult(result, session) {
       `;
     }
     html += `
-      <div style="margin-top:1.5rem; overflow-x:auto; background:white; border-radius:6px; border:1px solid #e9ecef; padding:1rem;">
-        ${result.table_html}
+      <div style="
+        margin-top: 1.5rem;
+        width: 60%;               <!-- 가로 너비, %조절로 변경가능-->
+        background: white;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+        padding: 1rem;
+      ">
+        <div style="
+          max-height: 400px;
+          overflow-y: auto;
+          overflow-x: auto;
+        ">
+          <div style="min-width: 1000px;">
+            ${result.table_html}
+          </div>
+        </div>
       </div>
     `;
   }
