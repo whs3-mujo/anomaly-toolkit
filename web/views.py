@@ -248,6 +248,10 @@ def download_analysis_csv(request, session_id):
     except Exception as e:
         return HttpResponse(f"CSV 생성 중 오류: {e}", status=500)
     
+
+
+
+#get_shap_plot 함수를 선언하여 그래프를 생성 및 이미지 파일 만듦. 그래프 모양, 크기를 여기서 바꿀 수 있음
 import pandas as pd
 import numpy as np
 import shap
