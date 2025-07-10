@@ -247,3 +247,81 @@ def download_analysis_csv(request, session_id):
 
     except Exception as e:
         return HttpResponse(f"CSV 생성 중 오류: {e}", status=500)
+    
+import pandas as pd
+import numpy as np
+import shap
+import matplotlib
+import matplotlib.pyplot as plt
+from django.http import JsonResponse
+from io import BytesIO
+import base64
+from django.shortcuts import get_object_or_404
+from .models import AnalysisSession
+
+# ✅ 한글 폰트 설정 (윈도우 기준 예시)
+matplotlib.rc('font', family='Malgun Gothic')  # 윈도우용
+matplotlib.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
+
+
+def get_shap_plot(request, session_id, row_index):
+    session = get_object_or_404(AnalysisSession, session_id=session_id)
+
+    # 데이터 불러오기
+    X = pd.read_csv(session.file_path.replace(".csv", "_X_for_shap.csv"))
+    shap_values = np.load(session.file_path.replace(".csv", "_shap_values.npy"))
+    feature_cols = X.columns.tolist()
+
+    # 해당 샘플의 SHAP 값 가져오기
+    row = shap_values[int(row_index)]
+    shap_df = pd.DataFrame({
+        'feature': feature_cols,
+        'shap_value': row,
+        'abs_val': np.abs(row)
+    })
+
+    # SHAP < 0인 이상치 기여 feature만 추출
+    negative_df = shap_df[shap_df['shap_value'] < 0].sort_values(by='abs_val', ascending=False).reset_index(drop=True)
+    max_len = max(len(negative_df), 5)
+    negative_df = negative_df.reindex(range(max_len)).fillna({'feature': '', 'shap_value': 0})
+
+    y_pos = np.arange(max_len)
+    fig, ax = plt.subplots(figsize=(6, max(8, max_len * 1.5)))
+
+
+    # SHAP 값을 절댓값으로 바꿔 오른쪽으로 표시
+    flipped_values = -negative_df['shap_value']  # → 양수로 변환
+    ax.set_xlim(0, flipped_values.max() * 1.2)
+
+    ax.barh(y_pos, flipped_values, color='salmon', label='이상치 기여', align='center')
+    ax.axvline(x=0, color='black', linewidth=1)
+
+    ax.grid(axis='y', visible=False)  # 가로줄 제거
+    ax.grid(axis='x', visible=True, linestyle='--', alpha=0.8)  # 세로줄 표시 (옵션)
+
+
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels([''] * max_len)
+    ax.invert_yaxis()
+
+    for i, label in enumerate(negative_df['feature']):
+        if label:
+            ax.text(flipped_values[i] + flipped_values.max() * 0.02, i, label, ha='left', va='center', fontsize=10, fontweight='bold')
+
+    ax.set_title(f"{row_index}번 ROW\n", fontweight='bold')
+    ax.set_xlabel("영향도 크기 (SHAP)")
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), frameon=False)
+
+    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.15)
+
+    # base64 인코딩
+    buffer = BytesIO()
+    fig.savefig(buffer, format="png")
+    buffer.seek(0)
+    image_png = buffer.getvalue()
+    buffer.close()
+    encoded = base64.b64encode(image_png).decode('utf-8')
+    img_html = f'<img src="data:image/png;base64,{encoded}" style="width:100%;">'
+
+    return JsonResponse({'success': True, 'plot_html': img_html})

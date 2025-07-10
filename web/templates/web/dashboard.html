@@ -10,6 +10,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>분석 대시보드</title>
+    <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -349,25 +350,31 @@ function formatAnalysisResult(result, session) {
 
     }
     html += `
-      <div style="
-        margin-top: 1.5rem;
-        width: 60%;               <!-- 가로 너비, %조절로 변경가능-->
-        background: white;
-        border-radius: 6px;
-        border: 1px solid #e9ecef;
-        padding: 1rem;
-      ">
+      <div style="display: flex; gap: 2rem; margin-top: 1.5rem;">
+        
+        <!-- 왼쪽: 표 -->
         <div style="
-          max-height: 400px;
-          overflow-y: auto;
-          overflow-x: auto;
+          width: 60%;
+          background: white;
+          border-radius: 6px;
+          border: 1px solid #e9ecef;
+          padding: 1rem;
         ">
-          <div style="min-width: 1000px;">
-            ${result.table_html}
+          <div style="max-height: 400px; overflow-y: auto; overflow-x: auto;">
+            <div style="min-width: 1000px;">
+              ${result.table_html}
+            </div>
           </div>
         </div>
+
+        <!-- 오른쪽: SHAP 그래프 자리 -->
+        <div id="shap-plot" style="width: 40%; background: white; border: 1px solid #e9ecef; border-radius: 6px; padding: 1rem;">
+          <p style="color: #999; text-align: center;">SHAP 그래프가 여기에 표시됩니다</p>
+        </div>
+
       </div>
     `;
+
   }
 
   return html;

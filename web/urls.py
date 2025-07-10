@@ -25,4 +25,5 @@ urlpatterns = [
     path("api/preview_columns/", views.preview_columns, name="preview_columns"),
     path("api/detect_anomalies/", views.detect_anomalies_view, name="detect_anomalies"),
     path("api/analysis/download/<str:session_id>/", views.download_analysis_csv, name="download_analysis_csv"),
+    path("api/analysis/explain/<str:session_id>/<int:row_index>/", views.get_shap_plot, name="shap_explain"),
 ]

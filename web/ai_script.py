@@ -4,6 +4,9 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from pycaret.anomaly import setup, create_model, assign_model
 import category_encoders as ce
+import joblib
+import numpy as np
+import shap
 
 def detect_anomalies(file_path, exclude_columns=None):
     """
@@ -41,6 +44,11 @@ def detect_anomalies(file_path, exclude_columns=None):
     model = create_model('iforest')
     results = assign_model(model, score=True)
 
+    model_path = file_path.replace('.csv', '_model.pkl')
+    joblib.dump(model, model_path)
+    shap_input_path = file_path.replace('.csv', '_X_for_shap.csv')
+    data_scaled.to_csv(shap_input_path, index=False)
+
     # 6. 탐지 개수 집계
     count_anomaly = int(results['Anomaly'].sum())
     total         = len(results)
@@ -57,4 +65,6 @@ def detect_anomalies(file_path, exclude_columns=None):
         # ★ 이상치(Anomaly==1)만 표로 보여줌
         "table_html": detected.to_html(index=False, classes="table table-sm") if count_anomaly > 0 else "<p>이상치가 없습니다.</p>",
     }
+    shap_values = shap.TreeExplainer(model).shap_values(data_scaled)
+    np.save(file_path.replace(".csv", "_shap_values.npy"), shap_values)
     return result
