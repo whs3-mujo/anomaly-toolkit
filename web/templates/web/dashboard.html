@@ -111,22 +111,32 @@
 </head>
 <body>
 
-<div style="display: flex; height: 100vh;">
+<div style="display: flex; height: 100vh; position: relative;">
 
-  <div id="history-sidebar" style="width: 300px; background: linear-gradient(145deg, #f8f9fa, #e9ecef); padding: 1rem; overflow-y: auto; border-right: 1px solid #dee2e6; box-shadow: 2px 0 10px rgba(0,0,0,0.1);">
-    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-      <h3 style="margin: 0; color: #495057; font-size: 1.1rem;">분석 히스토리</h3>
+  <!-- 사이드바 -->
+  <div id="history-sidebar"
+    style="width: 300px; min-width: 0; max-width: 90vw; transition: width 0.25s cubic-bezier(.4,0,.2,1); background: #fff; border-right: 1px solid #e3e6ea; box-shadow: 1px 0 8px rgba(0,0,0,0.03); position: relative; z-index: 10; overflow-x: hidden; padding: 0 0 0 0;">
+    <div style="display: flex; align-items: center; height: 56px; border-bottom: 1px solid #f1f3f5; padding: 0 16px;">
+      <span style="font-weight: 600; color: #222; font-size: 1.08rem; flex:1;">분석 히스토리</span>
+      <button id="toggle-sidebar-btn"
+        style="background: none; border: none; outline: none; cursor: pointer; padding: 6px; margin-left: 4px; border-radius: 50%; transition: background 0.15s;">
+        <svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path d="M13 5L8 10L13 15" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
     </div>
-    
     <div id="loading-spinner" style="text-align: center; padding: 2rem; display: none;">
       <div style="border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
       <p style="margin-top: 1rem; color: #6c757d;">로딩 중...</p>
     </div>
-    
-    <div id="history-list">
+    <div id="history-list" style="padding: 1rem 1rem 1rem 1rem;">
       <p style="text-align: center; color: #6c757d; padding: 2rem;">히스토리를 불러오는 중...</p>
     </div>
   </div>
+
+  <!-- 미니 사이드바 버튼 -->
+  <button id="mini-sidebar-btn"
+    style="display: none; position: absolute; left: 0; top: 16px; width: 36px; height: 44px; background: none; border: none; border-radius: 0 8px 8px 0; box-shadow: none; align-items: center; justify-content: center; z-index: 20; cursor: pointer;">
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path d="M7 5L12 10L7 15" stroke="#1976d2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
 
   <div id="result-panel" style="flex: 1; padding: 2rem; overflow-y: auto; background: #ffffff;">
     <div id="welcome-message" style="text-align: center; padding: 4rem 2rem; color: #6c757d;">
@@ -335,9 +345,13 @@ function formatAnalysisResult(result, session) {
     if (session && session.session_id && session.filename) {
       html += `
         <div style="margin-bottom: 1rem; text-align: right;">
-          <button onclick="downloadCSV('${session.session_id}', '${session.filename}')"
+          <button onclick="downloadCSV('${session.session_id}', '${session.filename}', 'all')"
             style="background:#1976d2; color:white; border:none; border-radius:6px; padding:6px 16px; font-size:0.95rem; font-weight:500; cursor:pointer; transition:background 0.2s;">
-            CSV 다운로드
+            전체 다운로드
+          </button>
+          <button onclick="downloadCSV('${session.session_id}', '${session.filename}', 'anomaly')"
+            style="background:#dc3545; color:white; border:none; border-radius:6px; padding:6px 16px; font-size:0.95rem; font-weight:500; cursor:pointer; transition:background 0.2s; margin-left: 0.5rem;">
+            이상치만 다운로드
           </button>
         </div>
       `;
@@ -463,8 +477,8 @@ function getCookie(name) {
   return cookieValue;
 }
 
-function downloadCSV(sessionId, filename) {
-  fetch(`/api/analysis/download/${sessionId}/`)
+function downloadCSV(sessionId, filename, type) {
+  fetch(`/api/analysis/download/${sessionId}/?type=${type}`)
     .then(response => {
       if (!response.ok) throw new Error('다운로드 실패');
       return response.blob();
@@ -473,7 +487,7 @@ function downloadCSV(sessionId, filename) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = filename + '.csv';
+      a.download = filename + (type === 'all' ? '_전체.csv' : '_이상치.csv');
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -491,6 +505,34 @@ function bindTableRowClick() {
     });
   });
 }
+
+// 사이드바 토글 기능
+const sidebar = document.getElementById('history-sidebar');
+const toggleBtn = document.getElementById('toggle-sidebar-btn');
+const miniSidebarBtn = document.getElementById('mini-sidebar-btn');
+let sidebarOpen = true;
+
+toggleBtn.onclick = function() {
+  sidebarOpen = false;
+  sidebar.style.width = '0';
+  sidebar.style.minWidth = '0';
+  sidebar.style.padding = '0';
+  sidebar.style.overflow = 'hidden';
+  toggleBtn.style.display = 'none';
+  miniSidebarBtn.style.display = 'flex';
+};
+
+miniSidebarBtn.onclick = function() {
+  sidebarOpen = true;
+  sidebar.style.width = '300px';
+  sidebar.style.minWidth = '0';
+  sidebar.style.padding = '0 0 0 0';
+  setTimeout(() => {
+    sidebar.style.padding = '';
+  }, 250);
+  toggleBtn.style.display = 'inline-block';
+  miniSidebarBtn.style.display = 'none';
+};
 </script>
 
 </body>

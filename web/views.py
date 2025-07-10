@@ -150,6 +150,7 @@ def upload_view(request):
                 print(f"파일 저장 완료: {save_path}")
 
                 # 이상 탐지
+                
                 analysis_result = detect_anomalies(save_path)
                 print(f"분석 결과: {analysis_result}")
 
@@ -225,25 +226,22 @@ def save_uploaded_file(file):
 
 @require_http_methods(["GET"])
 def download_analysis_csv(request, session_id):
-    """분석 결과(이상치만) CSV 다운로드"""
     session = get_object_or_404(AnalysisSession, session_id=session_id)
     result = session.analysis_result or {}
 
-    # JSON 목록(records) 가져오기
-    records = result.get("records", [])
+    download_type = request.GET.get("type", "anomaly")
+    if download_type == "all":
+        records = result.get("all_records", [])
+    else:
+        records = result.get("records", [])
+
     if not records:
-        return HttpResponse("이상치 레코드가 없습니다.", status=404)
+        return HttpResponse("다운로드할 데이터가 없습니다.", status=404)
 
-    try:
-        # JSON → DataFrame → CSV
-        df = pd.DataFrame(records)
-        csv_data = df.to_csv(index=False, encoding="utf-8-sig")
-
-        response = HttpResponse(csv_data, content_type="text/csv")
-        response['Content-Disposition'] = (
-            f'attachment; filename="{session.original_filename}.csv"'
-        )
-        return response
-
-    except Exception as e:
-        return HttpResponse(f"CSV 생성 중 오류: {e}", status=500)
+    df = pd.DataFrame(records)
+    csv_data = df.to_csv(index=False, encoding="utf-8-sig")
+    response = HttpResponse(csv_data, content_type="text/csv")
+    response['Content-Disposition'] = (
+        f'attachment; filename="{session.original_filename}_{download_type}.csv"'
+    )
+    return response
