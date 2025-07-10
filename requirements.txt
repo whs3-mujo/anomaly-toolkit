@@ -1,6 +1,7 @@
-# Python >=3.10
+# Python >=3.10, <= 3.11
 # Django 기반 웹 프레임워크
 Django==5.1
+gunicorn==23.0.0
 
 # .env 파일로 환경변수 로딩
 python-dotenv==1.1.0

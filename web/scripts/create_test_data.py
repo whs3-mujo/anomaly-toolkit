@@ -1,6 +1,6 @@
 # Django shell에서 실행할 테스트 데이터 생성 스크립트
 
-from apps.web.models import AnalysisSession
+from web.models import AnalysisSession
 import uuid
 from datetime import datetime, timedelta
 from django.utils import timezone

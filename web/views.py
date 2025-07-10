@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from .forms import UploadFileForm
@@ -8,6 +8,11 @@ import uuid
 import json
 import os
 from django.conf import settings
+import pandas as pd
+from .ai_script import detect_anomalies
+
+def redirect_dashboard(request):
+    return redirect('web:dashboard')
 
 def dashboard_view(request):
     return render(request, 'web/dashboard.html')
@@ -145,7 +150,6 @@ def upload_view(request):
                 print(f"파일 저장 완료: {save_path}")
 
                 # 이상 탐지
-                from .ai_script import detect_anomalies
                 analysis_result = detect_anomalies(save_path)
                 print(f"분석 결과: {analysis_result}")
 
@@ -158,7 +162,7 @@ def upload_view(request):
                     analysis_result=analysis_result,
                 )
                 print("DB 저장 완료")
-                return redirect("dashboard")
+                return redirect("web:dashboard")
             except Exception as e:
                 print(f"업로드 중 오류: {e}")
                 return render(request, "web/upload.html", {"form": form, "error": str(e)})
@@ -167,3 +171,79 @@ def upload_view(request):
     else:
         form = UploadFileForm()
     return render(request, "web/upload.html", {"form": form})
+
+
+def preview_columns(request):
+    """
+    업로드된 파일에서 칼럼명과 데이터 미리보기(2줄) 반환
+    """
+    if request.method == "POST" and request.FILES.get("file"):
+        file = request.FILES["file"]
+        df = pd.read_csv(file, nrows=2)
+        columns = list(df.columns)
+        preview = df.head(2).to_dict(orient="records")
+        return JsonResponse({"columns": columns, "preview": preview})
+    return JsonResponse({"error": "No file uploaded"}, status=400)
+
+def detect_anomalies_view(request):
+    try:
+        if request.method == "POST":
+            file = request.FILES["file"]
+            exclude_columns = request.POST.get("exclude_columns", "")
+            exclude_columns = [col.strip() for col in exclude_columns.split(",") if col.strip()]
+            file_path = save_uploaded_file(file)
+            result = detect_anomalies(file_path, exclude_columns)
+            # DB 저장 추가
+            AnalysisSession.objects.create(
+                session_id=str(uuid.uuid4()),
+                original_filename=file.name,
+                file_path=file_path,
+                file_type=os.path.splitext(file.name)[-1][1:].upper(),
+                analysis_result=result,
+            )
+            return JsonResponse(result)
+        return JsonResponse({"error": "Invalid request"}, status=400)
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+def upload_filter_view(request):
+    return render(request, "web/upload_filter.html")
+
+
+def save_uploaded_file(file):
+    upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+    file_path = os.path.join(upload_dir, file.name)
+    with open(file_path, "wb+") as destination:
+        for chunk in file.chunks():
+            destination.write(chunk)
+    return file_path
+
+@require_http_methods(["GET"])
+def download_analysis_csv(request, session_id):
+    """분석 결과(이상치만) CSV 다운로드"""
+    session = get_object_or_404(AnalysisSession, session_id=session_id)
+    result = session.analysis_result or {}
+
+    # JSON 목록(records) 가져오기
+    records = result.get("records", [])
+    if not records:
+        return HttpResponse("이상치 레코드가 없습니다.", status=404)
+
+    try:
+        # JSON → DataFrame → CSV
+        df = pd.DataFrame(records)
+        csv_data = df.to_csv(index=False, encoding="utf-8-sig")
+
+        response = HttpResponse(csv_data, content_type="text/csv")
+        response['Content-Disposition'] = (
+            f'attachment; filename="{session.original_filename}.csv"'
+        )
+        return response
+
+    except Exception as e:
+        return HttpResponse(f"CSV 생성 중 오류: {e}", status=500)

@@ -5,14 +5,17 @@ from sklearn.preprocessing import StandardScaler
 from pycaret.anomaly import setup, create_model, assign_model
 import category_encoders as ce
 
-def detect_anomalies(file_path):
+def detect_anomalies(file_path, exclude_columns=None):
     """
-    업로드된 CSV 파일 경로(file_path)를 받아
+    업로드된 CSV 파일 경로(file_path)와 제외할 칼럼 리스트(exclude_columns)를 받아
     1) 전처리 → 2) PyCaret 이상 탐지 → 3) HTML 테이블 형태 결과 반환
     """
-
     # 1. 데이터 불러오기
     data = pd.read_csv(file_path, index_col=0).dropna()
+
+    # 제외할 칼럼이 있으면 제거
+    if exclude_columns:
+        data = data.drop(columns=[col for col in exclude_columns if col in data.columns])
 
     # 2. 숫자형 / 문자형 분리
     numeric_cols     = data.select_dtypes(include=['int64', 'float64']).columns
@@ -42,12 +45,16 @@ def detect_anomalies(file_path):
     count_anomaly = int(results['Anomaly'].sum())
     total         = len(results)
 
-    # 7. 이상 탐지된 항목만 CSV로 저장 (원하면)
+    # 7. 이상 탐지된 항목만 추출
     detected = results[results['Anomaly'] == 1]
     detected.to_csv("pycaret_detected_anomalies.csv", index=False)
 
-    # 8. 결과를 HTML 테이블 + 요약 문자열로 반환
-    summary = f"<p>📌 이상치 {count_anomaly:,}건 / 전체 {total:,}건</p>"
-    table_html = results.to_html(index=False, classes="table table-sm")
-
-    return summary + table_html
+ # 8. 결과를 HTML 테이블 + 요약 문자열로 반환
+    result = {
+        "summary": f"📌 이상치 {count_anomaly:,}건 / 전체 {total:,}건",
+        "anomaly_count": int(count_anomaly),
+        "total": int(total),
+        # ★ 이상치(Anomaly==1)만 표로 보여줌
+        "table_html": detected.to_html(index=False, classes="table table-sm") if count_anomaly > 0 else "<p>이상치가 없습니다.</p>",
+    }
+    return result
