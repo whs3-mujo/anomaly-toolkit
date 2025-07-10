@@ -290,12 +290,16 @@ function renderAnalysisResult(session) {
         <span style="background: #28a745; padding: 4px 8px; border-radius: 12px;">완료</span>
       </div>
     </div>
+
+    <!-- ✅ 분석 결과 제목 여기로 이동 -->
+    <div style="padding: 1.2rem 1.5rem 0.5rem 1.5rem; font-size: 1.1rem; font-weight: bold; color: #495057;">
+      분석 결과
+    </div>
   `;
 
   if (session.analysis_result) {
     resultHTML += `
       <div class="result-content">
-        <h3 style="margin-bottom: 1rem; color: #495057;">분석 결과</h3>
         <div style="background: white; padding: 1.5rem; border-radius: 4px; border-left: 4px solid #28a745;">
           ${formatAnalysisResult(session.analysis_result, session)}
         </div>
@@ -325,41 +329,24 @@ function formatAnalysisResult(result, session) {
 
   let html = '';
 
-  // 1. 요약(상단)
-  if (result.summary) {
-    html += `<div style="background: #e8f5e8; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-      <h4 style="margin: 0 0 0.5rem 0; color: #2d5a2d;">📋 요약</h4>
-      <p style="margin: 0; color: #2d5a2d;">${result.summary}</p>
-    </div>`;
-  }
+  // 1. 요약 영역 제거 대신 공간만 유지
+  html += `<div style="height: 80px;"></div>`;
 
-  // 2. 주요 수치(카드) 한 줄에 가로로
-  const mainKeys = ['anomaly_count', 'total'];
-  const mainCards = mainKeys.filter(key => key in result);
-  if (mainCards.length > 0) {
-    html += `<div style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem;">`;
-    mainCards.forEach(key => {
-      html += `
-        <div style="flex:1; background: #f8f9fa; padding: 1.2rem; border-radius: 6px; border: 1px solid #e9ecef; text-align: center;">
-          <div style="font-size: 1.2rem; color: #495057; font-weight: 600;">${key.replace('_', ' ').toUpperCase()}</div>
-          <div style="font-size: 2rem; color: #007bff; font-weight: bold; margin-top: 0.3rem;">${result[key]}</div>
-        </div>
-      `;
-    });
-    html += `</div>`;
-  }
+  // 2. 주요 수치 카드 공간만 남기기
+  html += `<div style="height: 100px;"></div>`;
 
-  // 3. 다운로드 버튼 + 표(table_html)
+  // 다운로드 버튼 + 표(table_html)
   if (result.table_html) {
     if (session && session.session_id && session.filename) {
       html += `
-        <div style="margin-bottom: 1rem; text-align: right;">
+        <div style="margin-top: 1rem; margin-bottom: -1.5rem; width: 60%; text-align: right;">
           <button onclick="downloadCSV('${session.session_id}', '${session.filename}')"
             style="background:#1976d2; color:white; border:none; border-radius:6px; padding:6px 16px; font-size:0.95rem; font-weight:500; cursor:pointer; transition:background 0.2s;">
             CSV 다운로드
           </button>
         </div>
       `;
+
     }
     html += `
       <div style="
