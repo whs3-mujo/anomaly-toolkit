@@ -255,10 +255,6 @@ function loadAnalysisDetail(sessionId) {
       } else {
         showError('분석 결과를 불러오는데 실패했습니다: ' + data.error);
       }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      showError('네트워크 오류가 발생했습니다.');
     });
 }
 
