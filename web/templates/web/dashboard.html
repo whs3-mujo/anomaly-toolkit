@@ -368,8 +368,22 @@ function formatAnalysisResult(result, session) {
         </div>
 
         <!-- 오른쪽: SHAP 그래프 자리 -->
-        <div id="shap-plot" style="width: 40%; background: white; border: 1px solid #e9ecef; border-radius: 6px; padding: 1rem;">
-          <p style="color: #999; text-align: center;">SHAP 그래프가 여기에 표시됩니다</p>
+        <div style="
+          width: 40%;
+          background: white;
+          border: 1px solid #e9ecef;
+          border-radius: 6px;
+          padding: 1rem;
+          display: flex;
+          flex-direction: column;
+        ">
+          <!-- 그래프 -->
+          <div id="shap-plot">
+            <p style="color: #999; text-align: center;">SHAP 그래프가 여기에 표시됩니다</p>
+          </div>
+
+          <!-- 설명 -->
+          <div id="shap-explanation" style="margin-top: 1.5rem;"></div>
         </div>
 
       </div>
@@ -526,12 +540,20 @@ function attachShapClickHandlers() {
       // 현재 클릭된 행에 강조 스타일 추가
       row.classList.add("selected-row");
 
-      // SHAP 설명 그래프 요청
+      // 1. SHAP 설명 그래프 요청
       fetch(`/api/analysis/explain/${currentSessionId}/${index}/`)
         .then(res => res.json())
         .then(data => {
           if (data.success) {
             document.getElementById("shap-plot").innerHTML = data.plot_html;
+
+            // 2. SHAP 설명 텍스트도 함께 출력
+            const explanationBox = document.getElementById("shap-explanation");
+            explanationBox.innerHTML =
+              "<h4>📘 설명:</h4><ul>" +
+              data.shap_explanation.map(line => `<li>${line}</li>`).join("") +
+              "</ul>";
+
           } else {
             document.getElementById("shap-plot").innerHTML =
               `<p style="color:red;">SHAP 오류: ${data.error}</p>`;

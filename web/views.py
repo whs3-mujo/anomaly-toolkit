@@ -271,7 +271,7 @@ matplotlib.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 
 def get_shap_plot(request, session_id, row_index):
     session = get_object_or_404(AnalysisSession, session_id=session_id)
 
-    # 데이터 불러오기
+    # 데이터 불러오기 (ai_script.py 함수에서 추출해낸 두 개의 파일 가져옴)
     X = pd.read_csv(session.file_path.replace(".csv", "_X_for_shap.csv"))
     shap_values = np.load(session.file_path.replace(".csv", "_shap_values.npy"))
     feature_cols = X.columns.tolist()
@@ -281,7 +281,8 @@ def get_shap_plot(request, session_id, row_index):
     shap_df = pd.DataFrame({
         'feature': feature_cols,
         'shap_value': row,
-        'abs_val': np.abs(row)
+        'abs_val': np.abs(row),
+        'data': X.iloc[int(row_index)].values  # SHAP 줄글 설명
     })
 
     # SHAP < 0인 이상치 기여 feature만 추출
@@ -301,7 +302,7 @@ def get_shap_plot(request, session_id, row_index):
     ax.axvline(x=0, color='black', linewidth=1)
 
     ax.grid(axis='y', visible=False)  # 가로줄 제거
-    ax.grid(axis='x', visible=True, linestyle='--', alpha=0.8)  # 세로줄 표시 (옵션)
+    ax.grid(axis='x', visible=True, linestyle='--', alpha=0.8)  # 세로줄은 표시 (옵션)
 
 
     ax.set_yticks(y_pos)
@@ -328,4 +329,32 @@ def get_shap_plot(request, session_id, row_index):
     encoded = base64.b64encode(image_png).decode('utf-8')
     img_html = f'<img src="data:image/png;base64,{encoded}" style="width:100%;">'
 
-    return JsonResponse({'success': True, 'plot_html': img_html})
+    explanation_text = generate_shap_explanation(shap_df) #SHAP 줄글 설명용
+
+    return JsonResponse({
+    'success': True,
+    'plot_html': img_html,
+    'shap_explanation': explanation_text  # SHAP 줄글 설명 추가됨
+})
+
+
+#SHAP 그래프에 대한 줄글 설명 출력 코드
+
+def generate_shap_explanation(shap_row_df):
+    explanations = []
+    for _, row in shap_row_df.iterrows():
+        feature = row['feature']
+        value = row['data']
+        shap_val = row['shap_value']
+
+        if shap_val < -0.1:
+            direction = "이상치로 판단하는 데 크게 기여했습니다 (SHAP < 0)"
+        elif shap_val > 0.1:
+            direction = "이상치가 아닐 가능성을 높였습니다 (SHAP > 0)"
+        else:
+            direction = "큰 영향을 미치지 않았습니다"
+
+        explanations.append(
+            f"- {feature} 값이 {value:.2f}로 설정되어 SHAP 값 {shap_val:.2f} → {direction}"
+        )
+    return explanations
