@@ -22,6 +22,12 @@ class AnalysisSession(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 #    analysis_type = models.CharField(max_length=50, default='default_type')
     
+    user_graph_html = models.TextField(null=True, blank=True)
+    hour_graph_html = models.TextField(null=True, blank=True)
+    score_graph_html = models.TextField(null=True, blank=True)
+    user_col = models.CharField(max_length=100, null=True, blank=True)
+    time_col = models.CharField(max_length=100, null=True, blank=True)
+    
     class Meta:
         ordering = ['-created_at']
         verbose_name = '분석 세션'
