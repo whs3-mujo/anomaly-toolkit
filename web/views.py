@@ -10,6 +10,7 @@ import os
 from django.conf import settings
 import pandas as pd
 from .ai_script import detect_anomalies
+from .visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot_anomaly_score_distribution
 
 def redirect_dashboard(request):
     return redirect('web:dashboard')
@@ -17,13 +18,10 @@ def redirect_dashboard(request):
 def dashboard_view(request):
     return render(request, 'web/dashboard.html')
 
-
 def get_analysis_history(request):
     """분석 히스토리 목록 반환"""
     try:
         sessions = AnalysisSession.objects.all().order_by('-created_at')
-        
-        # JSON 형태로 변환
         history_data = []
         for session in sessions:
             history_data.append({
@@ -34,26 +32,22 @@ def get_analysis_history(request):
                 'file_type': session.file_type,
                 'created_at': session.created_at.strftime('%Y-%m-%d %H:%M'),
             })
-        
         return JsonResponse({
             'success': True,
             'history': history_data,
             'total': len(history_data)
         })
-        
     except Exception as e:
         return JsonResponse({
             'success': False,
             'error': str(e),
         }, status=500)
 
-
 @require_http_methods(["GET"])
 def get_analysis_detail(request, session_id):
     """특정 분석 결과 상세 정보 반환"""
     try:
         session = get_object_or_404(AnalysisSession, session_id=session_id)
-        
         return JsonResponse({
             'success': True,
             'session': {
@@ -63,21 +57,20 @@ def get_analysis_detail(request, session_id):
                 'file_type': session.file_type,
                 'created_at': session.created_at.strftime('%Y-%m-%d %H:%M:%S'),
                 'analysis_result': session.analysis_result,
+                'user_graph_html': getattr(session, 'user_graph_html', None),
+                'hour_graph_html': getattr(session, 'hour_graph_html', None),
+                'score_graph_html': getattr(session, 'score_graph_html', None),
             }
         })
-        
     except Exception as e:
         return JsonResponse({
             'success': False,
             'error': str(e),
         }, status=500)
 
-
 def create_analysis_session(filename, file_path, file_type, analysis_result):
     """새로운 분석 세션 생성 (완료된 분석 결과와 함께)"""
     session_id = str(uuid.uuid4())
-    
-    # 분석 세션 생성 (완료된 결과와 함께)
     analysis_session = AnalysisSession.objects.create(
         session_id=session_id,
         original_filename=filename,
@@ -85,9 +78,7 @@ def create_analysis_session(filename, file_path, file_type, analysis_result):
         file_type=file_type,
         analysis_result=analysis_result
     )
-    
     return analysis_session
-
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
@@ -96,15 +87,12 @@ def delete_analysis_session(request, session_id):
     try:
         session = get_object_or_404(AnalysisSession, session_id=session_id)
         session.delete()
-        
         return JsonResponse({'success': True, 'message': '분석 기록이 삭제되었습니다.'})
-        
     except Exception as e:
         return JsonResponse({
             'success': False,
             'error': str(e),
         }, status=500)
-
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -112,26 +100,18 @@ def rename_analysis_session(request, session_id):
     """분석 세션 이름 변경"""
     try:
         session = get_object_or_404(AnalysisSession, session_id=session_id)
-        
-        # 새 파일명 받기
         data = json.loads(request.body)
         new_filename = data.get('filename', '').strip()
-        
         if not new_filename:
             return JsonResponse({'success': False, 'error': '파일명을 입력해주세요.'}, status=400)
-        
-        # 파일명 업데이트
         session.original_filename = new_filename
         session.save()
-        
         return JsonResponse({'success': True, 'message': '파일명이 변경되었습니다.'})
-        
     except Exception as e:
         return JsonResponse({
             'success': False,
             'error': str(e),
         }, status=500)
-
 
 @require_http_methods(["GET", "POST"])
 def upload_view(request):
@@ -140,7 +120,6 @@ def upload_view(request):
         if form.is_valid():
             file = form.cleaned_data['datafile']
             try:
-                # 파일 저장
                 save_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
                 os.makedirs(save_dir, exist_ok=True)
                 save_path = os.path.join(save_dir, file.name)
@@ -149,11 +128,10 @@ def upload_view(request):
                         dest.write(chunk)
                 print(f"파일 저장 완료: {save_path}")
 
-                # 이상 탐지
                 analysis_result = detect_anomalies(save_path)
                 print(f"분석 결과: {analysis_result}")
 
-                # DB 저장
+                # 업로드만 하는 경우에는 그래프 저장하지 않음
                 AnalysisSession.objects.create(
                     session_id=str(uuid.uuid4()),
                     original_filename=file.name,
@@ -171,7 +149,6 @@ def upload_view(request):
     else:
         form = UploadFileForm()
     return render(request, "web/upload.html", {"form": form})
-
 
 def preview_columns(request):
     """
@@ -191,15 +168,38 @@ def detect_anomalies_view(request):
             file = request.FILES["file"]
             exclude_columns = request.POST.get("exclude_columns", "")
             exclude_columns = [col.strip() for col in exclude_columns.split(",") if col.strip()]
+            user_col = request.POST.get("user_col")
+            time_col = request.POST.get("time_col")
             file_path = save_uploaded_file(file)
-            result = detect_anomalies(file_path, exclude_columns)
-            # DB 저장 추가
+            result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col)
+
+            # === 그래프 HTML 생성 및 저장 ===
+            from .visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot_anomaly_score_distribution
+            df = pd.read_csv(file_path)
+            user_graph_html = plot_anomaly_by_user(df, user_col) if user_col and user_col in df.columns else None
+            hour_graph_html = plot_anomaly_by_hour(df, user_col, time_col) if user_col and time_col and user_col in df.columns and time_col in df.columns else None
+            result_csv_path = result.get("result_csv_path")  # 분석 결과 파일 경로
+            df_result = pd.read_csv(result_csv_path)         # 분석 결과 DataFrame
+            score_graph_html = plot_anomaly_score_distribution(df_result)
+
+#            print("df.columns:", df.columns.tolist())
+#            print("user_col:", user_col)
+#            print("time_col:", time_col)
+#            print("user_graph_html:", user_graph_html)
+#            print("hour_graph_html:", hour_graph_html)
+#            print("score_graph_html:", score_graph_html)
+
             AnalysisSession.objects.create(
                 session_id=str(uuid.uuid4()),
                 original_filename=file.name,
                 file_path=file_path,
                 file_type=os.path.splitext(file.name)[-1][1:].upper(),
                 analysis_result=result,
+                user_col=user_col,
+                time_col=time_col,
+                user_graph_html=user_graph_html,
+                hour_graph_html=hour_graph_html,
+                score_graph_html=score_graph_html,
             )
             return JsonResponse(result)
         return JsonResponse({"error": "Invalid request"}, status=400)
@@ -208,11 +208,9 @@ def detect_anomalies_view(request):
         print(traceback.format_exc())
         return JsonResponse({"error": str(e)}, status=500)
 
-
 @require_http_methods(["GET"])
 def upload_filter_view(request):
     return render(request, "web/upload_filter.html")
-
 
 def save_uploaded_file(file):
     upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
@@ -225,136 +223,41 @@ def save_uploaded_file(file):
 
 @require_http_methods(["GET"])
 def download_analysis_csv(request, session_id):
-    """분석 결과(이상치만) CSV 다운로드"""
     session = get_object_or_404(AnalysisSession, session_id=session_id)
     result = session.analysis_result or {}
 
-    # JSON 목록(records) 가져오기
-    records = result.get("records", [])
+    download_type = request.GET.get("type", "anomaly")
+    if download_type == "all":
+        records = result.get("all_records", [])
+    else:
+        records = result.get("records", [])
+
     if not records:
-        return HttpResponse("이상치 레코드가 없습니다.", status=404)
+        return HttpResponse("다운로드할 데이터가 없습니다.", status=404)
 
-    try:
-        # JSON → DataFrame → CSV
-        df = pd.DataFrame(records)
-        csv_data = df.to_csv(index=False, encoding="utf-8-sig")
+    df = pd.DataFrame(records)
+    csv_data = df.to_csv(index=False, encoding="utf-8-sig")
+    response = HttpResponse(csv_data, content_type="text/csv")
+    response['Content-Disposition'] = (
+        f'attachment; filename="{session.original_filename}_{download_type}.csv"'
+    )
+    return response
 
-        response = HttpResponse(csv_data, content_type="text/csv")
-        response['Content-Disposition'] = (
-            f'attachment; filename="{session.original_filename}.csv"'
-        )
-        return response
+def visualize_graph_view(request):
+    if request.method == "POST":
+        file = request.FILES["file"]
+        user_col = request.POST.get("user_col")
+        time_col = request.POST.get("time_col")
+        file_path = save_uploaded_file(file)
+        df = pd.read_csv(file_path)
+        hour_html = plot_anomaly_by_hour(df, user_col, time_col)
+        user_html = plot_anomaly_by_user(df, user_col)
+        score_html = plot_anomaly_score_distribution(df)
 
-    except Exception as e:
-        return HttpResponse(f"CSV 생성 중 오류: {e}", status=500)
-    
-
-
-
-#get_shap_plot 함수를 선언하여 그래프를 생성 및 이미지 파일 만듦. 그래프 모양, 크기를 여기서 바꿀 수 있음
-import pandas as pd
-import numpy as np
-import shap
-import matplotlib
-import matplotlib.pyplot as plt
-from django.http import JsonResponse
-from io import BytesIO
-import base64
-from django.shortcuts import get_object_or_404
-from .models import AnalysisSession
-
-# ✅ 한글 폰트 설정 (윈도우 기준 예시)
-matplotlib.rc('font', family='Malgun Gothic')  # 윈도우용
-matplotlib.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
-
-
-def get_shap_plot(request, session_id, row_index):
-    session = get_object_or_404(AnalysisSession, session_id=session_id)
-
-    # 데이터 불러오기 (ai_script.py 함수에서 추출해낸 두 개의 파일 가져옴)
-    X = pd.read_csv(session.file_path.replace(".csv", "_X_for_shap.csv"))
-    shap_values = np.load(session.file_path.replace(".csv", "_shap_values.npy"))
-    feature_cols = X.columns.tolist()
-
-    # 해당 샘플의 SHAP 값 가져오기
-    row = shap_values[int(row_index)]
-    shap_df = pd.DataFrame({
-        'feature': feature_cols,
-        'shap_value': row,
-        'abs_val': np.abs(row),
-        'data': X.iloc[int(row_index)].values  # SHAP 줄글 설명
-    })
-
-    # SHAP < 0인 이상치 기여 feature만 추출
-    negative_df = shap_df[shap_df['shap_value'] < 0].sort_values(by='abs_val', ascending=False).reset_index(drop=True)
-    max_len = max(len(negative_df), 5)
-    negative_df = negative_df.reindex(range(max_len)).fillna({'feature': '', 'shap_value': 0})
-
-    y_pos = np.arange(max_len)
-    fig, ax = plt.subplots(figsize=(6, max(8, max_len * 1.5)))
-
-
-    # SHAP 값을 절댓값으로 바꿔 오른쪽으로 표시
-    flipped_values = -negative_df['shap_value']  # → 양수로 변환
-    ax.set_xlim(0, flipped_values.max() * 1.2)
-
-    ax.barh(y_pos, flipped_values, color='salmon', label='이상치 기여', align='center')
-    ax.axvline(x=0, color='black', linewidth=1)
-
-    ax.grid(axis='y', visible=False)  # 가로줄 제거
-    ax.grid(axis='x', visible=True, linestyle='--', alpha=0.8)  # 세로줄은 표시 (옵션)
-
-
-    ax.set_yticks(y_pos)
-    ax.set_yticklabels([''] * max_len)
-    ax.invert_yaxis()
-
-    for i, label in enumerate(negative_df['feature']):
-        if label:
-            ax.text(flipped_values[i] + flipped_values.max() * 0.02, i, label, ha='left', va='center', fontsize=10, fontweight='bold')
-
-    ax.set_title(f"{row_index}번 ROW\n", fontweight='bold')
-    ax.set_xlabel("영향도 크기 (SHAP)")
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), frameon=False)
-
-    plt.tight_layout()
-    plt.subplots_adjust(bottom=0.15)
-
-    # base64 인코딩
-    buffer = BytesIO()
-    fig.savefig(buffer, format="png")
-    buffer.seek(0)
-    image_png = buffer.getvalue()
-    buffer.close()
-    encoded = base64.b64encode(image_png).decode('utf-8')
-    img_html = f'<img src="data:image/png;base64,{encoded}" style="width:100%;">'
-
-    explanation_text = generate_shap_explanation(shap_df) #SHAP 줄글 설명용
-
-    return JsonResponse({
-    'success': True,
-    'plot_html': img_html,
-    'shap_explanation': explanation_text  # SHAP 줄글 설명 추가됨
-})
-
-
-#SHAP 그래프에 대한 줄글 설명 출력 코드
-
-def generate_shap_explanation(shap_row_df):
-    explanations = []
-    for _, row in shap_row_df.iterrows():
-        feature = row['feature']
-        value = row['data']
-        shap_val = row['shap_value']
-
-        if shap_val < -0.1:
-            direction = "이상치로 판단하는 데 크게 기여했습니다 (SHAP < 0)"
-        elif shap_val > 0.1:
-            direction = "이상치가 아닐 가능성을 높였습니다 (SHAP > 0)"
-        else:
-            direction = "큰 영향을 미치지 않았습니다"
-
-        explanations.append(
-            f"- {feature} 값이 {value:.2f}로 설정되어 SHAP 값 {shap_val:.2f} → {direction}"
-        )
-    return explanations
+        context = {
+            'hour_graph': hour_html,
+            'user_graph': user_html,
+            'score_graph': score_html,
+        }
+        return render(request, 'web/dashboard.html', context)
+    return JsonResponse({"error": "Invalid request"}, status=400)
