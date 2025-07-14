@@ -261,3 +261,120 @@ def visualize_graph_view(request):
         }
         return render(request, 'web/dashboard.html', context)
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+#get_shap_plot 함수를 선언하여 SHAP그래프를 생성 및 이미지 파일 만듦. 그래프 모양, 크기를 여기서 바꿀 수 있음
+import pandas as pd
+import numpy as np
+import shap
+import matplotlib
+import matplotlib.pyplot as plt
+from django.http import JsonResponse
+from io import BytesIO
+import base64
+from django.shortcuts import get_object_or_404
+from .models import AnalysisSession
+
+# ✅ 한글 폰트 설정 (윈도우 기준 예시)
+matplotlib.rc('font', family='Malgun Gothic')  # 윈도우용
+matplotlib.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
+
+
+def get_shap_plot(request, session_id, row_index):
+    session = get_object_or_404(AnalysisSession, session_id=session_id)
+
+    # 데이터 불러오기 (ai_script.py 함수에서 추출해낸 두 개의 파일 가져옴)
+    X = pd.read_csv(session.file_path.replace(".csv", "_X_for_shap.csv"))
+    shap_values = np.load(session.file_path.replace(".csv", "_shap_values.npy"))
+    feature_cols = X.columns.tolist()
+
+    # 해당 샘플의 SHAP 값 가져오기
+    row = shap_values[int(row_index)]
+    shap_df = pd.DataFrame({
+        'feature': feature_cols,
+        'shap_value': row,
+        'abs_val': np.abs(row),
+        'data': X.iloc[int(row_index)].values  # SHAP 줄글 설명
+    })
+
+    # SHAP < 0인 feature 중 영향 큰 순서대로 정렬
+    negative_df = shap_df[shap_df['shap_value'] < 0].sort_values(by='abs_val', ascending=False).reset_index(drop=True)
+    # 무조건 6개로 고정되게 리인덱싱 (부족하면 빈 bar로)
+    negative_df = negative_df.reindex(range(6)).fillna({
+        'feature': '', 'shap_value': 0, 'abs_val': 0, 'data': 0
+    })
+    max_len = 6  # ✅ 항상 bar 6개로 고정
+
+
+    y_pos = np.arange(max_len)
+    fig, ax = plt.subplots(figsize=(6, max(8, max_len * 1.5)))
+
+
+    # SHAP 값을 절댓값으로 바꿔 오른쪽으로 표시
+    flipped_values = -negative_df['shap_value']  # → 양수로 변환
+    ax.set_xlim(0, flipped_values.max() * 1.2)
+
+    ax.barh(y_pos, flipped_values, color='salmon', label='이상치 기여', align='center', height = 0.5)
+    ax.axvline(x=0, color='black', linewidth=1)
+
+    ax.grid(axis='y', visible=False)  # 가로줄 제거
+    ax.grid(axis='x', visible=True, linestyle='--', alpha=0.8)  # 세로줄은 표시 (옵션)
+
+
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels([''] * max_len)
+    ax.invert_yaxis()
+
+    for i, label in enumerate(negative_df['feature']):
+        if label:
+            ax.text(flipped_values[i] + flipped_values.max() * 0.02, i, label, ha='left', va='center', fontsize=10, fontweight='bold')
+
+    ax.set_title(f"{row_index}번 ROW\n", fontweight='bold')
+    ax.set_xlabel("영향도 크기 (SHAP)")
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), frameon=False)
+
+    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.15)
+
+    # base64 인코딩
+    buffer = BytesIO()
+    fig.savefig(buffer, format="png")
+    buffer.seek(0)
+    image_png = buffer.getvalue()
+    buffer.close()
+    encoded = base64.b64encode(image_png).decode('utf-8')
+    img_html = f'<img src="data:image/png;base64,{encoded}" style="width:100%;">'
+
+    explanation_text = generate_shap_explanation(shap_df) #SHAP 줄글 설명용
+
+    return JsonResponse({
+    'success': True,
+    'plot_html': img_html,
+    'shap_explanation': explanation_text  # SHAP 줄글 설명 추가됨
+})
+
+
+#SHAP 그래프에 대한 줄글 설명 출력 코드
+
+def generate_shap_explanation(shap_row_df):
+    explanations = []
+    for _, row in shap_row_df.iterrows():
+        feature = row['feature']
+        value = row['data']  # 스케일링된 값 (평균 0, std 1 기준)
+
+        magnitude = abs(value)
+        if magnitude > 2:
+            level = "매우 크게"
+        elif magnitude > 1:
+            level = "크게"
+        elif magnitude > 0.5:
+            level = "약간"
+        else:
+            level = "거의"
+
+        explanations.append(
+            f"- {feature} 값은 평균(0.00)에서 {magnitude:.2f}만큼 {level} 벗어났습니다 (현재 값: {value:.2f})"
+        )
+    return explanations
+
+
