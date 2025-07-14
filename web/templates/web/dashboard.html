@@ -607,9 +607,12 @@ function attachShapClickHandlers() {
             // 2. SHAP 설명 텍스트도 함께 출력
             const explanationBox = document.getElementById("shap-explanation");
             explanationBox.innerHTML =
+              (data.shap_middle_html || "") +  // ✅ 중간 멘트 넣기
               "<h4>📘 설명:</h4><ul>" +
-              data.shap_explanation.map(line => `<li>${line}</li>`).join("") +
-              "</ul>";
+              data.shap_explanation.slice(0, -1).map(line => `<li>${line}</li>`).join("") +
+              "</ul>" +
+              `<div style="margin-top: 0.5rem; color: #888; font-size: 0.9em;">${data.shap_explanation.at(-1)}</div>`;
+
 
           } else {
             document.getElementById("shap-plot").innerHTML =

@@ -314,7 +314,7 @@ def get_shap_plot(request, session_id, row_index):
     flipped_values = -negative_df['shap_value']  # → 양수로 변환
     ax.set_xlim(0, flipped_values.max() * 1.2)
 
-    ax.barh(y_pos, flipped_values, color='salmon', label='이상치 기여', align='center', height = 0.5)
+    ax.barh(y_pos, flipped_values, color='salmon', label='이상치 기여도', align='center', height = 0.5)
     ax.axvline(x=0, color='black', linewidth=1)
 
     ax.grid(axis='y', visible=False)  # 가로줄 제거
@@ -345,36 +345,49 @@ def get_shap_plot(request, session_id, row_index):
     encoded = base64.b64encode(image_png).decode('utf-8')
     img_html = f'<img src="data:image/png;base64,{encoded}" style="width:100%;">'
 
-    explanation_text = generate_shap_explanation(shap_df) #SHAP 줄글 설명용
+    explanation_text = generate_shap_explanation(negative_df)  #SHAP 줄글 설명용
+
+    # 그래프 아래 설명용 문단
+    middle_html = """
+    <div style='margin: 1rem 0; color: #666; font-size: 0.95em;'>
+        📊 이 그래프는 AI가 해당 로그를 이상으로 판단하는 데 영향을 준 항목들을 기여도 순으로 보여줍니다.
+    </div>
+    """
 
     return JsonResponse({
-    'success': True,
-    'plot_html': img_html,
-    'shap_explanation': explanation_text  # SHAP 줄글 설명 추가됨
+        'success': True,
+        'plot_html': img_html,
+        'shap_middle_html': middle_html,
+        'shap_explanation': explanation_text
 })
 
 
 #SHAP 그래프에 대한 줄글 설명 출력 코드
-
 def generate_shap_explanation(shap_row_df):
     explanations = []
     for _, row in shap_row_df.iterrows():
         feature = row['feature']
-        value = row['data']  # 스케일링된 값 (평균 0, std 1 기준)
+        if not feature:  # feature가 비어 있는 경우 (빈 bar용) 설명 제외
+            continue
 
+        value = row['data']  # 스케일링된 값 (평균 0, std 1 기준)
         magnitude = abs(value)
+
         if magnitude > 2:
-            level = "매우 크게"
+            level = "<span style='color: #B22222'>매우 크게</span>"  # 빨간색
         elif magnitude > 1:
-            level = "크게"
+            level = "<span style='color: #e67e22'>크게</span>"  # 주황색
         elif magnitude > 0.5:
-            level = "약간"
+            level = "<span style='color: #f1c40f'>약간</span>"  # 노란색
         else:
-            level = "거의"
+            level = ""
 
         explanations.append(
-            f"- {feature} 값은 평균(0.00)에서 {magnitude:.2f}만큼 {level} 벗어났습니다 (현재 값: {value:.2f})"
+            f"{feature} 값은 평균치보다 {magnitude:.2f}만큼 {level} 벗어났습니다"
         )
+
+    explanations.append("<span style='color: #555; font-size: 0.95em;'>평균과 많이 달라도 탐지 결과에는 영향이 적을 수 있고, 조금 달라도 비교적 큰 영향을 줄 수 있습니다.</span>")
+
     return explanations
 
 
