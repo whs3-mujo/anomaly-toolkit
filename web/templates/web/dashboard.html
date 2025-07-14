@@ -90,6 +90,7 @@
 
         .table {
       width: 100%;
+      min-width: 900px; /* 칼럼 많을 때 가로 스크롤 */
       border-collapse: collapse;
       font-size: 0.95rem;
       margin-top: 0.5rem;
@@ -119,6 +120,10 @@
     style="width: 300px; min-width: 0; max-width: 90vw; transition: width 0.25s cubic-bezier(.4,0,.2,1); background: #fff; border-right: 1px solid #e3e6ea; box-shadow: 1px 0 8px rgba(0,0,0,0.03); position: relative; z-index: 10; overflow-x: hidden; padding: 0 0 0 0;">
     <div style="display: flex; align-items: center; height: 56px; border-bottom: 1px solid #f1f3f5; padding: 0 16px;">
       <span style="font-weight: 600; color: #222; font-size: 1.08rem; flex:1;">분석 히스토리</span>
+      <button id="delete-all-btn"
+        style="background: #fff; border: 1px solid #e57373; color: #e53935; font-weight:600; border-radius: 6px; padding: 6px 14px; font-size: 0.97rem; cursor: pointer; margin-right: 8px; transition: background 0.15s;">
+        모두 삭제
+      </button>
       <button id="toggle-sidebar-btn"
         style="background: none; border: none; outline: none; cursor: pointer; padding: 6px; margin-left: 4px; border-radius: 50%; transition: background 0.15s;">
         <svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path d="M13 5L8 10L13 15" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -343,7 +348,6 @@ function formatAnalysisResult(result, session) {
     return '<p>분석 결과를 표시할 수 없습니다.</p>';
   }
 
-  
   let html = '';
 
   // 그래프 3개 위치 가상 배치
@@ -369,24 +373,27 @@ function formatAnalysisResult(result, session) {
    </div>
   `;
 
-  // 3. 다운로드 버튼 + 표(table_html)
+  // 다운로드 버튼 + 표
   if (result.table_html) {
     if (session && session.session_id && session.filename) {
       html += `
         <div style="margin-bottom: 1rem; text-align: right;">
           <button onclick="downloadCSV('${session.session_id}', '${session.filename}', 'all')"
             style="background:#1976d2; color:white; border:none; border-radius:6px; padding:6px 16px; font-size:0.95rem; font-weight:500; cursor:pointer; transition:background 0.2s;">
-            전체 다운로드
+            전체 데이터 다운로드
           </button>
           <button onclick="downloadCSV('${session.session_id}', '${session.filename}', 'anomaly')"
             style="background:#dc3545; color:white; border:none; border-radius:6px; padding:6px 16px; font-size:0.95rem; font-weight:500; cursor:pointer; transition:background 0.2s; margin-left: 0.5rem;">
             이상치만 다운로드
           </button>
         </div>
+        <div style="font-size:0.93rem; color:#888; margin-bottom:0.5rem;">
+          ※ 아래 표는 이상치(Anomaly=1) 데이터 중 최대 100개만 미리보기로 보여집니다.
+        </div>
       `;
     }
     html += `
-      <div style="margin-top:1.5rem; overflow-x:auto; background:white; border-radius:6px; border:1px solid #e9ecef; padding:1rem;">
+      <div style="margin-top:1.5rem; overflow-x:auto; overflow-y:auto; max-height:420px; background:white; border-radius:6px; border:1px solid #e9ecef; padding:1rem;">
         ${result.table_html}
       </div>
     `;
@@ -473,6 +480,24 @@ function deleteAnalysis() {
     alert('네트워크 오류가 발생했습니다.');
   });
 }
+
+document.getElementById('delete-all-btn').onclick = function() {
+  if (!confirm('정말 모든 분석 기록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+  fetch('/api/analysis/delete_all/', { method: 'DELETE' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        loadAnalysisHistory();
+        alert('모든 분석 기록이 삭제되었습니다.');
+        document.getElementById('welcome-message').style.display = 'block';
+        document.getElementById('analysis-result').style.display = 'none';
+        currentSessionId = null;
+      } else {
+        alert('삭제 실패: ' + data.error);
+      }
+    })
+    .catch(() => alert('네트워크 오류가 발생했습니다.'));
+};
 
 function showLoading(show) {
   document.getElementById('loading-spinner').style.display = show ? 'block' : 'none';

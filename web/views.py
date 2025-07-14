@@ -261,3 +261,8 @@ def visualize_graph_view(request):
         }
         return render(request, 'web/dashboard.html', context)
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+@require_http_methods(["DELETE"])
+def delete_all_analysis_sessions(request):
+    AnalysisSession.objects.all().delete()
+    return JsonResponse({"success": True})

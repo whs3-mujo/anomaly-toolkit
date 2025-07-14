@@ -26,3 +26,7 @@ urlpatterns = [
     path("api/detect_anomalies/", views.detect_anomalies_view, name="detect_anomalies"),
     path("api/analysis/download/<str:session_id>/", views.download_analysis_csv, name="download_analysis_csv"),
 ]
+
+urlpatterns += [
+    path('api/analysis/delete_all/', views.delete_all_analysis_sessions, name='api_delete_all_sessions'),
+]
