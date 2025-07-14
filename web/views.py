@@ -10,6 +10,7 @@ import os
 from django.conf import settings
 import pandas as pd
 from .ai_script import detect_anomalies
+from .visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot_anomaly_score_distribution
 
 def redirect_dashboard(request):
     return redirect('web:dashboard')
@@ -17,13 +18,10 @@ def redirect_dashboard(request):
 def dashboard_view(request):
     return render(request, 'web/dashboard.html')
 
-
 def get_analysis_history(request):
     """분석 히스토리 목록 반환"""
     try:
         sessions = AnalysisSession.objects.all().order_by('-created_at')
-        
-        # JSON 형태로 변환
         history_data = []
         for session in sessions:
             history_data.append({
@@ -34,26 +32,22 @@ def get_analysis_history(request):
                 'file_type': session.file_type,
                 'created_at': session.created_at.strftime('%Y-%m-%d %H:%M'),
             })
-        
         return JsonResponse({
             'success': True,
             'history': history_data,
             'total': len(history_data)
         })
-        
     except Exception as e:
         return JsonResponse({
             'success': False,
             'error': str(e),
         }, status=500)
 
-
 @require_http_methods(["GET"])
 def get_analysis_detail(request, session_id):
     """특정 분석 결과 상세 정보 반환"""
     try:
         session = get_object_or_404(AnalysisSession, session_id=session_id)
-        
         return JsonResponse({
             'success': True,
             'session': {
@@ -63,21 +57,20 @@ def get_analysis_detail(request, session_id):
                 'file_type': session.file_type,
                 'created_at': session.created_at.strftime('%Y-%m-%d %H:%M:%S'),
                 'analysis_result': session.analysis_result,
+                'user_graph_html': getattr(session, 'user_graph_html', None),
+                'hour_graph_html': getattr(session, 'hour_graph_html', None),
+                'score_graph_html': getattr(session, 'score_graph_html', None),
             }
         })
-        
     except Exception as e:
         return JsonResponse({
             'success': False,
             'error': str(e),
         }, status=500)
 
-
 def create_analysis_session(filename, file_path, file_type, analysis_result):
     """새로운 분석 세션 생성 (완료된 분석 결과와 함께)"""
     session_id = str(uuid.uuid4())
-    
-    # 분석 세션 생성 (완료된 결과와 함께)
     analysis_session = AnalysisSession.objects.create(
         session_id=session_id,
         original_filename=filename,
@@ -85,9 +78,7 @@ def create_analysis_session(filename, file_path, file_type, analysis_result):
         file_type=file_type,
         analysis_result=analysis_result
     )
-    
     return analysis_session
-
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
@@ -96,15 +87,12 @@ def delete_analysis_session(request, session_id):
     try:
         session = get_object_or_404(AnalysisSession, session_id=session_id)
         session.delete()
-        
         return JsonResponse({'success': True, 'message': '분석 기록이 삭제되었습니다.'})
-        
     except Exception as e:
         return JsonResponse({
             'success': False,
             'error': str(e),
         }, status=500)
-
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -112,26 +100,18 @@ def rename_analysis_session(request, session_id):
     """분석 세션 이름 변경"""
     try:
         session = get_object_or_404(AnalysisSession, session_id=session_id)
-        
-        # 새 파일명 받기
         data = json.loads(request.body)
         new_filename = data.get('filename', '').strip()
-        
         if not new_filename:
             return JsonResponse({'success': False, 'error': '파일명을 입력해주세요.'}, status=400)
-        
-        # 파일명 업데이트
         session.original_filename = new_filename
         session.save()
-        
         return JsonResponse({'success': True, 'message': '파일명이 변경되었습니다.'})
-        
     except Exception as e:
         return JsonResponse({
             'success': False,
             'error': str(e),
         }, status=500)
-
 
 @require_http_methods(["GET", "POST"])
 def upload_view(request):
@@ -140,7 +120,6 @@ def upload_view(request):
         if form.is_valid():
             file = form.cleaned_data['datafile']
             try:
-                # 파일 저장
                 save_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
                 os.makedirs(save_dir, exist_ok=True)
                 save_path = os.path.join(save_dir, file.name)
@@ -149,12 +128,10 @@ def upload_view(request):
                         dest.write(chunk)
                 print(f"파일 저장 완료: {save_path}")
 
-                # 이상 탐지
-                
                 analysis_result = detect_anomalies(save_path)
                 print(f"분석 결과: {analysis_result}")
 
-                # DB 저장
+                # 업로드만 하는 경우에는 그래프 저장하지 않음
                 AnalysisSession.objects.create(
                     session_id=str(uuid.uuid4()),
                     original_filename=file.name,
@@ -172,7 +149,6 @@ def upload_view(request):
     else:
         form = UploadFileForm()
     return render(request, "web/upload.html", {"form": form})
-
 
 def preview_columns(request):
     """
@@ -192,15 +168,38 @@ def detect_anomalies_view(request):
             file = request.FILES["file"]
             exclude_columns = request.POST.get("exclude_columns", "")
             exclude_columns = [col.strip() for col in exclude_columns.split(",") if col.strip()]
+            user_col = request.POST.get("user_col")
+            time_col = request.POST.get("time_col")
             file_path = save_uploaded_file(file)
-            result = detect_anomalies(file_path, exclude_columns)
-            # DB 저장 추가
+            result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col)
+
+            # === 그래프 HTML 생성 및 저장 ===
+            from .visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot_anomaly_score_distribution
+            df = pd.read_csv(file_path)
+            user_graph_html = plot_anomaly_by_user(df, user_col) if user_col and user_col in df.columns else None
+            hour_graph_html = plot_anomaly_by_hour(df, user_col, time_col) if user_col and time_col and user_col in df.columns and time_col in df.columns else None
+            result_csv_path = result.get("result_csv_path")  # 분석 결과 파일 경로
+            df_result = pd.read_csv(result_csv_path)         # 분석 결과 DataFrame
+            score_graph_html = plot_anomaly_score_distribution(df_result)
+
+#            print("df.columns:", df.columns.tolist())
+#            print("user_col:", user_col)
+#            print("time_col:", time_col)
+#            print("user_graph_html:", user_graph_html)
+#            print("hour_graph_html:", hour_graph_html)
+#            print("score_graph_html:", score_graph_html)
+
             AnalysisSession.objects.create(
                 session_id=str(uuid.uuid4()),
                 original_filename=file.name,
                 file_path=file_path,
                 file_type=os.path.splitext(file.name)[-1][1:].upper(),
                 analysis_result=result,
+                user_col=user_col,
+                time_col=time_col,
+                user_graph_html=user_graph_html,
+                hour_graph_html=hour_graph_html,
+                score_graph_html=score_graph_html,
             )
             return JsonResponse(result)
         return JsonResponse({"error": "Invalid request"}, status=400)
@@ -209,11 +208,9 @@ def detect_anomalies_view(request):
         print(traceback.format_exc())
         return JsonResponse({"error": str(e)}, status=500)
 
-
 @require_http_methods(["GET"])
 def upload_filter_view(request):
     return render(request, "web/upload_filter.html")
-
 
 def save_uploaded_file(file):
     upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
@@ -245,3 +242,22 @@ def download_analysis_csv(request, session_id):
         f'attachment; filename="{session.original_filename}_{download_type}.csv"'
     )
     return response
+
+def visualize_graph_view(request):
+    if request.method == "POST":
+        file = request.FILES["file"]
+        user_col = request.POST.get("user_col")
+        time_col = request.POST.get("time_col")
+        file_path = save_uploaded_file(file)
+        df = pd.read_csv(file_path)
+        hour_html = plot_anomaly_by_hour(df, user_col, time_col)
+        user_html = plot_anomaly_by_user(df, user_col)
+        score_html = plot_anomaly_score_distribution(df)
+
+        context = {
+            'hour_graph': hour_html,
+            'user_graph': user_html,
+            'score_graph': score_html,
+        }
+        return render(request, 'web/dashboard.html', context)
+    return JsonResponse({"error": "Invalid request"}, status=400)

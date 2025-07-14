@@ -18,7 +18,7 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     1) 전처리 → 2) PyCaret 이상 탐지 → 3) HTML 테이블 형태 결과 반환
     """
     # 1. 데이터 불러오기
-    data = pd.read_csv(file_path, index_col=0).dropna()
+    data = pd.read_csv(file_path).dropna()  # index_col=0 제거!
 
     # 제외할 칼럼이 있으면 제거
     if exclude_columns:
@@ -31,14 +31,18 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     # 복원용 원본 정보 백업 (예: user_id, timestamp 등)
     original_info = data[categorical_cols].reset_index(drop=True)
 
-    # 3. Frequency Encoding
+    # 3. Frequency Encoding (timestamp 등 시간 컬럼은 인코딩 대상에서 제외)
+    exclude_for_encoding = []
+    if time_col and time_col in categorical_cols:
+        exclude_for_encoding.append(time_col)
+    categorical_for_encoding = [col for col in categorical_cols if col not in exclude_for_encoding]
     encoder = ce.CountEncoder()
-    data_encoded = encoder.fit_transform(data[categorical_cols])
+    data_encoded = encoder.fit_transform(data[categorical_for_encoding])
 
     # 4. 합치기 + 스케일링
     full_data = pd.concat([
         data[numeric_cols].reset_index(drop=True),
-        data_encoded .reset_index(drop=True)
+        data_encoded.reset_index(drop=True)
     ], axis=1)
     scaler     = StandardScaler()
     data_scaled = pd.DataFrame(
@@ -72,16 +76,16 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         output_path="full_data_with_anomaly_info_readable.csv"
     )
 
-    # 6. 탐지 개수 집계
-    count_anomaly = int(results['Anomaly'].sum())
-    total         = len(results)
-
-    # 7. 이상 탐지된 항목만 추출
-    detected = results_with_info[results_with_info['Anomaly'] == 1]
-    detected.to_csv("pycaret_detected_anomalies.csv", index=False)
-
     # 복원된 전체 데이터 로드
     df_full = pd.read_csv("full_data_with_anomaly_info_readable.csv")
+
+    # 복원된 컬럼만 남기고, .1 붙은 컬럼명을 원래대로 변경
+    for col in df_full.columns:
+        if col.endswith('.1'):
+            orig_col = col[:-2]
+            if orig_col in df_full.columns:
+                df_full.drop(columns=[orig_col], inplace=True)
+            df_full.rename(columns={col: orig_col}, inplace=True)
 
     # 사용자/시간 컬럼 자동 감지 (없으면 직접 입력)
     if not user_col or not time_col:
@@ -97,24 +101,33 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     except Exception as e:
         print("그래프 시각화 중 오류:", e)
 
+    # 6. 탐지 개수 집계
+    count_anomaly = int(df_full['Anomaly'].sum())
+    total         = len(df_full)
+
+    # 7. 이상 탐지된 항목만 추출
+    detected = df_full[df_full['Anomaly'] == 1]
+    detected.to_csv("pycaret_detected_anomalies.csv", index=False)
+
     # 표 미리보기(이상치 100개만)
     preview_records = detected.head(100).to_dict(orient="records")
     preview_table_html = detected.head(100).to_html(index=False, classes="table table-sm") if len(detected) > 0 else "<p>이상치가 없습니다.</p>"
 
     # 전체/이상치 records (다운로드용)
-    all_records = results_with_info.to_dict(orient="records")
+    all_records = df_full.to_dict(orient="records")
     anomaly_records = detected.to_dict(orient="records")
 
     # 8. 결과를 HTML 테이블 + 요약 문자열로 반환
     result = {
-        "summary": f"이상치 {int(detected['Anomaly'].sum()):,}건 / 전체 {len(results_with_info):,}건",
+        "summary": f"이상치 {int(detected['Anomaly'].sum()):,}건 / 전체 {len(df_full):,}건",
         "anomaly_count": int(detected['Anomaly'].sum()),
-        "total": int(len(results_with_info)),
+        "total": int(len(df_full)),
         "table_html": preview_table_html,
         "records": anomaly_records,   # 이상치만
         "all_records": all_records,   # 전체
         "user_col": user_col,
         "time_col": time_col,
-        "columns": list(results_with_info.columns),
+        "columns": list(df_full.columns),
+        "result_csv_path": "full_data_with_anomaly_info_readable.csv",
     }
     return result

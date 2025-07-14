@@ -108,6 +108,7 @@
       background: #f8f9fa;
     }
     </style>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
 <body>
 
@@ -275,19 +276,35 @@ function renderAnalysisResult(session) {
     return;
   }
   let resultHTML = `
-    <div class="result-header">
-      <h2 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">${session.filename}</h2>
-      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; opacity: 0.9;">
-        <span>분석 완료: ${session.created_at}</span>
-        <span style="background: #28a745; padding: 4px 8px; border-radius: 12px;">완료</span>
+  <div class="result-header" style="padding: 1rem 1.2rem; margin-bottom: 1rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <h2 style="margin: 0; font-size: 1.08rem; font-weight: 700;">${session.filename}</h2>
+        <span style="font-size: 0.92rem; color: #e3e3e3;">|</span>
+        <span style="font-size: 0.92rem; color: #f1f1f1;">분석 완료: ${session.created_at}</span>
       </div>
+      <span style="background: #28a745; padding: 3px 10px; border-radius: 10px; font-size: 0.92rem; font-weight: 600;">완료</span>
     </div>
+  </div>
   `;
 
   if (session.analysis_result) {
+    // 분석 결과 요약 텍스트(예: "이상치 150건 / 전체 3,000건")를 상단에 표시
+    let summaryText = '';
+    if (session.analysis_result.summary) {
+      summaryText = `
+        <div style="margin-bottom: 0.1rem; font-size: 1.08rem; color: #667eea; font-weight: 600; display: flex;">
+          ${session.analysis_result.summary}
+        </div>
+      `;
+    }
+
     resultHTML += `
       <div class="result-content">
-        <h3 style="margin-bottom: 1rem; color: #495057;">분석 결과</h3>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <h3 style="margin-bottom: 1rem; color: #495057;">분석 결과</h3>
+          ${summaryText}
+        </div>
         <div style="background: white; padding: 1.5rem; border-radius: 4px; border-left: 4px solid #28a745;">
           ${formatAnalysisResult(session.analysis_result, session)}
         </div>
@@ -306,6 +323,18 @@ function renderAnalysisResult(session) {
 
   resultPanel.innerHTML = resultHTML;
   setTimeout(bindTableRowClick, 100);
+
+  // === Plotly 그래프 스크립트 실행 ===
+  // 분석 결과 영역 내 모든 <script> 태그 실행
+  resultPanel.querySelectorAll('script').forEach(oldScript => {
+    const newScript = document.createElement('script');
+    if (oldScript.src) {
+      newScript.src = oldScript.src;
+    } else {
+      newScript.textContent = oldScript.textContent;
+    }
+    oldScript.parentNode.replaceChild(newScript, oldScript);
+  });
 }
 
 // 분석 결과 표 + 다운로드 버튼
@@ -314,31 +343,31 @@ function formatAnalysisResult(result, session) {
     return '<p>분석 결과를 표시할 수 없습니다.</p>';
   }
 
+  
   let html = '';
 
-  // 1. 요약(상단)
-  if (result.summary) {
-    html += `<div style="background: #e8f5e8; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-      <h4 style="margin: 0 0 0.5rem 0; color: #2d5a2d;">📋 요약</h4>
-      <p style="margin: 0; color: #2d5a2d;">${result.summary}</p>
-    </div>`;
-  }
-
-  // 2. 주요 수치(카드) 한 줄에 가로로
-  const mainKeys = ['anomaly_count', 'total'];
-  const mainCards = mainKeys.filter(key => key in result);
-  if (mainCards.length > 0) {
-    html += `<div style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem;">`;
-    mainCards.forEach(key => {
-      html += `
-        <div style="flex:1; background: #f8f9fa; padding: 1.2rem; border-radius: 6px; border: 1px solid #e9ecef; text-align: center;">
-          <div style="font-size: 1.2rem; color: #495057; font-weight: 600;">${key.replace('_', ' ').toUpperCase()}</div>
-          <div style="font-size: 2rem; color: #007bff; font-weight: bold; margin-top: 0.3rem;">${result[key]}</div>
+  // 그래프 3개 위치 가상 배치
+  html += `
+    <div style="display: flex; flex-direction: column; gap: 2rem; margin-bottom: 2rem;">
+     <div style="display: flex; gap: 2rem;">
+        <div style="flex:1; min-width:0; height:450px; background:#fff; border-radius:8px; border:1px solid #e9ecef; padding:0.5rem; display:flex; align-items:center; justify-content:center;">
+          <div style="width:100%;height:100%;">
+            ${session.user_graph_html || '<span style="color:#bbb;">User 그래프 없음</span>'}
+          </div>
         </div>
-      `;
-    });
-    html += `</div>`;
-  }
+        <div style="flex:1; min-width:0; height:450px; background:#fff; border-radius:8px; border:1px solid #e9ecef; padding:0.5rem; display:flex; align-items:center; justify-content:center;">
+          <div style="width:100%;height:100%;">
+            ${session.hour_graph_html || '<span style="color:#bbb;">Hour 그래프 없음</span>'}
+          </div>
+        </div>
+     </div>
+      <div style="background:#fff; border-radius:8px; border:1px solid #e9ecef; padding:1rem; display:flex; align-items:center; justify-content:center; height:440px;">
+        <div style="width:100%;height:100%;">
+          ${session.score_graph_html || '<span style="color:#bbb;">Score 그래프 없음</span>'}
+        </div>
+      </div>
+   </div>
+  `;
 
   // 3. 다운로드 버튼 + 표(table_html)
   if (result.table_html) {
