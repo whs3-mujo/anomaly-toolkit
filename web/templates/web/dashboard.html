@@ -10,7 +10,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>분석 대시보드</title>
-    <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -110,7 +109,7 @@
     .table tr:nth-child(even) {
       background: #f8f9fa;
     }
-
+    
     .selected-row {
       background-color: #e3f2fd !important;  /* 로그 열 누르면 색칠할 파란색 */
     }
@@ -125,7 +124,7 @@
       background: #f1f3f5;
       z-index: 2;
     }
-
+    
     </style>
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
@@ -341,8 +340,7 @@ function renderAnalysisResult(session) {
   }
 
   resultPanel.innerHTML = resultHTML;
-  attachShapClickHandlers();
-  setTimeout(bindTableRowClick, 100);
+
 
   // === Plotly 그래프 스크립트 실행 ===
   // 분석 결과 영역 내 모든 <script> 태그 실행
@@ -355,6 +353,8 @@ function renderAnalysisResult(session) {
     }
     oldScript.parentNode.replaceChild(newScript, oldScript);
   });
+
+  attachShapClickHandlers();
 }
 
 // 분석 결과 표 + 다운로드 버튼
@@ -366,7 +366,7 @@ function formatAnalysisResult(result, session) {
   
   let html = '';
 
-  // 그래프 3개 위치 가상 배치
+   // 그래프 3개 위치 가상 배치
   html += `
     <div style="display: flex; flex-direction: column; gap: 2rem; margin-bottom: 2rem;">
      <div style="display: flex; gap: 2rem;">
