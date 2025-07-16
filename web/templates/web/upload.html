@@ -6,7 +6,6 @@
   {% if error %}
     <p class="error">{{ error }}</p>
   {% endif %}
-  <!-- 파일 업로드 및 칼럼 미리보기/제거 UI -->
   <form id="uploadForm" enctype="multipart/form-data" style="width:100%;">
     {% csrf_token %}
     <label for="datafile">Log File Upload</label>
@@ -18,8 +17,19 @@
       * Please <b>.log, .txt, .csv, .xlsx</b> file
     </div>
     <!-- 칼럼 미리보기/제거 UI -->
-    <div id="preview" style="margin:1rem 0;"></div>
-    <div id="columns"></div>
+    <div id="preview" class="preview-table" style="display:none;"></div>
+    <div id="columns" class="columns-checkbox" style="display:none;"></div>
+    <!-- 사용자/시간 칼럼 선택 영역 -->
+    <div id="col-select-area" class="col-select-area" style="display:none;">
+      <div class="col-select-row">
+        <label for="user_col">사용자 칼럼:</label>
+        <select name="user_col" id="user_col" required></select>
+      </div>
+      <div class="col-select-row">
+        <label for="time_col">&nbsp;&nbsp;시간 칼럼:&nbsp;</label>
+        <select name="time_col" id="time_col" required></select>
+      </div>
+    </div>
     <button type="submit" class="upload-btn" style="display:block;">Upload & Analyze</button>
   </form>
 </div>
@@ -27,6 +37,9 @@
   &copy; 2025. 이상無조 All rights reserved.
 </div>
 <style>
+  body {
+    background: #fff;
+  }
   .upload-main-title {
     font-size: 2.4rem;
     font-weight: 700;
@@ -86,18 +99,60 @@
     margin-bottom: 1.5rem;
     text-align: center;
   }
+  .preview-table {
+    max-width: 100%;
+    max-height: 180px;
+    overflow-x: auto;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    border: 1px solid #e0e3e8;
+    background: #fafbfc;
+    padding: 8px;
+  }
+  .preview-table table {
+    border-collapse: collapse;
+    width: max-content;
+    min-width: 100%;
+    font-size: 0.98rem;
+    background: transparent;
+  }
+  .preview-table th, .preview-table td {
+    border: 1px solid #d1d5db;
+    padding: 6px 10px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .columns-checkbox {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    margin-bottom: 1rem;
+    align-items: center;
+  }
+  .columns-checkbox label {
+    font-size: 1rem;
+    color: #495057;
+    cursor: pointer;
+    margin-bottom: 0;
+    margin-right: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
   .upload-btn {
-    background: #0a357d;
+    background: #173a7d;
     color: #fff;
     border: none;
-    border-radius: 8px;
-    font-size: 1.2rem;
-    font-weight: 600;
-    padding: 0.9rem 0;
+    border-radius: 14px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    padding: 1.2rem 0;
     width: 100%;
     margin-top: 1.2rem;
     cursor: pointer;
     transition: background 0.2s;
+    box-shadow: 0 2px 8px rgba(23,58,125,0.08);
   }
   .upload-btn:hover {
     background: #174fa3;
@@ -114,9 +169,34 @@
     margin-top: 2.5rem;
     margin-right: 2.5rem;
   }
+  .col-select-area {
+    margin-top: 1rem;
+    text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .col-select-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    gap: 10px;
+  }
+  .col-select-row label {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-right: 8px;
+    margin-bottom: 0;
+  }
+  .col-select-row select {
+    min-width: 140px;
+    font-size: 1rem;
+    padding: 4px 8px;
+  }
 </style>
 <script>
-  // CSRF 토큰 가져오기 함수
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -150,12 +230,15 @@
       })
         .then(r => r.json())
         .then(data => {
-          let html = "<b>제외할 칼럼 선택:</b><br>";
+          // 칼럼 체크박스
+          let html = "<b>제외할 칼럼 선택:</b>";
           data.columns.forEach(col => {
-            html += `<label style='margin-right:8px;'><input type="checkbox" name="exclude" value="${col}"> ${col}</label>`;
+            html += `<label><input type="checkbox" name="exclude" value="${col}"> ${col}</label>`;
           });
           document.getElementById('columns').innerHTML = html;
-          let table = "<table border='1' style='margin-top:10px;'><tr>";
+          document.getElementById('columns').style.display = "flex";
+          // 미리보기 테이블
+          let table = "<table><tr>";
           data.columns.forEach(col => table += `<th>${col}</th>`);
           table += "</tr>";
           data.preview.forEach(row => {
@@ -165,13 +248,27 @@
           });
           table += "</table>";
           document.getElementById('preview').innerHTML = table;
+          document.getElementById('preview').style.display = "block";
+          // 사용자/시간 칼럼 드롭다운
+          let userSel = document.getElementById('user_col');
+          let timeSel = document.getElementById('time_col');
+          userSel.innerHTML = "";
+          timeSel.innerHTML = "";
+          data.columns.forEach(col => {
+            userSel.innerHTML += `<option value="${col}">${col}</option>`;
+            timeSel.innerHTML += `<option value="${col}">${col}</option>`;
+          });
+          document.getElementById('col-select-area').style.display = "block";
           document.querySelector('.upload-btn').style.display = "block";
         });
     } else {
       label.textContent = "Choose a file";
       document.getElementById('preview').innerHTML = "";
+      document.getElementById('preview').style.display = "none";
       document.getElementById('columns').innerHTML = "";
+      document.getElementById('columns').style.display = "none";
       document.querySelector('.upload-btn').style.display = "none";
+      document.getElementById('col-select-area').style.display = "none";
     }
   };
 
@@ -182,6 +279,10 @@
     formData.append("file", file);
     const exclude = [...document.querySelectorAll('input[name="exclude"]:checked')].map(cb => cb.value);
     formData.append("exclude_columns", exclude.join(","));
+    const userCol = document.getElementById('user_col').value;
+    const timeCol = document.getElementById('time_col').value;
+    formData.append("user_col", userCol);
+    formData.append("time_col", timeCol);
     fetch("{% url 'web:detect_anomalies' %}", {
       method: "POST",
       body: formData,
