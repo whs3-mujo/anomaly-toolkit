@@ -14,6 +14,67 @@ from .visualize_graph import (
     plot_anomaly_by_user,
     plot_anomaly_score_distribution
 )
+def generate_description(df, user_col, time_col):
+    import pandas as pd
+    from collections import Counter
+
+    # 1. 시간대 분류
+    def time_to_period(hour):
+        if 0 <= hour < 6:
+            return "새벽시간(00-05시)"
+        elif 6 <= hour < 12:
+            return "오전시간(06-11시)"
+        elif 12 <= hour < 18:
+            return "오후시간(12-17시)"
+        else:
+            return "저녁시간(18-23시)"
+
+    df = df.copy()
+    df["hour"] = pd.to_datetime(df[time_col]).dt.hour
+    df["period"] = df["hour"].apply(time_to_period)
+    period_counts = df["period"].value_counts().to_dict()
+
+    # 2. 사용자별 이상 로그 수
+    user_counts = Counter(df[user_col])
+    total = len(df)
+
+    top_users = user_counts.most_common(5)
+    top_summary = ", ".join([f"{u}: {c}건 ({c/total:.1%})" for u, c in top_users])
+    top_total = sum([c for _, c in top_users])
+    top_ratio = f"{top_total}건({top_total/total:.1%})"
+
+    # 3. HTML 생성
+    items = [item.strip() for item in top_summary.split(',') if item.strip()]
+
+    formatted_top_summary = "<br>".join([
+        f"{user}: <b><span style='color:red;'>{count}</span></b>"
+        for user, count in (item.split(': ', 1) for item in items)
+    ])
+
+    html = f"""
+    <div style='background:#e3f2fd; border-left:4px solid #2196f3; padding:1rem; margin-top:2rem;'>
+    <h3 style='margin-top:0;'>종합 평가</h3>
+    <div style='margin-bottom:1rem;'>
+        <b>&lt;시간대별 이상 로그 분포&gt;</b><br>
+        {"<br>".join([
+            f"{k}: <b><span style='color:red;'>{v}건</span></b>"
+            for k, v in sorted(period_counts.items())
+        ])}<br>
+        ➤ <b><span style='color:red;'>{max(period_counts, key=period_counts.get)}</b>에 가장 많은 이상 로그가 집중되어 있습니다.
+    </div>
+    <div>
+        <b>&lt;상위 사용자 이상 로그 개수&gt;</b><br>
+        {formatted_top_summary}<br>
+        ➤ 상위 5명의 사용자가 전체 이상 로그 <b><span style='color:red;'>{total}건</span></b> 중 <b style='color:red;'>{top_ratio}</b>을 차지합니다.
+    </div>
+    </div>
+    """
+    return html
+
+
+
+
+
 
 def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=None):
     """
@@ -52,7 +113,6 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         scaler.fit_transform(full_data),
         columns=full_data.columns
     )
-
     # 5. PyCaret 환경 설정 및 모델 생성
     exp   = setup(data_scaled, session_id=42, verbose=False, index=False)
     model = create_model('iforest')
@@ -63,7 +123,6 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     joblib.dump(model, model_path)
     shap_input_path = file_path.replace('.csv', '_X_for_shap.csv')  # SHAP값 계산을 위해 실제 탐지 모델에 입력값으로 넣었던 data_scaled를 _X_for_shap.csv파일로 저장
     data_scaled.to_csv(shap_input_path, index=False)
-
 
     # 이상치 점수 컬럼명 통일
     if 'Anomaly_Score' not in results.columns and 'Anomaly_Score' in results.columns:
@@ -111,11 +170,11 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     except Exception as e:
         print("그래프 시각화 중 오류:", e)
 
-    # 6. 탐지 개수 집계
+    # 7. 탐지 개수 집계
     count_anomaly = int(df_full['Anomaly'].sum())
     total         = len(df_full)
 
-    # 7. 이상 탐지된 항목만 추출
+    # 8. 이상 탐지된 항목만 추출
     detected = df_full[df_full['Anomaly'] == 1]
     detected.to_csv("pycaret_detected_anomalies.csv", index=False)
 
@@ -127,11 +186,14 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     all_records = df_full.to_dict(orient="records")
     anomaly_records = detected.to_dict(orient="records")
 
-    # 8. 결과를 HTML 테이블 + 요약 문자열로 반환
+    # Description HTML 생성
+    text_html = generate_description(detected, user_col=user_col, time_col=time_col)
+
+    # 9. 결과를 HTML 테이블 + 요약 문자열로 반환
     result = {
-        "summary": f"이상치 {int(detected['Anomaly'].sum()):,}건 / 전체 {len(df_full):,}건",
-        "anomaly_count": int(detected['Anomaly'].sum()),
-        "total": int(len(df_full)),
+        "summary": f"이상치 {count_anomaly:,}건 / 전체 {total:,}건",
+        "anomaly_count": count_anomaly,
+        "total": total,
         "table_html": preview_table_html,
         "records": anomaly_records,   # 이상치만
         "all_records": all_records,   # 전체
@@ -139,9 +201,11 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         "time_col": time_col,
         "columns": list(df_full.columns),
         "result_csv_path": "full_data_with_anomaly_info_readable.csv",
+        "text_html": text_html,
     }
 
     # 10. SHAP 그래프를 그리기 위한 파일 생성(2)
-    shap_values = shap.TreeExplainer(model).shap_values(data_scaled)    # 앞서 추출했던 모델, 입력값 파일을 가지고 shap_values를 계산해냄
-    np.save(file_path.replace(".csv", "_shap_values.npy"), shap_values) # 빠른 동작을 위해 미리 결과값을 .npy 파일로 저장한 뒤, ROW 행을 클릭할때마다 값을 꺼내 보여줌
+    shap_values = shap.TreeExplainer(model).shap_values(data_scaled)
+    np.save(file_path.replace(".csv", "_shap_values.npy"), shap_values)
+    
     return result

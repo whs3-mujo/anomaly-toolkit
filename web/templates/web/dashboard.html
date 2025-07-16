@@ -366,34 +366,39 @@ function formatAnalysisResult(result, session) {
   
   let html = '';
 
-   // 그래프 3개 위치 가상 배치
+  // 전체 컨테이너를 좌우로 나누기
   html += `
-    <div style="display: flex; flex-direction: column; gap: 2rem; margin-bottom: 2rem;">
-     <div style="display: flex; gap: 2rem;">
-        <div style="flex:1; min-width:0; height:450px; background:#fff; border-radius:8px; border:1px solid #e9ecef; padding:0.5rem; display:flex; align-items:center; justify-content:center;">
-          <div style="width:100%;height:100%;">
-            ${session.user_graph_html || '<span style="color:#bbb;">User 그래프 없음</span>'}
+    <div style="display: flex; gap: 2rem; height: 100%;">
+      <!-- 좌측 영역: 그래프 3개 + 표 -->
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 1rem;">
+        
+        <!-- 그래프 2개 위쪽 배치 -->
+        <div style="display: flex; gap: 1rem; height: 280px;">
+          <div style="flex: 1; background: #fff; border-radius: 8px; border: 1px solid #e9ecef; padding: 0.5rem;">
+            <div style="width: 100%; height: 100%;">
+              ${session.user_graph_html || '<span style="color:#bbb;">User 그래프 없음</span>'}
+            </div>
+          </div>
+          <div style="flex: 1; background: #fff; border-radius: 8px; border: 1px solid #e9ecef; padding: 0.5rem;">
+            <div style="width: 100%; height: 100%;">
+              ${session.hour_graph_html || '<span style="color:#bbb;">Hour 그래프 없음</span>'}
+            </div>
           </div>
         </div>
-        <div style="flex:1; min-width:0; height:450px; background:#fff; border-radius:8px; border:1px solid #e9ecef; padding:0.5rem; display:flex; align-items:center; justify-content:center;">
-          <div style="width:100%;height:100%;">
-            ${session.hour_graph_html || '<span style="color:#bbb;">Hour 그래프 없음</span>'}
+
+        <!-- 그래프 1개 아래쪽 배치 -->
+        <div style="height: 280px; background: #fff; border-radius: 8px; border: 1px solid #e9ecef; padding: 0.5rem;">
+          <div style="width: 100%; height: 100%;">
+            ${session.score_graph_html || '<span style="color:#bbb;">Score 그래프 없음</span>'}
           </div>
         </div>
-     </div>
-      <div style="background:#fff; border-radius:8px; border:1px solid #e9ecef; padding:1rem; display:flex; align-items:center; justify-content:center; height:440px;">
-        <div style="width:100%;height:100%;">
-          ${session.score_graph_html || '<span style="color:#bbb;">Score 그래프 없음</span>'}
-        </div>
-      </div>
-   </div>
   `;
 
-  // 3. 다운로드 버튼 + 표(table_html)
+  // 표 영역 (다운로드 버튼 포함) - 그래프와 표 사이 간격 증가
   if (result.table_html) {
     if (session && session.session_id && session.filename) {
       html += `
-        <div style="margin-bottom: 1rem; text-align: right;">
+        <div style="margin-top: 10rem; text-align: right;">
           <button onclick="downloadCSV('${session.session_id}', '${session.filename}', 'all')"
             style="background:#1976d2; color:white; border:none; border-radius:6px; padding:6px 16px; font-size:0.95rem; font-weight:500; cursor:pointer; transition:background 0.2s;">
             전체 다운로드
@@ -404,18 +409,18 @@ function formatAnalysisResult(result, session) {
           </button>
         </div>
       `;
-
     }
+
     html += `
-      <div style="display: flex; gap: 2rem; margin-top: 1.5rem;">
-        
-        <!-- 왼쪽: 표 -->
+        <!-- 표 영역 -->
         <div style="
-          width: 60%;
           background: white;
           border-radius: 6px;
           border: 1px solid #e9ecef;
           padding: 1rem;
+          margin-top: 1rem;
+          flex: 1;
+          min-height: 300px;
         ">
           <div style="max-height: 400px; overflow-y: auto; overflow-x: auto;">
             <div style="min-width: 1000px;">
@@ -423,29 +428,70 @@ function formatAnalysisResult(result, session) {
             </div>
           </div>
         </div>
+      </div>
+    `;
 
-        <!-- 오른쪽: SHAP 그래프 자리 -->
+    // 우측 영역: SHAP 그래프 + 설명 + Description (SHAP 그래프 높이 증가)
+    html += `
+      <!-- 우측 영역: SHAP + 설명 + Description -->
+      <div style="
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        max-width: 50%;
+      ">
+        <!-- SHAP 그래프 - 높이 증가 -->
         <div style="
-          width: 40%;
           background: white;
           border: 1px solid #e9ecef;
           border-radius: 6px;
           padding: 1rem;
-          display: flex;
-          flex-direction: column;
+          height: 500px;
+          overflow: hidden;
         ">
-          <!-- 그래프 -->
-          <div id="shap-plot">
-            <p style="color: #999; text-align: center;">SHAP 그래프가 여기에 표시됩니다</p>
+          <div id="shap-plot" style="height: 100%; width: 100%;">
+            <p style="color: #999; text-align: center; margin-top: 200px;">SHAP 그래프가 여기에 표시됩니다</p>
           </div>
-
-          <!-- 설명 -->
-          <div id="shap-explanation" style="margin-top: 1.5rem;"></div>
         </div>
 
-      </div>
+        <!-- SHAP 설명 - 위치 조정 -->
+        <div style="
+          background: white;
+          border: 1px solid #e9ecef;
+          border-radius: 6px;
+          padding: 1rem;
+          flex: 1;
+          min-height: 180px;
+          overflow-y: auto;
+        ">
+          <div id="shap-explanation">
+            <p style="color: #999; text-align: center;">로그를 클릭하면 SHAP 설명이 표시됩니다</p>
+          </div>
+        </div>
     `;
 
+    // Description 영역
+    if (session.analysis_result && session.analysis_result.text_html) {
+      html += `
+        <!-- Description 영역 -->
+        <div style="
+          background: white;
+          border: 1px solid #e9ecef;
+          border-radius: 6px;
+          padding: 1rem;
+          max-height: 200px;
+          overflow-y: auto;
+        ">
+          ${session.analysis_result.text_html}
+        </div>
+      `;
+    }
+
+    html += `
+      </div>
+    </div>
+    `;
   }
 
   return html;
@@ -604,21 +650,37 @@ function attachShapClickHandlers() {
           if (data.success) {
             document.getElementById("shap-plot").innerHTML = data.plot_html;
 
-            // 2. SHAP 설명 텍스트도 함께 출력
-            const explanationBox = document.getElementById("shap-explanation");
-            explanationBox.innerHTML =
-              (data.shap_middle_html || "") +  // ✅ 중간 멘트 넣기
-              "<h4>📘 설명:</h4><ul>" +
-              data.shap_explanation.slice(0, -1).map(line => `<li>${line}</li>`).join("") +
-              "</ul>" +
-              `<div style="margin-top: 0.5rem; color: #888; font-size: 0.9em;">${data.shap_explanation.at(-1)}</div>`;
+            // 2. SHAP 설명 텍스트 생성
+            let explanationHtml = "";
+            
+            // 중간 멘트 추가
+            if (data.shap_middle_html) {
+              explanationHtml += data.shap_middle_html;
+            }
+            
+            // SHAP 설명 목록 추가
+            if (data.shap_explanation && data.shap_explanation.length > 0) {
+              explanationHtml += "<h4>설명:</h4><ul>";
+              // 마지막 요소(총합 설명)를 제외하고 리스트 생성
+              const listItems = data.shap_explanation.slice(0, -1);
+              explanationHtml += listItems.map(line => `<li>${line}</li>`).join("");
+              explanationHtml += "</ul>";
+              
+              // 마지막 요소(총합 설명)를 별도로 표시
+              if (data.shap_explanation.length > 0) {
+                explanationHtml += `<div style="margin-top: 0.5rem; color: #888; font-size: 0.9em;">${data.shap_explanation[data.shap_explanation.length - 1]}</div>`;
+              }
+            }
 
+            // 설명 영역에 HTML 삽입
+            document.getElementById("shap-explanation").innerHTML = explanationHtml;
 
           } else {
             document.getElementById("shap-plot").innerHTML =
               `<p style="color:red;">SHAP 오류: ${data.error}</p>`;
           }
-        });
+        }
+      );
     });
   });
 }
@@ -654,3 +716,4 @@ miniSidebarBtn.onclick = function() {
 
 </body>
 </html>
+

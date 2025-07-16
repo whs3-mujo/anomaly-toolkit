@@ -27,3 +27,4 @@ urlpatterns = [
     path("api/analysis/download/<str:session_id>/", views.download_analysis_csv, name="download_analysis_csv"),
     path("api/analysis/explain/<str:session_id>/<int:row_index>/", views.get_shap_plot, name="shap_explain"),
 ]
+

@@ -274,11 +274,17 @@ from io import BytesIO
 import base64
 from django.shortcuts import get_object_or_404
 from .models import AnalysisSession
+import platform
 
 # ✅ 한글 폰트 설정 (윈도우 기준 예시)
 matplotlib.rc('font', family='Malgun Gothic')  # 윈도우용
 matplotlib.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
+matplotlib.use('Agg')
 
+if platform.system() == 'Windows':
+    matplotlib.rc('font', family='Malgun Gothic')
+else:
+    matplotlib.rc('font', family='AppleGothic')
 
 def get_shap_plot(request, session_id, row_index):
     session = get_object_or_404(AnalysisSession, session_id=session_id)
@@ -350,15 +356,20 @@ def get_shap_plot(request, session_id, row_index):
     # 그래프 아래 설명용 문단
     middle_html = """
     <div style='margin: 1rem 0; color: #666; font-size: 0.95em;'>
-        📊 이 그래프는 AI가 해당 로그를 이상으로 판단하는 데 영향을 준 항목들을 기여도 순으로 보여줍니다.
+        이 그래프는 AI가 해당 로그를 이상으로 판단하는 데 영향을 준 항목들을 기여도 순으로 보여줍니다.
     </div>
     """
+    description_html = ""
+    if hasattr(session, 'analysis_result') and session.analysis_result:
+        description_html = session.analysis_result.get('text_html', '')
 
     return JsonResponse({
         'success': True,
         'plot_html': img_html,
         'shap_middle_html': middle_html,
-        'shap_explanation': explanation_text
+        'shap_explanation': explanation_text,
+        'description_html': description_html 
+
 })
 
 
@@ -389,5 +400,4 @@ def generate_shap_explanation(shap_row_df):
     explanations.append("<span style='color: #555; font-size: 0.95em;'>평균과 많이 달라도 탐지 결과에는 영향이 적을 수 있고, 조금 달라도 비교적 큰 영향을 줄 수 있습니다.</span>")
 
     return explanations
-
 
