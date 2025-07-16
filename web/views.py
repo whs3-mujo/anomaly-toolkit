@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
 from .forms import UploadFileForm
 from .models import AnalysisSession
 import uuid
@@ -400,4 +401,11 @@ def generate_shap_explanation(shap_row_df):
     explanations.append("<span style='color: #555; font-size: 0.95em;'>평균과 많이 달라도 탐지 결과에는 영향이 적을 수 있고, 조금 달라도 비교적 큰 영향을 줄 수 있습니다.</span>")
 
     return explanations
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def delete_all_analysis_sessions(request):
+    """모든 분석 세션 삭제"""
+    AnalysisSession.objects.all().delete()
+    return JsonResponse({"success": True})
 
