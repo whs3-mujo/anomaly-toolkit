@@ -157,10 +157,21 @@ def preview_columns(request):
     """
     if request.method == "POST" and request.FILES.get("file"):
         file = request.FILES["file"]
-        df = pd.read_csv(file, nrows=2)
-        columns = list(df.columns)
-        preview = df.head(2).to_dict(orient="records")
-        return JsonResponse({"columns": columns, "preview": preview})
+        try:
+            # 여러 인코딩 시도
+            for enc in ["utf-8", "cp949", "euc-kr", "latin1"]:
+                try:
+                    df = pd.read_csv(file, nrows=2, encoding=enc)
+                    break
+                except UnicodeDecodeError:
+                    file.seek(0)  # 파일 포인터 리셋
+            else:
+                return JsonResponse({"error": "지원하지 않는 파일 인코딩입니다."}, status=400)
+            columns = list(df.columns)
+            preview = df.head(2).to_dict(orient="records")
+            return JsonResponse({"columns": columns, "preview": preview})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
     return JsonResponse({"error": "No file uploaded"}, status=400)
 
 def detect_anomalies_view(request):
