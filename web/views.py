@@ -248,11 +248,15 @@ def download_analysis_csv(request, session_id):
         return HttpResponse("다운로드할 데이터가 없습니다.", status=404)
 
     df = pd.DataFrame(records)
+    # 한글 깨짐 방지: utf-8-sig로 저장
     csv_data = df.to_csv(index=False, encoding="utf-8-sig")
-    response = HttpResponse(csv_data, content_type="text/csv")
-    response['Content-Disposition'] = (
-        f'attachment; filename="{session.original_filename}_{download_type}.csv"'
-    )
+    # 파일명에서 .csv 중복 제거
+    base_name = session.original_filename
+    if base_name.lower().endswith('.csv'):
+        base_name = base_name[:-4]
+    filename = f"{base_name}_{'전체' if download_type == 'all' else '이상치'}.csv"
+    response = HttpResponse(csv_data, content_type="text/csv; charset=utf-8")
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 
 def visualize_graph_view(request):
