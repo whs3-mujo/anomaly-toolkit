@@ -9,7 +9,7 @@
 - docker, docker-compose 필요
 
 ### 개발 환경(개발자)
-- python 3.10, or 3.11 필요 (pycarat의 경우 3.12 이상 현재 미지원)
+- python 3.10, or 3.11 필요 (pycaret의 경우 3.12 이상 현재 미지원)
 - virtualenv 필요 (`pip install virtualenv`)
 
 ## 사용법
