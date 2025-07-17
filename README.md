@@ -65,5 +65,24 @@ $ . .venv/bin/activate
 	## 7.1. 서버 실행 오류 발생 시 
 	(.venv) $ python manage.py runserver
 ```
+**오류 발생 시(맥북)**
+```bash
+# 기존 venv 삭제
+$ rm -rf venv
+
+# python 재설치
+$ brew install python@3.11
+
+# 가상환경 생성
+$ python3.11 -m venv venv311
+
+# 가상환경 활성화
+$ source venv311/bin/activate
+
+# 라이브러리 재설치
+$ pip install -r requirements.txt
+```
+
+
 브라우저 - `http://127.0.0.1:8000/dashboard`, `http://127.0.0.1:8000/upload` 접근 확인
 
