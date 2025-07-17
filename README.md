@@ -54,8 +54,11 @@ $ . .venv/bin/activate
 (.venv) $ python manage.py makemigrations
 # 4. 장고 - 생성된 마이그레이션 파일을 읽어 DB에 실제 적용
 (.venv) $ python manage.py migrate
-	## 4.1. 장고 - DB적용 오류 발생 시(히스토리 조회 불가, 대시보드 조회 불가 등)
-	(.venv) $ python manage.py migrate web
+	## 4.1. 장고 - DB적용 오류 발생 시 (1)~(3) 입력 후 재실행(히스토리 조회 불가, 대시보드 조회 불가 등)
+		(1) python manage.py makemigrations web
+		(2) python manage.py migrate web 
+		(3) python manage.py runserver  
+
 # 5. 장고 - admin 계정 생성(email 생략 가능)
 (.venv) $ python manage.py createsuperuser
 # 6. 장고 - 암호화 서명에 사용되는 비밀키 환경변수 지정
