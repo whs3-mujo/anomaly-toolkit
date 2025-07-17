@@ -91,26 +91,102 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     print("df.columns:", df.columns.tolist())
     print("user_col:", user_col)
     print("time_col:", time_col)
-    df[user_col] = df[user_col].astype(str)
-    try:
-        df['hour'] = pd.to_datetime(df[time_col], format="%Y.%m.%d %H:%M", errors='coerce').dt.hour
-    except Exception:
-        df['hour'] = pd.to_datetime(df[time_col], errors='coerce').dt.hour
+    
+    # 원본 사용자 컬럼명 처리 (.1이 붙은 컬럼이 있으면 그것을 사용)
+    actual_user_col = user_col
+    if f"{user_col}.1" in df.columns:
+        actual_user_col = f"{user_col}.1"
+        print(f"✅ 원본 사용자 컬럼 '{actual_user_col}' 사용")
+    
+    df[actual_user_col] = df[actual_user_col].astype(str)
+    
+    # 시간 칼럼에서 hour 추출 (더 견고한 방식)
     print("time_col 샘플:", df[time_col].head())
+    print("time_col 데이터 타입:", df[time_col].dtype)
+    
+    # 이미 datetime 타입인지 확인
+    if pd.api.types.is_datetime64_any_dtype(df[time_col]):
+        df['hour'] = df[time_col].dt.hour
+        print("✅ 이미 datetime 타입이므로 바로 hour 추출")
+    else:
+        # 다양한 포맷 시도
+        formats_to_try = [
+            "%Y.%m.%d %H:%M",
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%d %H:%M", 
+            "%Y/%m/%d %H:%M:%S",
+            "%Y/%m/%d %H:%M",
+            "%d/%m/%Y %H:%M:%S",
+            "%d/%m/%Y %H:%M",
+            "%m/%d/%Y %H:%M:%S",
+            "%m/%d/%Y %H:%M"
+        ]
+        
+        success = False
+        for fmt in formats_to_try:
+            try:
+                df['hour'] = pd.to_datetime(df[time_col], format=fmt, errors='coerce').dt.hour
+                if not df['hour'].isna().all():
+                    print(f"✅ 포맷 '{fmt}'로 hour 추출 성공")
+                    success = True
+                    break
+            except:
+                continue
+        
+        # 모든 포맷 실패 시 자동 파싱 시도
+        if not success:
+            try:
+                df['hour'] = pd.to_datetime(df[time_col], errors='coerce').dt.hour
+                if not df['hour'].isna().all():
+                    print("✅ 자동 파싱으로 hour 추출 성공")
+                    success = True
+            except Exception as e:
+                print(f"❌ 자동 파싱 실패: {e}")
+    
     print("hour 추출 샘플:", df['hour'].head())
+    print("hour NaN 개수:", df['hour'].isna().sum())
+    
     if df['hour'].isna().all():
         print(f"⚠️ '{time_col}'에서 hour 추출 실패! 날짜/시간 형식 확인 필요.")
-        print(df[time_col].head())
+        print("시간 칼럼 샘플 데이터:")
+        print(df[time_col].head(10))
         return
 
     df['hour_bin'] = (df['hour'] // 2) * 2  # 2시간 단위
+    
+    # 디버깅: 실제 hour와 hour_bin 매핑 확인
+    print("🔍 시간 그룹핑 예시:")
+    hour_mapping = df[['hour', 'hour_bin']].drop_duplicates().sort_values('hour')
+    for _, row in hour_mapping.head(10).iterrows():
+        print(f"   {int(row['hour']):02d}시 → {int(row['hour_bin']):02d}시 그룹")
 
-    top_users = df[user_col].value_counts().nlargest(top_n).index.tolist()
-    hour_bins = list(range(0, 24, 2))
+    # 이상 로그만 필터링해서 상위 사용자 찾기
+    if 'Anomaly' in df.columns:
+        anomaly_df = df[df['Anomaly'] == 1]
+        top_users = anomaly_df[actual_user_col].value_counts().nlargest(top_n).index.tolist()
+        print(f"✅ 이상 로그 {len(anomaly_df)}건에서 상위 {top_n}명 사용자 추출")
+    else:
+        top_users = df[actual_user_col].value_counts().nlargest(top_n).index.tolist()
+        print(f"✅ 전체 데이터 {len(df)}건에서 상위 {top_n}명 사용자 추출 (이미 필터링된 것으로 간주)")
+    
+    for i, user in enumerate(top_users):
+        if 'Anomaly' in df.columns:
+            user_anomaly_count = len(df[(df[actual_user_col] == user) & (df['Anomaly'] == 1)])
+        else:
+            user_anomaly_count = len(df[df[actual_user_col] == user])
+        print(f"   - {user}: {user_anomaly_count}건")
+    
+    hour_bins = list(range(0, 24, 2))  # 2시간 단위로 변경
 
+    # 시간대별 그룹핑 시에도 이상 로그만 사용
+    if 'Anomaly' in df.columns:
+        plot_df = df[df['Anomaly'] == 1]
+    else:
+        plot_df = df
+    
     hourly_counts = (
-        df[df[user_col].isin(top_users)]
-        .groupby(['hour_bin', user_col])
+        plot_df[plot_df[actual_user_col].isin(top_users)]
+        .groupby(['hour_bin', actual_user_col])
         .size()
         .unstack()
         .fillna(0)
@@ -160,8 +236,45 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
 # 📊 사용자별 이상탐지 시각화
 # -------------------------------------
 def plot_anomaly_by_user(df, user_col, top_n=5):
-    df[user_col] = df[user_col].astype(str)
-    user_counts = df[user_col].value_counts().nlargest(top_n)
+    # 원본 사용자 컬럼명 처리 (.1이 붙은 컬럼이 있으면 그것을 사용)
+    actual_user_col = user_col
+    if f"{user_col}.1" in df.columns:
+        actual_user_col = f"{user_col}.1"
+        print(f"✅ 원본 사용자 컬럼 '{actual_user_col}' 사용")
+    
+    df[actual_user_col] = df[actual_user_col].astype(str)
+    
+    # 이상 로그만 필터링 (안전장치)
+    if 'Anomaly' in df.columns:
+        anomaly_df = df[df['Anomaly'] == 1]
+        print(f"✅ 전체 로그 {len(df)}건 중 이상 로그 {len(anomaly_df)}건으로 필터링")
+        
+        # 이상 로그가 없는 경우 처리
+        if len(anomaly_df) == 0:
+            print("⚠️ 이상 로그가 없습니다. 빈 그래프를 반환합니다.")
+            fig = go.Figure()
+            fig.update_layout(
+                title='Anomalies by User (No Anomalies Found)',
+                xaxis_title='User',
+                yaxis_title='Anomaly Count',
+                annotations=[dict(text="이상 로그가 발견되지 않았습니다.", 
+                                x=0.5, y=0.5, showarrow=False, 
+                                font=dict(size=16))]
+            )
+            return fig.to_html(full_html=False, include_plotlyjs='cdn')
+        
+        # 사용자별 이상 로그 카운트 (원본 컬럼 사용)
+        user_counts = anomaly_df[actual_user_col].value_counts().nlargest(top_n)
+        print(f"✅ 상위 {top_n}명 사용자별 이상 로그 수:")
+        for user, count in user_counts.items():
+            print(f"   - {user}: {count}건")
+    else:
+        # Anomaly 컬럼이 없으면 전체 데이터 사용 (이미 필터링된 것으로 간주)
+        print(f"⚠️ 'Anomaly' 컬럼이 없어 전체 데이터 {len(df)}건을 사용합니다.")
+        user_counts = df[actual_user_col].value_counts().nlargest(top_n)
+        print(f"✅ 상위 {top_n}명 사용자별 로그 수:")
+        for user, count in user_counts.items():
+            print(f"   - {user}: {count}건")
 
     colors = ['#ff4d4d'] + ['#4da6ff'] * (len(user_counts) - 1)
 

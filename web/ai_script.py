@@ -132,8 +132,11 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     elif 'Anomaly_Score' not in results.columns and 'anomaly_score' in results.columns:
         results['Anomaly_Score'] = results['anomaly_score']
 
-    # 복원한 문자열 컬럼을 결과에 다시 붙이기
-    results_with_info = pd.concat([results, original_info], axis=1)
+    # 복원한 문자열 컬럼을 결과에 다시 붙이기 (중복 컬럼 방지)
+    # 원본 정보에서 인코딩된 컬럼들을 제거하고 합치기
+    encoded_columns = [col for col in categorical_for_encoding if col in results.columns]
+    results_cleaned = results.drop(columns=encoded_columns, errors='ignore')
+    results_with_info = pd.concat([results_cleaned, original_info], axis=1)
 
     # 전체 결과 저장
     results_with_info.to_csv("full_data_with_anomaly_info.csv", index=False)
