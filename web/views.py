@@ -187,11 +187,12 @@ def detect_anomalies_view(request):
 
             # === 그래프 HTML 생성 및 저장 ===
             from .visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot_anomaly_score_distribution
-            df = pd.read_csv(file_path)
-            user_graph_html = plot_anomaly_by_user(df, user_col) if user_col and user_col in df.columns else None
-            hour_graph_html = plot_anomaly_by_hour(df, user_col, time_col) if user_col and time_col and user_col in df.columns and time_col in df.columns else None
             result_csv_path = result.get("result_csv_path")  # 분석 결과 파일 경로
-            df_result = pd.read_csv(result_csv_path)         # 분석 결과 DataFrame
+            df_result = pd.read_csv(result_csv_path)         # 분석 결과 DataFrame (Anomaly 컬럼 포함)
+            
+            # 이상 로그만 필터링해서 그래프 생성
+            user_graph_html = plot_anomaly_by_user(df_result, user_col) if user_col and user_col in df_result.columns else None
+            hour_graph_html = plot_anomaly_by_hour(df_result, user_col, time_col) if user_col and time_col and user_col in df_result.columns and time_col in df_result.columns else None
             score_graph_html = plot_anomaly_score_distribution(df_result)
 
 #            print("df.columns:", df.columns.tolist())
