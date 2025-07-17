@@ -45,21 +45,25 @@ $ docker-compose down
 
 
 ```bash
-# 가상환경 세팅
+# 1. 가상환경 세팅
 $ virtualenv --python=3.11 .venv
 $ . .venv/bin/activate
-# 의존성 파이썬 라이브러리 설치
+# 2. 의존성 파이썬 라이브러리 설치
 (.venv) $ pip install -r requirements.txt
-# 장고 - 모델의 변경사항 확인 후 마이그레이션 파일로 기록
+# 3. 장고 - 모델의 변경사항 확인 후 마이그레이션 파일로 기록
 (.venv) $ python manage.py makemigrations
-# 장고 - 생성된 마이그레이션 파일을 읽어 DB에 실제 적용
+# 4. 장고 - 생성된 마이그레이션 파일을 읽어 DB에 실제 적용
 (.venv) $ python manage.py migrate
-# 장고 - admin 계정 생성(email 생략 가능)
+	## 4.1. 장고 - DB적용 오류 발생 시(히스토리 조회 불가, 대시보드 조회 불가 등)
+	(.venv) $ python manage.py migrate web
+# 5. 장고 - admin 계정 생성(email 생략 가능)
 (.venv) $ python manage.py createsuperuser
-# 장고 - 암호화 서명에 사용되는 비밀키 환경변수 지정
+# 6. 장고 - 암호화 서명에 사용되는 비밀키 환경변수 지정
 (.venv) $ export SECRET_KEY=[비밀키 지정]
-# 장고 - 서버 실행
+# 7. 장고 - 서버 실행
 (.venv) $ python manage.py runserver 0.0.0.0:8000
+	## 7.1. 서버 실행 오류 발생 시 
+	(.venv) $ python manage.py runserver
 ```
-브라우저 - `http://127.0.0.1:8000/` 접근 확인
+브라우저 - `http://127.0.0.1:8000/dashboard`, `http://127.0.0.1:8000/upload` 접근 확인
 
