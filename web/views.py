@@ -255,7 +255,7 @@ def download_analysis_csv(request, session_id):
     if base_name.lower().endswith('.csv'):
         base_name = base_name[:-4]
     filename = f"{base_name}_{'전체' if download_type == 'all' else '이상치'}.csv"
-    response = HttpResponse(csv_data, content_type="text/csv; charset=utf-8")
+    response = HttpResponse(csv_data, content_type="text/csv; charset=utf-8-sig")
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 
