@@ -46,8 +46,12 @@ $ docker-compose down
 
 ```bash
 # 1. 가상환경 세팅
+(맥 OS 환경) 
 $ virtualenv --python=3.11 .venv
 $ . .venv/bin/activate
+(윈도우 환경 - powershell) 
+$ python -m venv venv
+$ .\venv\Scripts\Activate.ps1
 # 2. 의존성 파이썬 라이브러리 설치
 (.venv) $ pip install -r requirements.txt
 # 3. 장고 - 모델의 변경사항 확인 후 마이그레이션 파일로 기록
