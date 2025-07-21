@@ -310,15 +310,26 @@ def get_shap_plot(request, session_id, row_index):
     X = pd.read_csv(session.file_path.replace(".csv", "_X_for_shap.csv"))
     shap_values = np.load(session.file_path.replace(".csv", "_shap_values.npy"))
     feature_cols = X.columns.tolist()
+    #수정 코드(채윤) 313~323
+    tfidf_cols = [col for col in X.columns if col.startswith('message_tfidf_')]
+    non_tfidf_features = [col for col in X.columns if col not in tfidf_cols]
 
-    # 해당 샘플의 SHAP 값 가져오기
     row = shap_values[int(row_index)]
     shap_df = pd.DataFrame({
-        'feature': feature_cols,
+        'feature': non_tfidf_features,
         'shap_value': row,
         'abs_val': np.abs(row),
-        'data': X.iloc[int(row_index)].values  # SHAP 줄글 설명
+        'data': X[non_tfidf_features].iloc[int(row_index)].values
     })
+
+    # 해당 샘플의 SHAP 값 가져오기
+    # row = shap_values[int(row_index)]
+    # shap_df = pd.DataFrame({
+    #     'feature': feature_cols,
+    #     'shap_value': row,
+    #     'abs_val': np.abs(row),
+    #     'data': X.iloc[int(row_index)].values  # SHAP 줄글 설명
+    # })
 
     # SHAP < 0인 feature 중 영향 큰 순서대로 정렬
     negative_df = shap_df[shap_df['shap_value'] < 0].sort_values(by='abs_val', ascending=False).reset_index(drop=True)
@@ -398,9 +409,8 @@ def generate_shap_explanation(shap_row_df):
         if not feature:  # feature가 비어 있는 경우 (빈 bar용) 설명 제외
             continue
 
-        value = row['data']  # 스케일링된 값 (평균 0, std 1 기준)
-        magnitude = abs(value)
-
+        value = row['data']  # 스케일링된 값 (평균 0, std 1 기준) => 평균에서 얼마나 떨어졌는지 계산.
+        magnitude = abs(value) 
         if magnitude > 2:
             level = "<span style='color: #B22222'>매우 크게</span>"  # 빨간색
         elif magnitude > 1:
