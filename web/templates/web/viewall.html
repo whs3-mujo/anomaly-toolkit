@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>이상로그 사용자 검색</title>
+    <style>
+      body { background: #f5f7fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    </style>
+</head>
+<body>
+  <div style="max-width: 500px; margin: 2rem auto; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef; padding: 2rem;">
+    <h2 style="text-align:center; margin-bottom:2rem;">이상로그 사용자 검색</h2>
+    <!-- 사용자명 검색 폼 -->
+    <form method="get" action="{% url 'web:search_anomaly_logs' %}" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+      <input type="text" name="username" placeholder="사용자명을 입력하세요"
+             style="flex: 1; padding: 0.5rem; border: 1px solid #dee2e6; border-radius: 4px;">
+      <button type="submit"
+              style="padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        검색
+      </button>
+    </form>
+    <!-- 상위 N명 조회 폼 -->
+    <form id="top-users-form" style="display: flex; gap: 0.5rem;">
+      <input type="number" id="top-n-input" min="1" value="5" style="width: 80px; padding: 0.5rem;" placeholder="상위 N명">
+      <button type="submit" style="padding: 0.5rem 1rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        상위 N명 조회
+      </button>
+    </form>
+    <div id="top-users-result" style="margin-top: 1rem;"></div>
+  </div>
+  <script>
+    document.getElementById('top-users-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const n = document.getElementById('top-n-input').value;
+      fetch(`/api/anomaly/top/${n}/`)
+        .then(response => response.json())
+        .then(data => {
+          const resultDiv = document.getElementById('top-users-result');
+          if (data.top_users) {
+            resultDiv.innerHTML = '<b>상위 ' + n + '명 사용자:</b><br>' +
+              data.top_users.map(u => `${u.username}: ${u.anomaly_count}건`).join('<br>');
+          } else {
+            resultDiv.innerHTML = '<span style="color:red;">결과 없음</span>';
+          }
+        });
+    });
+  </script>
+</body>
+</html>

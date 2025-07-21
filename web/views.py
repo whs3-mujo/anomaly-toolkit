@@ -12,6 +12,8 @@ from django.conf import settings
 import pandas as pd
 from .ai_script import detect_anomalies
 from .visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot_anomaly_score_distribution
+from django.db.models import Count  # Count를 명확히 import
+from django.contrib.auth.models import User
 
 def redirect_dashboard(request):
     return redirect('web:dashboard')
@@ -184,23 +186,32 @@ def detect_anomalies_view(request):
             time_col = request.POST.get("time_col")
             file_path = save_uploaded_file(file)
             result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col)
+            result_csv_path = result.get("result_csv_path")
+            df_result = pd.read_csv(result_csv_path)
+
+            # === 이상 로그 저장 및 디버깅 === 준호
+            if user_col and "Anomaly" in df_result.columns:
+                print("user_col:", user_col)
+                print("df_result.columns:", df_result.columns.tolist())
+                print("Anomaly 값 종류:", df_result["Anomaly"].unique())
+                anomalies = df_result[df_result["Anomaly"].astype(str).isin(["1", "1.0", "True", "true"])]
+                print("이상치 개수:", len(anomalies))
+                print("Anomaly 값 종류:", df_result["Anomaly"].unique())
+                print("Anomaly dtype:", df_result["Anomaly"].dtype)
+                for _, row in anomalies.iterrows():
+                    username = row[user_col]
+                    print("저장할 username:", username)
+                    try:
+                        user = User.objects.get(username=username)
+                    except User.DoesNotExist:
+                        user = User.objects.create_user(username=username, password="changeme")
+                    log_data = row.to_json(force_ascii=False)
+                    AnomalyLog.objects.create(user=user, log_data=log_data)
 
             # === 그래프 HTML 생성 및 저장 ===
-            from .visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot_anomaly_score_distribution
-            result_csv_path = result.get("result_csv_path")  # 분석 결과 파일 경로
-            df_result = pd.read_csv(result_csv_path)         # 분석 결과 DataFrame (Anomaly 컬럼 포함)
-            
-            # 이상 로그만 필터링해서 그래프 생성
             user_graph_html = plot_anomaly_by_user(df_result, user_col) if user_col and user_col in df_result.columns else None
             hour_graph_html = plot_anomaly_by_hour(df_result, user_col, time_col) if user_col and time_col and user_col in df_result.columns and time_col in df_result.columns else None
             score_graph_html = plot_anomaly_score_distribution(df_result)
-
-#            print("df.columns:", df.columns.tolist())
-#            print("user_col:", user_col)
-#            print("time_col:", time_col)
-#            print("user_graph_html:", user_graph_html)
-#            print("hour_graph_html:", hour_graph_html)
-#            print("score_graph_html:", score_graph_html)
 
             AnalysisSession.objects.create(
                 session_id=str(uuid.uuid4()),
@@ -219,7 +230,7 @@ def detect_anomalies_view(request):
     except Exception as e:
         import traceback
         print(traceback.format_exc())
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": str(e)},status=500)
 
 @require_http_methods(["GET"])
 def upload_filter_view(request):
@@ -425,3 +436,51 @@ def delete_all_analysis_sessions(request):
     AnalysisSession.objects.all().delete()
     return JsonResponse({"success": True})
 
+
+from django.shortcuts import get_object_or_404
+from .models import AnomalyLog  
+#준호
+def user_anomaly_count(request, username):
+    """
+    사용자명을 입력받아 해당 사용자가 발생시킨 이상 로그 건수를 반환합니다.
+    """
+    try:
+        count = AnomalyLog.objects.filter(user__username=username).count()
+        return JsonResponse({'username': username, 'anomaly_count': count})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+#준호
+def top_anomaly_users(request, top_n):
+    """
+    숫자를 입력받아 이상 로그를 많이 발생시킨 상위 N명의 사용자와 로그 건수를 반환합니다.
+    """
+    try:
+        top_users = (
+            AnomalyLog.objects.values('user__username')
+            .annotate(count=Count('id'))
+            .order_by('-count')[:top_n]
+        )
+        formatted_users = [{'username': user['user__username'], 'anomaly_count': user['count']} for user in top_users]
+        return JsonResponse({'top_users': formatted_users})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    from django.db.models import Q  # Q 객체를 사용하여 OR 조건 검색
+#준호
+@require_http_methods(["GET"])
+def search_anomaly_logs(request):
+    """
+    특정 사용자의 이상 로그 건수를 검색합니다.
+    """
+    query = request.GET.get('username', '')  # GET 요청에서 'username' 파라미터 가져오기
+    if query:
+        results = AnomalyLog.objects.filter(user__username__icontains=query)  # 사용자명 검색 (대소문자 구분 없음)
+        count = results.count()  # 검색된 이상 로그 건수
+        return JsonResponse({'username': query, 'anomaly_count': count})
+    else:
+        return JsonResponse({'error': '검색어를 입력해주세요.'}, status=400)
+from django.shortcuts import render
+
+
+
+def anomaly_search_view(request):
+    return render(request, 'web/viewall.html')
