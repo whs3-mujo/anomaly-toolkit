@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
@@ -31,7 +32,7 @@ def get_analysis_history(request):
                 'filename': session.get_short_filename(),
                 'full_filename': session.original_filename,
                 'file_type': session.file_type,
-                'created_at': session.created_at.strftime('%Y-%m-%d %H:%M'),
+                'created_at': session.created_at.strftime('%Y-%m-%dT%H:%M:%SZ'),
             })
         return JsonResponse({
             'success': True,
@@ -56,7 +57,7 @@ def get_analysis_detail(request, session_id):
                 'session_id': session.session_id,
                 'filename': session.original_filename,
                 'file_type': session.file_type,
-                'created_at': session.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'created_at': session.created_at.strftime('%Y-%m-%dT%H:%M:%SZ'),
                 'analysis_result': session.analysis_result,
                 'user_graph_html': getattr(session, 'user_graph_html', None),
                 'hour_graph_html': getattr(session, 'hour_graph_html', None),

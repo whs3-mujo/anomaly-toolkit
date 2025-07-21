@@ -392,6 +392,13 @@ function loadAnalysisHistory() {
     });
 }
 
+function formatLocalTime(utcString) {
+  if (!utcString) return '';
+  // ISO 포맷이 아니면 'Z'를 붙여서 UTC로 인식
+  let date = new Date(utcString.endsWith('Z') ? utcString : utcString + 'Z');
+  return date.toLocaleString();
+}
+
 function renderHistoryList(history) {
   const listContainer = document.getElementById('history-list');
   
@@ -410,7 +417,7 @@ function renderHistoryList(history) {
     <div class="history-item" data-session-id="${item.session_id}" onclick="loadAnalysisDetail('${item.session_id}')">
       <span class="filename" title="${item.full_filename}">${item.filename}</span>
       <div class="meta">
-        <span>${item.created_at}</span>
+        <span>${formatLocalTime(item.created_at)}</span>
         <span class="file-type-badge">${item.file_type.toUpperCase()}</span>
       </div>
     </div>
@@ -479,7 +486,7 @@ function renderAnalysisResult(session) {
       <div style="display: flex; align-items: center; gap: 1rem;">
         <h2 style="margin: 0; font-size: 1.08rem; font-weight: 700;">${session.filename}</h2>
         <span style="font-size: 0.92rem; color: #e3e3e3;">|</span>
-        <span style="font-size: 0.92rem; color: #f1f1f1;">분석 완료: ${session.created_at}</span>
+        <span style="font-size: 0.92rem; color: #f1f1f1;">분석 완료: ${formatLocalTime(session.created_at)}</span>
       </div>
       <span style="background: #28a745; padding: 3px 10px; border-radius: 10px; font-size: 0.92rem; font-weight: 600;">완료</span>
     </div>
@@ -487,7 +494,7 @@ function renderAnalysisResult(session) {
   `;
 
   if (session.analysis_result) {
-    // 분석 결과 요약 텍스트(예: "이상치 150건 / 전체 3,000건")를 상단에 표시
+    // 분석 결과 요약 텍스트를 상단에 표시
     let summaryText = '';
     if (session.analysis_result.summary) {
       summaryText = `
