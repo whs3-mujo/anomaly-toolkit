@@ -116,8 +116,8 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
         df['hour'] = df[time_col].dt.hour
         print("✅ 이미 datetime 타입이므로 바로 hour 추출")
     else:
-        # 다양한 포맷 시도
-        formats_to_try = [
+        # 시간 정보가 포함된 포맷만 시도 (날짜만 있는 포맷 제외)
+        time_formats_to_try = [
             "%Y.%m.%d %H:%M",
             "%Y-%m-%d %H:%M:%S",
             "%Y-%m-%d %H:%M", 
@@ -126,29 +126,68 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
             "%d/%m/%Y %H:%M:%S",
             "%d/%m/%Y %H:%M",
             "%m/%d/%Y %H:%M:%S",
-            "%m/%d/%Y %H:%M"
+            "%m/%d/%Y %H:%M",
+            "%Y.%m.%d %H:%M:%S",
+            "%Y%m%d %H:%M:%S",
+            "%Y%m%d %H:%M",
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%dT%H:%M:%SZ",
+            "%Y-%m-%d %H:%M:%S.%f",
+            "%d-%m-%Y %H:%M:%S",
+            "%d-%m-%Y %H:%M",
+            "%d.%m.%Y %H:%M:%S",
+            "%d.%m.%Y %H:%M",
+            "%Y년 %m월 %d일 %H:%M:%S",
+            "%Y년 %m월 %d일 %H:%M",
+            "%m/%d/%y %H:%M:%S",
+            "%m/%d/%y %H:%M",
+            "%d/%m/%y %H:%M:%S",
+            "%d/%m/%y %H:%M",
+            "%y-%m-%d %H:%M:%S",
+            "%y-%m-%d %H:%M",
+            "%y.%m.%d %H:%M:%S",
+            "%y.%m.%d %H:%M",
+            "%H:%M:%S",
+            "%H:%M"
         ]
         
         success = False
-        for fmt in formats_to_try:
+        for fmt in time_formats_to_try:
             try:
-                df['hour'] = pd.to_datetime(df[time_col], format=fmt, errors='coerce').dt.hour
-                if not df['hour'].isna().all():
+                parsed_datetime = pd.to_datetime(df[time_col], format=fmt, errors='coerce')
+                if not parsed_datetime.isna().all():
+                    df['hour'] = parsed_datetime.dt.hour
                     print(f"✅ 포맷 '{fmt}'로 hour 추출 성공")
                     success = True
                     break
             except:
                 continue
         
-        # 모든 포맷 실패 시 자동 파싱 시도
+        # 시간 정보가 포함된 포맷으로 실패한 경우, 자동 파싱 시도하되 시간 정보 확인
         if not success:
             try:
-                df['hour'] = pd.to_datetime(df[time_col], errors='coerce').dt.hour
-                if not df['hour'].isna().all():
-                    print("✅ 자동 파싱으로 hour 추출 성공")
-                    success = True
+                parsed_datetime = pd.to_datetime(df[time_col], errors='coerce')
+                if not parsed_datetime.isna().all():
+                    # 시간 정보가 실제로 있는지 확인 (모든 시간이 00:00:00인지 체크)
+                    sample_times = parsed_datetime.dropna().dt.time.unique()
+                    has_time_info = len(sample_times) > 1 or (len(sample_times) == 1 and sample_times[0] != pd.Timestamp('00:00:00').time())
+                    
+                    if has_time_info:
+                        df['hour'] = parsed_datetime.dt.hour
+                        print("✅ 자동 파싱으로 hour 추출 성공 (시간 정보 확인됨)")
+                        success = True
+                    else:
+                        print("⚠️ 날짜만 있고 시간 정보가 없는 데이터입니다. 시간대별 분석이 불가능합니다.")
+                        return None
             except Exception as e:
                 print(f"❌ 자동 파싱 실패: {e}")
+    
+    # 시간 정보가 제대로 추출되었는지 확인
+    if not success or df['hour'].isna().all():
+        print(f"⚠️ '{time_col}'에서 시간 정보 추출 실패! 시간대별 분석이 불가능합니다.")
+        print("시간 칼럼 샘플 데이터:")
+        print(df[time_col].head(10))
+        return None
     
     print("hour 추출 샘플:", df['hour'].head())
     print("hour NaN 개수:", df['hour'].isna().sum())
@@ -157,7 +196,7 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
         print(f"⚠️ '{time_col}'에서 hour 추출 실패! 날짜/시간 형식 확인 필요.")
         print("시간 칼럼 샘플 데이터:")
         print(df[time_col].head(10))
-        return
+        return None
 
     df['hour_bin'] = (df['hour'] // 2) * 2  # 2시간 단위
     
