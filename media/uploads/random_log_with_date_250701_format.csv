@@ -1,0 +1,1001 @@
+timestamp,log_level,message
+250701,WARNING,File deleted
+250702,ERROR,System rebooted
+250703,ERROR,User logged in
+250704,INFO,System rebooted
+250705,WARNING,System rebooted
+250706,ERROR,Session timeout
+250707,WARNING,Session timeout
+250708,ERROR,Session timeout
+250709,DEBUG,Unauthorized access attempt
+250710,ERROR,Session timeout
+250711,ERROR,System rebooted
+250712,INFO,Session timeout
+250713,WARNING,Password changed
+250714,DEBUG,Password changed
+250715,INFO,File uploaded
+250716,INFO,File uploaded
+250717,INFO,File deleted
+250718,INFO,System rebooted
+250719,INFO,File uploaded
+250720,INFO,File uploaded
+250721,DEBUG,File uploaded
+250722,ERROR,Access denied
+250723,WARNING,File deleted
+250724,WARNING,Access denied
+250725,INFO,System rebooted
+250726,DEBUG,Login failed
+250727,INFO,Access denied
+250728,DEBUG,System rebooted
+250729,DEBUG,Password changed
+250730,DEBUG,File uploaded
+250731,INFO,User logged in
+250801,WARNING,Login failed
+250802,WARNING,Login failed
+250803,WARNING,File uploaded
+250804,DEBUG,Email sent
+250805,ERROR,User logged in
+250806,ERROR,Unauthorized access attempt
+250807,WARNING,System rebooted
+250808,ERROR,Unauthorized access attempt
+250809,INFO,Session timeout
+250810,ERROR,File uploaded
+250811,WARNING,File deleted
+250812,DEBUG,Login failed
+250813,ERROR,Password changed
+250814,ERROR,Session timeout
+250815,ERROR,Access denied
+250816,ERROR,User logged in
+250817,ERROR,Session timeout
+250818,DEBUG,Password changed
+250819,INFO,Session timeout
+250820,WARNING,Email sent
+250821,INFO,Unauthorized access attempt
+250822,WARNING,Email sent
+250823,WARNING,System rebooted
+250824,INFO,Unauthorized access attempt
+250825,DEBUG,Password changed
+250826,INFO,Login failed
+250827,WARNING,Login failed
+250828,INFO,Password changed
+250829,INFO,Password changed
+250830,WARNING,Password changed
+250831,INFO,Email sent
+250901,ERROR,Unauthorized access attempt
+250902,WARNING,Unauthorized access attempt
+250903,DEBUG,File deleted
+250904,WARNING,Email sent
+250905,INFO,Login failed
+250906,DEBUG,File uploaded
+250907,DEBUG,File deleted
+250908,WARNING,File deleted
+250909,DEBUG,Session timeout
+250910,ERROR,System rebooted
+250911,DEBUG,File deleted
+250912,ERROR,Email sent
+250913,INFO,Login failed
+250914,ERROR,Unauthorized access attempt
+250915,ERROR,System rebooted
+250916,ERROR,Unauthorized access attempt
+250917,DEBUG,Password changed
+250918,ERROR,User logged in
+250919,WARNING,Session timeout
+250920,ERROR,File uploaded
+250921,WARNING,Access denied
+250922,DEBUG,File deleted
+250923,ERROR,User logged in
+250924,ERROR,Login failed
+250925,DEBUG,File uploaded
+250926,INFO,Unauthorized access attempt
+250927,ERROR,System rebooted
+250928,DEBUG,File deleted
+250929,DEBUG,Unauthorized access attempt
+250930,ERROR,File deleted
+251001,INFO,File deleted
+251002,INFO,Access denied
+251003,ERROR,User logged in
+251004,INFO,Email sent
+251005,WARNING,Email sent
+251006,WARNING,Email sent
+251007,ERROR,Unauthorized access attempt
+251008,ERROR,System rebooted
+251009,WARNING,User logged in
+251010,INFO,Login failed
+251011,INFO,Session timeout
+251012,DEBUG,System rebooted
+251013,ERROR,System rebooted
+251014,ERROR,Unauthorized access attempt
+251015,DEBUG,Login failed
+251016,ERROR,Password changed
+251017,ERROR,Session timeout
+251018,ERROR,Session timeout
+251019,DEBUG,Access denied
+251020,WARNING,Session timeout
+251021,ERROR,File deleted
+251022,INFO,User logged in
+251023,WARNING,System rebooted
+251024,DEBUG,Email sent
+251025,ERROR,Session timeout
+251026,DEBUG,Access denied
+251027,ERROR,File uploaded
+251028,DEBUG,Login failed
+251029,WARNING,File uploaded
+251030,INFO,System rebooted
+251031,WARNING,User logged in
+251101,DEBUG,Session timeout
+251102,WARNING,Unauthorized access attempt
+251103,WARNING,Email sent
+251104,INFO,System rebooted
+251105,WARNING,File deleted
+251106,INFO,Session timeout
+251107,DEBUG,Unauthorized access attempt
+251108,WARNING,Email sent
+251109,DEBUG,File deleted
+251110,ERROR,File deleted
+251111,ERROR,Access denied
+251112,INFO,Access denied
+251113,ERROR,File uploaded
+251114,DEBUG,Unauthorized access attempt
+251115,WARNING,Access denied
+251116,ERROR,Access denied
+251117,DEBUG,File uploaded
+251118,WARNING,File deleted
+251119,INFO,Access denied
+251120,ERROR,File uploaded
+251121,ERROR,Password changed
+251122,ERROR,User logged in
+251123,INFO,User logged in
+251124,DEBUG,Login failed
+251125,DEBUG,File uploaded
+251126,DEBUG,Unauthorized access attempt
+251127,INFO,User logged in
+251128,INFO,Login failed
+251129,ERROR,Session timeout
+251130,WARNING,Password changed
+251201,ERROR,User logged in
+251202,INFO,Password changed
+251203,INFO,Password changed
+251204,WARNING,Access denied
+251205,ERROR,Email sent
+251206,DEBUG,User logged in
+251207,ERROR,Unauthorized access attempt
+251208,DEBUG,Login failed
+251209,DEBUG,File uploaded
+251210,ERROR,System rebooted
+251211,ERROR,File deleted
+251212,INFO,Email sent
+251213,DEBUG,Login failed
+251214,INFO,File uploaded
+251215,DEBUG,Session timeout
+251216,ERROR,Unauthorized access attempt
+251217,DEBUG,Session timeout
+251218,DEBUG,User logged in
+251219,WARNING,Session timeout
+251220,INFO,Login failed
+251221,ERROR,Session timeout
+251222,DEBUG,Login failed
+251223,ERROR,File deleted
+251224,DEBUG,Session timeout
+251225,ERROR,Email sent
+251226,WARNING,Session timeout
+251227,INFO,System rebooted
+251228,WARNING,Password changed
+251229,DEBUG,Login failed
+251230,ERROR,System rebooted
+251231,INFO,User logged in
+260101,ERROR,Session timeout
+260102,WARNING,System rebooted
+260103,ERROR,Login failed
+260104,DEBUG,Login failed
+260105,DEBUG,Access denied
+260106,INFO,File uploaded
+260107,DEBUG,File deleted
+260108,DEBUG,User logged in
+260109,DEBUG,File uploaded
+260110,DEBUG,User logged in
+260111,ERROR,File deleted
+260112,ERROR,Access denied
+260113,WARNING,User logged in
+260114,ERROR,Access denied
+260115,WARNING,System rebooted
+260116,WARNING,File deleted
+260117,DEBUG,Access denied
+260118,WARNING,File deleted
+260119,ERROR,Access denied
+260120,WARNING,File deleted
+260121,INFO,System rebooted
+260122,DEBUG,System rebooted
+260123,INFO,Unauthorized access attempt
+260124,INFO,User logged in
+260125,INFO,Unauthorized access attempt
+260126,INFO,Session timeout
+260127,INFO,Access denied
+260128,INFO,Password changed
+260129,INFO,Login failed
+260130,ERROR,Unauthorized access attempt
+260131,ERROR,User logged in
+260201,INFO,Password changed
+260202,WARNING,System rebooted
+260203,ERROR,Email sent
+260204,DEBUG,User logged in
+260205,INFO,Password changed
+260206,INFO,Password changed
+260207,INFO,File uploaded
+260208,INFO,Login failed
+260209,DEBUG,User logged in
+260210,WARNING,Session timeout
+260211,INFO,Session timeout
+260212,ERROR,System rebooted
+260213,WARNING,File deleted
+260214,DEBUG,User logged in
+260215,WARNING,User logged in
+260216,INFO,File uploaded
+260217,ERROR,File deleted
+260218,ERROR,Login failed
+260219,ERROR,Password changed
+260220,WARNING,Password changed
+260221,WARNING,System rebooted
+260222,WARNING,User logged in
+260223,ERROR,Login failed
+260224,WARNING,User logged in
+260225,ERROR,File deleted
+260226,ERROR,User logged in
+260227,DEBUG,File deleted
+260228,WARNING,Access denied
+260301,ERROR,System rebooted
+260302,WARNING,Password changed
+260303,WARNING,File deleted
+260304,DEBUG,File deleted
+260305,WARNING,Email sent
+260306,ERROR,File deleted
+260307,ERROR,Unauthorized access attempt
+260308,INFO,File deleted
+260309,DEBUG,File uploaded
+260310,DEBUG,Login failed
+260311,DEBUG,System rebooted
+260312,ERROR,Password changed
+260313,INFO,System rebooted
+260314,WARNING,Session timeout
+260315,WARNING,Password changed
+260316,INFO,Email sent
+260317,WARNING,Unauthorized access attempt
+260318,WARNING,File deleted
+260319,DEBUG,Password changed
+260320,ERROR,System rebooted
+260321,ERROR,Login failed
+260322,ERROR,Login failed
+260323,WARNING,File deleted
+260324,ERROR,Login failed
+260325,WARNING,File uploaded
+260326,WARNING,Login failed
+260327,WARNING,System rebooted
+260328,ERROR,Password changed
+260329,ERROR,File uploaded
+260330,INFO,Login failed
+260331,ERROR,User logged in
+260401,ERROR,User logged in
+260402,ERROR,Login failed
+260403,ERROR,File deleted
+260404,INFO,Session timeout
+260405,ERROR,Email sent
+260406,WARNING,File uploaded
+260407,WARNING,System rebooted
+260408,ERROR,File uploaded
+260409,WARNING,File deleted
+260410,WARNING,Unauthorized access attempt
+260411,INFO,File uploaded
+260412,WARNING,File deleted
+260413,INFO,User logged in
+260414,ERROR,Unauthorized access attempt
+260415,WARNING,File deleted
+260416,DEBUG,File deleted
+260417,WARNING,File uploaded
+260418,WARNING,User logged in
+260419,DEBUG,File deleted
+260420,WARNING,Email sent
+260421,ERROR,Login failed
+260422,INFO,Login failed
+260423,DEBUG,User logged in
+260424,INFO,File uploaded
+260425,ERROR,Email sent
+260426,WARNING,Login failed
+260427,ERROR,Login failed
+260428,INFO,User logged in
+260429,DEBUG,Session timeout
+260430,ERROR,User logged in
+260501,DEBUG,User logged in
+260502,DEBUG,Login failed
+260503,WARNING,Password changed
+260504,DEBUG,File uploaded
+260505,DEBUG,File deleted
+260506,INFO,File uploaded
+260507,WARNING,File deleted
+260508,WARNING,Unauthorized access attempt
+260509,INFO,Unauthorized access attempt
+260510,ERROR,File uploaded
+260511,ERROR,User logged in
+260512,ERROR,File deleted
+260513,WARNING,Access denied
+260514,ERROR,Login failed
+260515,INFO,Password changed
+260516,ERROR,User logged in
+260517,DEBUG,Email sent
+260518,INFO,Login failed
+260519,WARNING,System rebooted
+260520,WARNING,Session timeout
+260521,INFO,System rebooted
+260522,ERROR,File deleted
+260523,WARNING,System rebooted
+260524,WARNING,Login failed
+260525,ERROR,Login failed
+260526,WARNING,File deleted
+260527,INFO,Login failed
+260528,ERROR,Access denied
+260529,DEBUG,Password changed
+260530,ERROR,File deleted
+260531,DEBUG,Email sent
+260601,INFO,Access denied
+260602,INFO,File uploaded
+260603,DEBUG,System rebooted
+260604,WARNING,File uploaded
+260605,WARNING,Email sent
+260606,INFO,Unauthorized access attempt
+260607,ERROR,Login failed
+260608,INFO,User logged in
+260609,INFO,System rebooted
+260610,ERROR,File deleted
+260611,WARNING,Unauthorized access attempt
+260612,ERROR,System rebooted
+260613,DEBUG,System rebooted
+260614,WARNING,Password changed
+260615,INFO,Unauthorized access attempt
+260616,ERROR,System rebooted
+260617,INFO,Login failed
+260618,DEBUG,File deleted
+260619,WARNING,Access denied
+260620,INFO,File uploaded
+260621,DEBUG,Login failed
+260622,WARNING,File uploaded
+260623,ERROR,Email sent
+260624,INFO,Email sent
+260625,ERROR,File deleted
+260626,DEBUG,Access denied
+260627,INFO,Unauthorized access attempt
+260628,INFO,File deleted
+260629,INFO,Access denied
+260630,ERROR,Access denied
+260701,WARNING,File uploaded
+260702,DEBUG,Email sent
+260703,INFO,Access denied
+260704,WARNING,Unauthorized access attempt
+260705,ERROR,User logged in
+260706,ERROR,File uploaded
+260707,ERROR,System rebooted
+260708,ERROR,File deleted
+260709,ERROR,Email sent
+260710,DEBUG,Access denied
+260711,INFO,Login failed
+260712,ERROR,Unauthorized access attempt
+260713,DEBUG,Password changed
+260714,WARNING,Email sent
+260715,WARNING,Email sent
+260716,INFO,Session timeout
+260717,ERROR,File deleted
+260718,WARNING,File deleted
+260719,WARNING,Unauthorized access attempt
+260720,DEBUG,User logged in
+260721,DEBUG,Email sent
+260722,DEBUG,Access denied
+260723,ERROR,Session timeout
+260724,ERROR,Password changed
+260725,ERROR,File deleted
+260726,INFO,Password changed
+260727,WARNING,Access denied
+260728,WARNING,System rebooted
+260729,DEBUG,Session timeout
+260730,WARNING,Access denied
+260731,WARNING,Password changed
+260801,ERROR,Email sent
+260802,DEBUG,System rebooted
+260803,ERROR,User logged in
+260804,DEBUG,File deleted
+260805,ERROR,Email sent
+260806,WARNING,Email sent
+260807,INFO,Access denied
+260808,DEBUG,File uploaded
+260809,WARNING,File deleted
+260810,WARNING,Access denied
+260811,WARNING,Access denied
+260812,ERROR,System rebooted
+260813,DEBUG,Login failed
+260814,ERROR,Session timeout
+260815,INFO,Session timeout
+260816,INFO,System rebooted
+260817,DEBUG,Email sent
+260818,DEBUG,Unauthorized access attempt
+260819,INFO,User logged in
+260820,DEBUG,Login failed
+260821,INFO,Login failed
+260822,ERROR,Password changed
+260823,ERROR,Login failed
+260824,INFO,Session timeout
+260825,WARNING,File uploaded
+260826,WARNING,Unauthorized access attempt
+260827,DEBUG,System rebooted
+260828,DEBUG,User logged in
+260829,ERROR,User logged in
+260830,ERROR,Password changed
+260831,ERROR,Login failed
+260901,DEBUG,Session timeout
+260902,DEBUG,Access denied
+260903,INFO,System rebooted
+260904,ERROR,File deleted
+260905,DEBUG,Email sent
+260906,WARNING,Login failed
+260907,WARNING,User logged in
+260908,ERROR,Email sent
+260909,DEBUG,Session timeout
+260910,DEBUG,System rebooted
+260911,INFO,User logged in
+260912,INFO,System rebooted
+260913,INFO,Access denied
+260914,DEBUG,Session timeout
+260915,DEBUG,User logged in
+260916,INFO,Password changed
+260917,WARNING,File deleted
+260918,WARNING,Login failed
+260919,WARNING,Email sent
+260920,ERROR,Email sent
+260921,DEBUG,Unauthorized access attempt
+260922,WARNING,Session timeout
+260923,DEBUG,System rebooted
+260924,ERROR,Unauthorized access attempt
+260925,WARNING,File deleted
+260926,ERROR,File deleted
+260927,WARNING,File uploaded
+260928,DEBUG,Login failed
+260929,WARNING,File uploaded
+260930,WARNING,User logged in
+261001,WARNING,File uploaded
+261002,WARNING,Email sent
+261003,WARNING,Password changed
+261004,WARNING,Access denied
+261005,WARNING,File uploaded
+261006,ERROR,Email sent
+261007,ERROR,Session timeout
+261008,WARNING,User logged in
+261009,INFO,File deleted
+261010,ERROR,Session timeout
+261011,INFO,Password changed
+261012,DEBUG,Login failed
+261013,DEBUG,User logged in
+261014,DEBUG,Email sent
+261015,WARNING,User logged in
+261016,INFO,Session timeout
+261017,WARNING,System rebooted
+261018,DEBUG,Access denied
+261019,WARNING,Session timeout
+261020,WARNING,Unauthorized access attempt
+261021,INFO,File deleted
+261022,DEBUG,System rebooted
+261023,ERROR,Session timeout
+261024,WARNING,Session timeout
+261025,ERROR,Email sent
+261026,INFO,System rebooted
+261027,DEBUG,Session timeout
+261028,WARNING,User logged in
+261029,ERROR,System rebooted
+261030,INFO,Access denied
+261031,DEBUG,Email sent
+261101,WARNING,Login failed
+261102,ERROR,Unauthorized access attempt
+261103,INFO,File deleted
+261104,DEBUG,Unauthorized access attempt
+261105,DEBUG,Access denied
+261106,WARNING,Email sent
+261107,DEBUG,Email sent
+261108,WARNING,Password changed
+261109,WARNING,File deleted
+261110,INFO,User logged in
+261111,INFO,Email sent
+261112,WARNING,File deleted
+261113,ERROR,File deleted
+261114,INFO,Password changed
+261115,DEBUG,Email sent
+261116,INFO,File uploaded
+261117,INFO,Login failed
+261118,INFO,File uploaded
+261119,WARNING,Password changed
+261120,ERROR,File deleted
+261121,DEBUG,Email sent
+261122,ERROR,File deleted
+261123,WARNING,Email sent
+261124,ERROR,System rebooted
+261125,WARNING,Unauthorized access attempt
+261126,ERROR,File uploaded
+261127,INFO,File deleted
+261128,DEBUG,System rebooted
+261129,WARNING,System rebooted
+261130,ERROR,Unauthorized access attempt
+261201,INFO,Login failed
+261202,DEBUG,File uploaded
+261203,INFO,Email sent
+261204,ERROR,Session timeout
+261205,ERROR,Login failed
+261206,INFO,File uploaded
+261207,ERROR,Unauthorized access attempt
+261208,INFO,Login failed
+261209,INFO,Access denied
+261210,INFO,Unauthorized access attempt
+261211,DEBUG,Login failed
+261212,WARNING,Unauthorized access attempt
+261213,DEBUG,Session timeout
+261214,WARNING,Session timeout
+261215,ERROR,Unauthorized access attempt
+261216,INFO,Password changed
+261217,ERROR,Email sent
+261218,WARNING,File uploaded
+261219,INFO,Email sent
+261220,WARNING,Password changed
+261221,INFO,System rebooted
+261222,ERROR,Session timeout
+261223,WARNING,File uploaded
+261224,INFO,System rebooted
+261225,INFO,File uploaded
+261226,DEBUG,User logged in
+261227,ERROR,File uploaded
+261228,ERROR,Session timeout
+261229,WARNING,System rebooted
+261230,DEBUG,Unauthorized access attempt
+261231,DEBUG,File deleted
+270101,INFO,Email sent
+270102,INFO,Session timeout
+270103,DEBUG,Session timeout
+270104,INFO,Login failed
+270105,ERROR,Access denied
+270106,ERROR,Session timeout
+270107,WARNING,File uploaded
+270108,WARNING,File uploaded
+270109,DEBUG,Unauthorized access attempt
+270110,ERROR,User logged in
+270111,INFO,Access denied
+270112,ERROR,Password changed
+270113,DEBUG,Login failed
+270114,INFO,System rebooted
+270115,WARNING,File deleted
+270116,ERROR,Access denied
+270117,WARNING,Email sent
+270118,DEBUG,Email sent
+270119,INFO,System rebooted
+270120,DEBUG,User logged in
+270121,WARNING,Access denied
+270122,ERROR,System rebooted
+270123,WARNING,Unauthorized access attempt
+270124,WARNING,Access denied
+270125,DEBUG,Login failed
+270126,WARNING,User logged in
+270127,WARNING,User logged in
+270128,WARNING,Login failed
+270129,WARNING,File uploaded
+270130,ERROR,Access denied
+270131,DEBUG,Unauthorized access attempt
+270201,WARNING,Password changed
+270202,WARNING,Unauthorized access attempt
+270203,WARNING,Email sent
+270204,ERROR,User logged in
+270205,INFO,System rebooted
+270206,WARNING,File uploaded
+270207,INFO,Access denied
+270208,ERROR,User logged in
+270209,DEBUG,Unauthorized access attempt
+270210,ERROR,Session timeout
+270211,ERROR,File uploaded
+270212,WARNING,User logged in
+270213,INFO,User logged in
+270214,ERROR,File deleted
+270215,ERROR,Email sent
+270216,DEBUG,File deleted
+270217,WARNING,Password changed
+270218,WARNING,Unauthorized access attempt
+270219,INFO,Access denied
+270220,INFO,Login failed
+270221,DEBUG,Password changed
+270222,WARNING,File uploaded
+270223,ERROR,Password changed
+270224,INFO,File deleted
+270225,WARNING,Email sent
+270226,DEBUG,Access denied
+270227,DEBUG,Unauthorized access attempt
+270228,INFO,Unauthorized access attempt
+270301,INFO,Unauthorized access attempt
+270302,WARNING,User logged in
+270303,ERROR,Email sent
+270304,ERROR,File uploaded
+270305,ERROR,Login failed
+270306,ERROR,Email sent
+270307,WARNING,Access denied
+270308,ERROR,File uploaded
+270309,INFO,System rebooted
+270310,DEBUG,Password changed
+270311,ERROR,Login failed
+270312,ERROR,Access denied
+270313,ERROR,Password changed
+270314,INFO,File uploaded
+270315,ERROR,Login failed
+270316,ERROR,File uploaded
+270317,ERROR,User logged in
+270318,DEBUG,Email sent
+270319,ERROR,Access denied
+270320,WARNING,Session timeout
+270321,ERROR,User logged in
+270322,WARNING,File deleted
+270323,INFO,Email sent
+270324,INFO,Unauthorized access attempt
+270325,INFO,System rebooted
+270326,DEBUG,Access denied
+270327,DEBUG,Session timeout
+270328,ERROR,Unauthorized access attempt
+270329,DEBUG,File uploaded
+270330,DEBUG,Session timeout
+270331,DEBUG,Access denied
+270401,INFO,Access denied
+270402,WARNING,Password changed
+270403,WARNING,File deleted
+270404,WARNING,File uploaded
+270405,DEBUG,File uploaded
+270406,ERROR,System rebooted
+270407,INFO,Unauthorized access attempt
+270408,INFO,Unauthorized access attempt
+270409,WARNING,Login failed
+270410,WARNING,Login failed
+270411,INFO,System rebooted
+270412,INFO,Email sent
+270413,WARNING,File uploaded
+270414,ERROR,File deleted
+270415,INFO,User logged in
+270416,ERROR,Session timeout
+270417,DEBUG,Access denied
+270418,ERROR,User logged in
+270419,WARNING,Email sent
+270420,ERROR,Unauthorized access attempt
+270421,DEBUG,System rebooted
+270422,ERROR,Login failed
+270423,DEBUG,File uploaded
+270424,ERROR,Login failed
+270425,ERROR,Session timeout
+270426,ERROR,Login failed
+270427,WARNING,System rebooted
+270428,DEBUG,Password changed
+270429,WARNING,User logged in
+270430,ERROR,Unauthorized access attempt
+270501,INFO,Login failed
+270502,INFO,System rebooted
+270503,INFO,Unauthorized access attempt
+270504,INFO,File deleted
+270505,INFO,Session timeout
+270506,ERROR,User logged in
+270507,ERROR,User logged in
+270508,ERROR,Unauthorized access attempt
+270509,ERROR,Session timeout
+270510,ERROR,Password changed
+270511,DEBUG,Unauthorized access attempt
+270512,ERROR,System rebooted
+270513,ERROR,Email sent
+270514,INFO,Access denied
+270515,ERROR,Session timeout
+270516,ERROR,Password changed
+270517,ERROR,Email sent
+270518,DEBUG,File uploaded
+270519,ERROR,User logged in
+270520,DEBUG,Email sent
+270521,DEBUG,System rebooted
+270522,ERROR,Email sent
+270523,INFO,System rebooted
+270524,DEBUG,Access denied
+270525,DEBUG,File uploaded
+270526,ERROR,Email sent
+270527,INFO,Login failed
+270528,INFO,User logged in
+270529,DEBUG,User logged in
+270530,ERROR,Email sent
+270531,WARNING,File uploaded
+270601,DEBUG,User logged in
+270602,INFO,System rebooted
+270603,ERROR,Access denied
+270604,INFO,Unauthorized access attempt
+270605,WARNING,Unauthorized access attempt
+270606,DEBUG,File deleted
+270607,DEBUG,Unauthorized access attempt
+270608,WARNING,Unauthorized access attempt
+270609,WARNING,Password changed
+270610,ERROR,Session timeout
+270611,WARNING,Unauthorized access attempt
+270612,INFO,Email sent
+270613,INFO,User logged in
+270614,INFO,Login failed
+270615,WARNING,File deleted
+270616,DEBUG,Access denied
+270617,INFO,Password changed
+270618,ERROR,Access denied
+270619,DEBUG,File deleted
+270620,WARNING,Session timeout
+270621,ERROR,Access denied
+270622,ERROR,Access denied
+270623,DEBUG,Password changed
+270624,ERROR,Unauthorized access attempt
+270625,DEBUG,Session timeout
+270626,ERROR,File uploaded
+270627,ERROR,User logged in
+270628,INFO,User logged in
+270629,DEBUG,File uploaded
+270630,WARNING,System rebooted
+270701,WARNING,Access denied
+270702,INFO,Email sent
+270703,DEBUG,System rebooted
+270704,DEBUG,Session timeout
+270705,INFO,Access denied
+270706,INFO,Email sent
+270707,WARNING,Access denied
+270708,INFO,Session timeout
+270709,WARNING,File deleted
+270710,DEBUG,File uploaded
+270711,ERROR,Password changed
+270712,WARNING,File deleted
+270713,INFO,Access denied
+270714,WARNING,Email sent
+270715,WARNING,Unauthorized access attempt
+270716,ERROR,Email sent
+270717,ERROR,Login failed
+270718,ERROR,Session timeout
+270719,WARNING,Email sent
+270720,DEBUG,File deleted
+270721,ERROR,Login failed
+270722,ERROR,File deleted
+270723,DEBUG,System rebooted
+270724,ERROR,Login failed
+270725,DEBUG,File deleted
+270726,DEBUG,Access denied
+270727,DEBUG,Password changed
+270728,INFO,Email sent
+270729,DEBUG,Access denied
+270730,DEBUG,Unauthorized access attempt
+270731,DEBUG,Unauthorized access attempt
+270801,WARNING,Password changed
+270802,INFO,Session timeout
+270803,DEBUG,System rebooted
+270804,INFO,Access denied
+270805,ERROR,Login failed
+270806,INFO,File uploaded
+270807,WARNING,Email sent
+270808,INFO,System rebooted
+270809,WARNING,Session timeout
+270810,DEBUG,Access denied
+270811,WARNING,Email sent
+270812,INFO,Login failed
+270813,WARNING,Session timeout
+270814,ERROR,Password changed
+270815,WARNING,Login failed
+270816,DEBUG,Email sent
+270817,ERROR,User logged in
+270818,INFO,Session timeout
+270819,ERROR,File deleted
+270820,INFO,User logged in
+270821,ERROR,User logged in
+270822,INFO,Session timeout
+270823,ERROR,Login failed
+270824,WARNING,File uploaded
+270825,WARNING,System rebooted
+270826,WARNING,System rebooted
+270827,ERROR,Email sent
+270828,INFO,System rebooted
+270829,INFO,Email sent
+270830,INFO,Login failed
+270831,ERROR,System rebooted
+270901,WARNING,User logged in
+270902,ERROR,Password changed
+270903,DEBUG,Password changed
+270904,INFO,Password changed
+270905,INFO,File uploaded
+270906,DEBUG,Unauthorized access attempt
+270907,WARNING,Password changed
+270908,DEBUG,Login failed
+270909,DEBUG,File deleted
+270910,WARNING,Session timeout
+270911,INFO,System rebooted
+270912,ERROR,User logged in
+270913,WARNING,Session timeout
+270914,INFO,System rebooted
+270915,ERROR,System rebooted
+270916,INFO,File uploaded
+270917,INFO,File deleted
+270918,INFO,Login failed
+270919,INFO,File deleted
+270920,WARNING,File deleted
+270921,WARNING,File deleted
+270922,WARNING,Unauthorized access attempt
+270923,WARNING,Login failed
+270924,ERROR,Password changed
+270925,INFO,Unauthorized access attempt
+270926,WARNING,Unauthorized access attempt
+270927,ERROR,Login failed
+270928,WARNING,Email sent
+270929,ERROR,Email sent
+270930,WARNING,Password changed
+271001,WARNING,File deleted
+271002,WARNING,Unauthorized access attempt
+271003,INFO,Login failed
+271004,ERROR,System rebooted
+271005,WARNING,Password changed
+271006,INFO,Session timeout
+271007,WARNING,Password changed
+271008,WARNING,Session timeout
+271009,ERROR,File deleted
+271010,WARNING,File uploaded
+271011,DEBUG,Session timeout
+271012,DEBUG,Password changed
+271013,DEBUG,Unauthorized access attempt
+271014,ERROR,File uploaded
+271015,INFO,Access denied
+271016,INFO,File deleted
+271017,INFO,Unauthorized access attempt
+271018,DEBUG,User logged in
+271019,INFO,Login failed
+271020,WARNING,Email sent
+271021,DEBUG,File uploaded
+271022,INFO,Login failed
+271023,DEBUG,Session timeout
+271024,WARNING,File uploaded
+271025,ERROR,Unauthorized access attempt
+271026,DEBUG,System rebooted
+271027,ERROR,System rebooted
+271028,DEBUG,Email sent
+271029,ERROR,User logged in
+271030,INFO,Login failed
+271031,WARNING,System rebooted
+271101,ERROR,File uploaded
+271102,ERROR,Session timeout
+271103,INFO,Session timeout
+271104,WARNING,Access denied
+271105,INFO,Email sent
+271106,WARNING,Email sent
+271107,ERROR,File deleted
+271108,WARNING,Login failed
+271109,INFO,Login failed
+271110,DEBUG,File uploaded
+271111,WARNING,Session timeout
+271112,ERROR,Login failed
+271113,INFO,User logged in
+271114,INFO,Password changed
+271115,ERROR,File deleted
+271116,ERROR,Login failed
+271117,ERROR,System rebooted
+271118,INFO,System rebooted
+271119,INFO,File deleted
+271120,DEBUG,System rebooted
+271121,INFO,File deleted
+271122,DEBUG,Unauthorized access attempt
+271123,ERROR,System rebooted
+271124,DEBUG,Email sent
+271125,ERROR,Access denied
+271126,ERROR,File uploaded
+271127,INFO,Access denied
+271128,INFO,Login failed
+271129,DEBUG,Access denied
+271130,INFO,File uploaded
+271201,ERROR,System rebooted
+271202,ERROR,File uploaded
+271203,INFO,Login failed
+271204,WARNING,Session timeout
+271205,DEBUG,User logged in
+271206,WARNING,User logged in
+271207,ERROR,Access denied
+271208,WARNING,Login failed
+271209,INFO,Password changed
+271210,WARNING,Unauthorized access attempt
+271211,WARNING,Session timeout
+271212,INFO,Session timeout
+271213,INFO,User logged in
+271214,DEBUG,File deleted
+271215,WARNING,Unauthorized access attempt
+271216,ERROR,Login failed
+271217,DEBUG,User logged in
+271218,DEBUG,Unauthorized access attempt
+271219,ERROR,System rebooted
+271220,DEBUG,System rebooted
+271221,ERROR,Access denied
+271222,ERROR,Session timeout
+271223,DEBUG,User logged in
+271224,INFO,Access denied
+271225,ERROR,Email sent
+271226,WARNING,Password changed
+271227,WARNING,System rebooted
+271228,DEBUG,Session timeout
+271229,INFO,Login failed
+271230,WARNING,Password changed
+271231,ERROR,Login failed
+280101,ERROR,Unauthorized access attempt
+280102,DEBUG,Password changed
+280103,INFO,Session timeout
+280104,INFO,User logged in
+280105,INFO,Email sent
+280106,WARNING,Email sent
+280107,INFO,Unauthorized access attempt
+280108,ERROR,Login failed
+280109,INFO,Email sent
+280110,DEBUG,File deleted
+280111,INFO,Access denied
+280112,WARNING,System rebooted
+280113,INFO,Session timeout
+280114,INFO,Unauthorized access attempt
+280115,INFO,File uploaded
+280116,WARNING,System rebooted
+280117,INFO,User logged in
+280118,ERROR,Email sent
+280119,DEBUG,Password changed
+280120,WARNING,Session timeout
+280121,WARNING,Unauthorized access attempt
+280122,INFO,User logged in
+280123,ERROR,Password changed
+280124,ERROR,File deleted
+280125,INFO,Session timeout
+280126,INFO,Access denied
+280127,DEBUG,Login failed
+280128,ERROR,Password changed
+280129,INFO,Access denied
+280130,DEBUG,System rebooted
+280131,DEBUG,Login failed
+280201,INFO,File uploaded
+280202,WARNING,File uploaded
+280203,ERROR,Access denied
+280204,ERROR,Password changed
+280205,INFO,Session timeout
+280206,ERROR,File deleted
+280207,DEBUG,Login failed
+280208,INFO,Login failed
+280209,INFO,User logged in
+280210,ERROR,Email sent
+280211,INFO,Session timeout
+280212,WARNING,Session timeout
+280213,INFO,File deleted
+280214,WARNING,System rebooted
+280215,WARNING,System rebooted
+280216,DEBUG,Access denied
+280217,WARNING,Email sent
+280218,WARNING,Unauthorized access attempt
+280219,ERROR,Session timeout
+280220,INFO,Password changed
+280221,INFO,Access denied
+280222,ERROR,Unauthorized access attempt
+280223,DEBUG,File uploaded
+280224,DEBUG,Password changed
+280225,WARNING,Email sent
+280226,DEBUG,File deleted
+280227,DEBUG,Password changed
+280228,INFO,Password changed
+280229,ERROR,Unauthorized access attempt
+280301,ERROR,Session timeout
+280302,WARNING,Unauthorized access attempt
+280303,ERROR,Password changed
+280304,WARNING,File uploaded
+280305,DEBUG,System rebooted
+280306,ERROR,Unauthorized access attempt
+280307,DEBUG,File uploaded
+280308,ERROR,Unauthorized access attempt
+280309,ERROR,File uploaded
+280310,ERROR,System rebooted
+280311,ERROR,Access denied
+280312,DEBUG,Access denied
+280313,DEBUG,System rebooted
+280314,INFO,User logged in
+280315,ERROR,User logged in
+280316,DEBUG,Access denied
+280317,WARNING,Password changed
+280318,INFO,Unauthorized access attempt
+280319,WARNING,File uploaded
+280320,WARNING,Password changed
+280321,DEBUG,Login failed
+280322,DEBUG,Session timeout
+280323,WARNING,File deleted
+280324,INFO,System rebooted
+280325,DEBUG,File deleted
+280326,INFO,Unauthorized access attempt

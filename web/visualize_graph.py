@@ -1,10 +1,13 @@
 import pandas as pd
 import plotly.graph_objects as go
+import time
 
 # -------------------------------------
 # ✅ 사용자 및 시간 컬럼 자동 감지 (수동 선택 지원)
 # -------------------------------------
 def detect_user_and_time_columns(df, user_col=None, time_col=None):
+    print("🔍 사용자 및 시간 컬럼 자동 감지 시작...")
+    
     user_candidates = [
         'user', 'user_id', 'userid', 'username', 'login', 'login_id', 'login_user',
         'account', 'account_id', 'acct', 'acct_id', 'member', 'member_id',
@@ -87,10 +90,13 @@ def hex_to_rgba(hex_color, alpha=0.2):
 # 📊 시간대별 이상탐지 시각화
 # -------------------------------------
 def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
+    print("📊 시간대별 이상탐지 그래프 생성 중...")
+    start_time = time.time()
+    
     df.columns = df.columns.str.strip()  # 칼럼명 공백 제거
-    print("df.columns:", df.columns.tolist())
-    print("user_col:", user_col)
-    print("time_col:", time_col)
+    print("  - 칼럼 정보 확인:", df.columns.tolist())
+    print("  - 사용자 컬럼:", user_col)
+    print("  - 시간 컬럼:", time_col)
     
     # 원본 사용자 컬럼명 처리 (.1이 붙은 컬럼이 있으면 그것을 사용)
     actual_user_col = user_col
@@ -101,8 +107,9 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     df[actual_user_col] = df[actual_user_col].astype(str)
     
     # 시간 칼럼에서 hour 추출 (더 견고한 방식)
-    print("time_col 샘플:", df[time_col].head())
-    print("time_col 데이터 타입:", df[time_col].dtype)
+    print("  - 시간 데이터 처리 중...")
+    print("    시간 컬럼 샘플:", df[time_col].head())
+    print("    시간 컬럼 데이터 타입:", df[time_col].dtype)
     
     # 이미 datetime 타입인지 확인
     if pd.api.types.is_datetime64_any_dtype(df[time_col]):
@@ -197,14 +204,20 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     fig = go.Figure()
 
     for i, user in enumerate(top_users):
+        # 사용자 이름을 5글자로 제한
+        display_name = user[:5] + "..." if len(user) > 5 else user
+        
         fig.add_trace(go.Scatter(
             x=hourly_counts.index,
             y=hourly_counts[user],
             mode='lines+markers',
-            name=user,
+            name=display_name,
             line=dict(shape='linear', width=3, color=colors[i % len(colors)]),
             fill='tozeroy',
-            fillcolor=hex_to_rgba(colors[i % len(colors)], alpha=0.2)
+            fillcolor=hex_to_rgba(colors[i % len(colors)], alpha=0.2),
+            hovertemplate='<b>%s</b><br>' % user +
+                         'Hour: %{x}<br>' +
+                         'Anomaly Count: %{y}<extra></extra>'
         ))
 
     fig.update_layout(
@@ -214,10 +227,11 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
         xaxis=dict(
             tickmode='array',
             tickvals=hour_bins,
-            ticktext=[str(h) for h in hour_bins]
+            ticktext=[str(h) for h in hour_bins],
+            tickangle=0  # 시간 라벨을 가로로 표시
         ),
         plot_bgcolor='white',
-        font=dict(size=16),
+        font=dict(size=12),  # 글자 크기를 16에서 12로 줄임
         margin=dict(l=40, r=40, t=60, b=40),
         autosize=True,  # ★ 추가
     )
@@ -230,12 +244,17 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
         config={'responsive': True}
     )
 
+    elapsed_time = time.time() - start_time
+    print(f"✅ 시간대별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
     return fig_html
 
 # -------------------------------------
 # 📊 사용자별 이상탐지 시각화
 # -------------------------------------
 def plot_anomaly_by_user(df, user_col, top_n=5):
+    print("📊 사용자별 이상탐지 그래프 생성 중...")
+    start_time = time.time()
+    
     # 원본 사용자 컬럼명 처리 (.1이 붙은 컬럼이 있으면 그것을 사용)
     actual_user_col = user_col
     if f"{user_col}.1" in df.columns:
@@ -281,15 +300,20 @@ def plot_anomaly_by_user(df, user_col, top_n=5):
     fig = go.Figure([go.Bar(
         x=user_counts.index,
         y=user_counts.values,
-        marker=dict(color=colors)
+        marker=dict(color=colors),
+        hovertemplate='<b>%{x}</b><br>' +
+                     'Anomaly Count: %{y}<br>' +
+                     'Total Ratio: %{customdata:.1%}<extra></extra>',
+        customdata=user_counts.values / user_counts.sum()  # 비율 계산
     )])
 
     fig.update_layout(
         title='Anomalies by User',
         xaxis_title='User',
         yaxis_title='Anomaly Count',
+        xaxis=dict(showticklabels=False),  # X축 사용자 이름 숨기기
         plot_bgcolor='white',
-        font=dict(size=16),
+        font=dict(size=12),  # 글자 크기를 16에서 12로 줄임
         margin=dict(l=40, r=40, t=60, b=40),
         autosize=True,  # ★ 추가
     )
@@ -301,12 +325,17 @@ def plot_anomaly_by_user(df, user_col, top_n=5):
         config={'responsive': True}
     )
 
+    elapsed_time = time.time() - start_time
+    print(f"✅ 사용자별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
     return fig_html
 
 # -------------------------------------
 # 📊 이상치 점수 분포 시각화
 # -------------------------------------
 def plot_anomaly_score_distribution(df, threshold=-0.2, score_col=None):
+    print("📊 이상치 점수 분포 그래프 생성 중...")
+    start_time = time.time()
+    
     import plotly.graph_objects as go
     import pandas as pd
 
@@ -389,4 +418,6 @@ def plot_anomaly_score_distribution(df, threshold=-0.2, score_col=None):
         config={'responsive': True}
     )
 
+    elapsed_time = time.time() - start_time
+    print(f"✅ 이상치 점수 분포 그래프 생성 완료 ({elapsed_time:.2f}초)")
     return fig_html
