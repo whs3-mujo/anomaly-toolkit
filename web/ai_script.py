@@ -250,9 +250,10 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     detected = df_full[df_full['Anomaly'] == 1]
     detected.to_csv("pycaret_detected_anomalies.csv", index=False)
 
-    # 표 미리보기(이상치 100개만)
-    preview_records = detected.head(100).to_dict(orient="records")
-    preview_table_html = detected.head(100).to_html(index=False, classes="table table-sm") if len(detected) > 0 else "<p>이상치가 없습니다.</p>"
+    # 표 미리보기(이상치 100개 중 Anomaly_Score 높은 순)
+    detected_top100 = detected.sort_values(by='Anomaly_Score', ascending=False).head(100)
+    preview_records = detected_top100.to_dict(orient="records")
+    preview_table_html = detected_top100.to_html(index=False, classes="table table-sm") if len(detected_top100) > 0 else "<p>이상치가 없습니다.</p>"
 
     # 전체/이상치 records (다운로드용)
     all_records = df_full.to_dict(orient="records")
