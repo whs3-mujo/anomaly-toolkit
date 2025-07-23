@@ -306,34 +306,84 @@ else:
 
 def get_shap_plot(request, session_id, row_index):
     session = get_object_or_404(AnalysisSession, session_id=session_id)
-
-    # 데이터 불러오기 (ai_script.py 함수에서 추출해낸 두 개의 파일 가져옴)
+    
+    # 원본 데이터 로드 (실제 칼럼 확인용)
+    try:
+        original_df = pd.read_csv(session.file_path)
+        original_columns = set(original_df.columns)
+    except (FileNotFoundError, pd.errors.EmptyDataError, pd.errors.ParserError):
+        original_columns = set()
+    
+    # 데이터 불러오기
     X = pd.read_csv(session.file_path.replace(".csv", "_X_for_shap.csv"))
     shap_values = np.load(session.file_path.replace(".csv", "_shap_values.npy"))
     feature_cols = X.columns.tolist()
-    #수정 코드(채윤) 313~323
-    # tfidf_cols = [col for col in X.columns if col.startswith('{text_cols}_tfidf')]  #원래 'message_tfidf'임
-    # non_tfidf_features = [col for col in X.columns if col not in tfidf_cols]
+    
+    # TF-IDF 칼럼 식별
+    tfidf_cols = [col for col in feature_cols if '_tfidf_' in col]
+    
+    # TF-IDF 피처 원본 칼럼 찾기 - 원본 데이터셋 참고
+    tfidf_mappings = {}
+    lower_original_columns = {col.lower() for col in original_columns}
+    for col in tfidf_cols:
+        source_col = col.split('_tfidf_')[0]
+        if source_col.lower() in lower_original_columns:
+            # 실제 원본 컬럼명으로 표시
+            matched_col = [col for col in original_columns if col.lower() == source_col.lower()][0]
+            display_name = f"{matched_col}"
+        else:
+            display_name = f"added({source_col})"
+        if display_name not in tfidf_mappings:
+            tfidf_mappings[display_name] = []
+        tfidf_mappings[display_name].append(col)
 
-    # row = shap_values[int(row_index)]
-    # shap_df = pd.DataFrame({
-    #     'feature': non_tfidf_features,
-    #     'shap_value': row,
-    #     'abs_val': np.abs(row),
-    #     'data': X[non_tfidf_features].iloc[int(row_index)].values
-    # })
-
-    # 해당 샘플의 SHAP 값 가져오기
+    # SHAP 값 계산
     row = shap_values[int(row_index)]
     shap_df = pd.DataFrame({
         'feature': feature_cols,
         'shap_value': row,
         'abs_val': np.abs(row),
-        'data': X.iloc[int(row_index)].values  # SHAP 줄글 설명
+        'data': X.iloc[int(row_index)].values
     })
+    
+    # TF-IDF 칼럼을 원본 칼럼으로 통합
+    merged_shap_df = []
 
+    # 원본 텍스트 칼럼에 대한 모든 TF-IDF 피처의 영향도 합치기
+    for source_col, related_tfidf in tfidf_mappings.items():
+        tfidf_rows = shap_df[shap_df['feature'].isin(related_tfidf)]
+        total_shap = tfidf_rows['shap_value'].sum()
+        # 여러 TF-IDF 피처의 data(스케일링 값) 중 가장 크게 벗어난 값 사용
+        if not tfidf_rows.empty:
+            # Weighted average of 'data' values using absolute SHAP values as weights
+            data_value = np.average(tfidf_rows['data'], weights=tfidf_rows['abs_val'])
+        else:
+            data_value = 0
+        merged_shap_df.append({
+            'feature': f"{source_col}",  # tf-idf 피처를 원본 텍스트 칼럼으로 표시
+            'shap_value': total_shap,
+            'abs_val': abs(total_shap),
+            'data': data_value
+        })
+
+    # 나머지 non-TF-IDF 피처 추가
+    # 모든 TF-IDF 피처(flatten) 리스트 생성
+    all_tfidf_features = [item for sublist in tfidf_mappings.values() for item in sublist]
+    non_tfidf_features = [f for f in feature_cols if f not in all_tfidf_features]
+    for feature in non_tfidf_features:
+        idx = feature_cols.index(feature)
+        merged_shap_df.append({
+            'feature': feature,
+            'shap_value': row[idx],
+            'abs_val': abs(row[idx]),
+            'data': X[feature].iloc[int(row_index)]
+        })
+
+    # DataFrame으로 변환
+    merged_shap_df = pd.DataFrame(merged_shap_df)
+    
     # SHAP < 0인 feature 중 영향 큰 순서대로 정렬
-    negative_df = shap_df[shap_df['shap_value'] < 0].sort_values(by='abs_val', ascending=False).reset_index(drop=True)
+    negative_df = merged_shap_df[merged_shap_df['shap_value'] < 0].sort_values(by='abs_val', ascending=False).reset_index(drop=True)
     # 무조건 6개로 고정되게 리인덱싱 (부족하면 빈 bar로)
     negative_df = negative_df.reindex(range(6)).fillna({
         'feature': '', 'shap_value': 0, 'abs_val': 0, 'data': 0
@@ -410,8 +460,13 @@ def generate_shap_explanation(shap_row_df):
         if not feature:  # feature가 비어 있는 경우 (빈 bar용) 설명 제외
             continue
 
-        value = row['data']  # 스케일링된 값 (평균 0, std 1 기준) => 평균에서 얼마나 떨어졌는지 계산.
-        magnitude = abs(value) 
+        value = row['data']
+        # 만약 value가 Series나 배열이면 float로 변환 (대표값 사용)
+        if isinstance(value, (np.ndarray, pd.Series)):
+            magnitude = float(np.abs(value).max())
+        else:
+            magnitude = abs(value)
+
         if magnitude > 2:
             level = "<span style='color: #B22222'>매우 크게</span>"  # 빨간색
         elif magnitude > 1:
