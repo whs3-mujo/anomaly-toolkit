@@ -355,7 +355,8 @@ def get_shap_plot(request, session_id, row_index):
         total_shap = tfidf_rows['shap_value'].sum()
         # 여러 TF-IDF 피처의 data(스케일링 값) 중 가장 크게 벗어난 값 사용
         if not tfidf_rows.empty:
-            data_value = tfidf_rows['data'].abs().max()  # 가장 큰 절댓값 사용
+            # Weighted average of 'data' values using absolute SHAP values as weights
+            data_value = np.average(tfidf_rows['data'], weights=tfidf_rows['abs_val'])
         else:
             data_value = 0
         merged_shap_df.append({
