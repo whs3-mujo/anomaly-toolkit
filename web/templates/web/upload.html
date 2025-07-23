@@ -262,7 +262,52 @@
   .dropdown-option:hover {
     background: #f1f1f1;
   }
+  /* 로딩 오버레이 스타일 */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #1976d2;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .loading-text {
+    font-size: 18px;
+    color: #333;
+    font-weight: 500;
+  }
 </style>
+
+<!-- 로딩 오버레이 HTML -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+  <div class="spinner"></div>
+  <div class="loading-text">분석 중입니다...</div>
+  <div style="margin-top: 10px; color: #666; font-size: 14px;">
+    <span id="loadingTimer">0</span>초 경과
+  </div>
+</div>
+
 <script>
   function getCookie(name) {
     let cookieValue = null;
@@ -346,9 +391,35 @@
     }
   };
 
+  // 업로드 폼 제출 및 로딩 관련 코드 수정
   document.getElementById('uploadForm').onsubmit = function(e) {
     e.preventDefault();
     const file = document.getElementById('datafile').files[0];
+    if (!file) {
+      alert('파일을 선택해주세요.');
+      return;
+    }
+    
+    // 로딩 오버레이 표시
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    loadingOverlay.style.display = 'flex';
+    
+    // 타이머 시작
+    let seconds = 0;
+    const timerElement = document.getElementById('loadingTimer');
+    const timer = setInterval(() => {
+      seconds++;
+      timerElement.textContent = seconds;
+      
+      // 10분(600초) 타임아웃
+      if (seconds >= 600) {
+        clearInterval(timer);
+        loadingOverlay.style.display = 'none';
+        alert('처리할 수 없는 데이터셋입니다. 10분 이상 소요되었습니다.');
+        return;
+      }
+    }, 1000);
+    
     const formData = new FormData();
     formData.append("file", file);
     const exclude = [...document.querySelectorAll('input[name="exclude"]:checked')].map(cb => cb.value);
@@ -357,16 +428,34 @@
     const timeCol = document.getElementById('time_col').value;
     formData.append("user_col", userCol);
     formData.append("time_col", timeCol);
+    
     fetch("{% url 'web:detect_anomalies' %}", {
       method: "POST",
       body: formData,
       headers: {'X-CSRFToken': csrftoken}
     })
-      .then(r => r.json())
-      .then(data => {
-        alert("분석 완료! 대시보드에서 결과를 확인하세요.");
-        window.location.href = "{% url 'web:dashboard' %}";
-      });
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('서버 오류가 발생했습니다.');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // 타이머 중지 및 로딩 오버레이 숨김
+      clearInterval(timer);
+      loadingOverlay.style.display = 'none';
+      
+      alert("분석 완료! 대시보드에서 결과를 확인하세요.");
+      window.location.href = "{% url 'web:dashboard' %}";
+    })
+    .catch(error => {
+      // 타이머 중지 및 로딩 오버레이 숨김
+      clearInterval(timer);
+      loadingOverlay.style.display = 'none';
+      
+      console.error('Error:', error);
+      alert('오류가 발생했습니다: ' + error.message);
+    });
   };
 
   // 드롭다운 관련 스크립트

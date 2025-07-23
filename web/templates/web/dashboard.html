@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <header>
-    <nav>
-      <a href="{% url 'web:dashboard' %}">Home</a> |
-      <a href="{% url 'web:upload' %}">Upload</a> |
-    </nav>
-    </header>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>분석 대시보드</title>
@@ -25,62 +19,111 @@
         }
 
         .history-item {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-        }
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
 
-        .history-item:hover {
-            background: #f8f9fa;
-            border-color: #007bff;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0,123,255,0.1);
-        }
+.history-item:hover {
+  background: #f8f9fa;
+  border-color: #007bff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+}
 
-        .history-item.selected {
-            background: #e3f2fd;
-            border-color: #2196f3;
-        }
+.history-item.selected {
+  background: #e3f2fd;
+  border-color: #2196f3;
+}
 
-        .history-item .filename {
-            font-weight: 600;
-            color: #212529;
-            font-size: 0.9rem;
-            margin-bottom: 4px;
-            display: block;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+.history-item .filename {
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: #222;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-        .history-item .meta {
-            font-size: 0.75rem;
-            color: #6c757d;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+/* 진한 색상 적용 */
+.history-item .filename {
+  color: #173a7d;
+  font-weight: 700;
+  font-size: 1.04rem;
+}
 
-        .file-type-badge {
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            background: #e3f2fd;
-            color: #1976d2;
-        }
+.history-item .meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  color: #6c757d;
+  flex-shrink: 0;
+}
+
+.file-type-badge {
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  background: #e3f2fd;
+  color: #1976d2;
+  margin-left: 2px;
+}
+
+/* 색상 변경 */
+.session-time {
+  color: #1976d2;
+  font-size: 0.97em;
+}
+
+.rename-btn, .delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1em;
+  margin-left: 2px;
+  margin-right: 0;
+  padding: 0 2px;
+}
+
+.rename-btn { color: #1976d2; }
+.delete-btn { color: #dc3545; }
 
         .result-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(90deg, #1976d2 60%, #42a5f5 100%);
+            color: #fff;
             padding: 1.5rem;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-bottom: 1.5rem;
+            border: none;
+            box-shadow: 0 2px 8px rgba(23,58,125,0.06);
+        }
+
+        .result-header h2,
+        .result-header span {
+            color: #fff !important;
+        }
+
+        .result-header .status-badge {
+            background: #28a745;
+            color: #fff;
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-left: 1rem;
         }
 
         .result-content {
@@ -268,6 +311,95 @@
       overflow-y: auto;
       box-shadow: 0 1px 4px rgba(23,58,125,0.04);
     }
+
+    /* 상단 네비게이션 스타일 개선 */
+    .top-navbar {
+      display: flex;
+      align-items: center;
+      background: #f7f9fb;
+      border-bottom: 1.5px solid #e3e6ea;
+      height: 60px;
+      padding: 0 32px;
+      gap: 24px;
+      box-shadow: 0 2px 8px rgba(23,58,125,0.03);
+      position: relative;
+      z-index: 100;
+    }
+    .top-navbar .logo-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #1976d2;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.15s;
+    }
+    .top-navbar .logo-btn:hover {
+      color: #0d47a1;
+    }
+    .top-navbar .nav-link {
+      font-size: 1.08rem;
+      color: #495057;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+      margin-left: 4px;
+    }
+    .top-navbar .nav-link.active,
+    .top-navbar .nav-link:hover {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+
+    /* 사이드바 업로드 버튼 스타일 */
+    .sidebar-upload-btn {
+      width: 90%;
+      margin: 18px auto 18px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(90deg, #1976d2 60%, #42a5f5 100%);
+      color: #fff;
+      font-size: 1.08rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 0;
+      box-shadow: 0 2px 8px rgba(23,58,125,0.08);
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    .sidebar-upload-btn:hover {
+      background: linear-gradient(90deg, #1565c0 60%, #1976d2 100%);
+      box-shadow: 0 4px 16px rgba(23,58,125,0.13);
+    }
+
+    /* 히스토리 헤더(Detection History) 스타일 */
+    .sidebar-history-title {
+      font-size: 1.13rem;
+      font-weight: bold;
+      color: #1976d2;
+      margin: 0 0 10px 18px;
+      letter-spacing: 0.5px;
+    }
+
+    .history-item .filename {
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: #222;
+    }
+    .history-item .meta {
+      font-size: 0.65rem;
+    }
     @media (max-width: 1200px) {
       .dashboard-flex-main {
         flex-direction: column;
@@ -305,62 +437,72 @@
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
 <body>
+  <!-- 상단 네비게이션 -->
+  <div class="top-navbar">
+    <button class="logo-btn" onclick="location.href='{% url 'web:dashboard' %}'" title="대시보드로 이동">
+      <!-- 대시보드 아이콘 SVG -->
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="2" fill="#1976d2"/><rect x="14" y="3" width="7" height="7" rx="2" fill="#42a5f5"/><rect x="14" y="14" width="7" height="7" rx="2" fill="#1976d2"/><rect x="3" y="14" width="7" height="7" rx="2" fill="#42a5f5"/></svg>
+      <span>이상無조</span>
+    </button>
+  </div>
 
-<div style="display: flex; height: 100vh; position: relative;">
+  <div style="display: flex; height: calc(100vh - 60px); position: relative;">
 
-  <!-- 사이드바 -->
-  <div id="history-sidebar"
-    style="width: 300px; min-width: 0; max-width: 90vw; transition: width 0.25s cubic-bezier(.4,0,.2,1); background: #fff; border-right: 1px solid #e3e6ea; box-shadow: 1px 0 8px rgba(0,0,0,0.03); position: relative; z-index: 10; overflow-x: hidden; padding: 0 0 0 0;">
-    <div style="display: flex; align-items: center; height: 56px; border-bottom: 1px solid #f1f3f5; padding: 0 16px;">
-      <span style="font-weight: 600; color: #222; font-size: 1.08rem; flex:1;">분석 히스토리</span>
-      <button id="delete-all-btn"
-        style="background: #fff; border: 1px solid #e57373; color: #e53935; font-weight:600; border-radius: 6px; padding: 6px 14px; font-size: 0.97rem; cursor: pointer; margin-right: 8px; transition: background 0.15s;">
-        모두 삭제
+    <!-- 사이드바 -->
+    <div id="history-sidebar"
+      style="width: 300px; min-width: 0; max-width: 90vw; transition: width 0.25s cubic-bezier(.4,0,.2,1); background: #fff; border-right: 1px solid #e3e6ea; box-shadow: 1px 0 8px rgba(0,0,0,0.03); position: relative; z-index: 10; overflow-x: hidden; padding: 0 0 0 0;">
+      <!-- 업로드 버튼 -->
+      <button class="sidebar-upload-btn" onclick="location.href='{% url 'web:upload' %}'">
+        <svg width="20" height="20" fill="none" viewBox="0 0 20 20"><rect width="20" height="20" rx="4" fill="#fff" fill-opacity="0"/><path d="M10 15V5M10 5L6 9M10 5l4 4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        New Log Upload
       </button>
-      <button id="toggle-sidebar-btn"
-        style="background: none; border: none; outline: none; cursor: pointer; padding: 6px; margin-left: 4px; border-radius: 50%; transition: background 0.15s;">
-        <svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path d="M13 5L8 10L13 15" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
+      <!-- 히스토리 제목 및 토글 버튼 -->
+      <div class="sidebar-history-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span>Detection History</span>
+          <button id="delete-all-btn" title="모두 삭제" style="background:none;border:none;cursor:pointer;color:#dc3545;font-size:0.75rem;padding:0;">모두 삭제❌</button>
+        </div>
+        <button id="toggle-history-btn" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:#1976d2;padding:0 8px;">▼</button>
+      </div>
+      <div id="loading-spinner" style="text-align: center; padding: 2rem; display: none;">
+        <div style="border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        <p style="margin-top: 1rem; color: #6c757d;">로딩 중...</p>
+      </div>
+      <div id="history-list" style="padding: 1rem 1rem 1rem 1rem;">
+        <p style="text-align: center; color: #6c757d; padding: 2rem;">히스토리를 불러오는 중...</p>
+      </div>
     </div>
-    <div id="loading-spinner" style="text-align: center; padding: 2rem; display: none;">
-      <div style="border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-      <p style="margin-top: 1rem; color: #6c757d;">로딩 중...</p>
+
+    <!-- 미니 사이드바 버튼 -->
+    <button id="mini-sidebar-btn"
+      style="display: none; position: absolute; left: 0; top: 16px; width: 36px; height: 44px; background: none; border: none; border-radius: 0 8px 8px 0; box-shadow: none; align-items: center; justify-content: center; z-index: 20; cursor: pointer;">
+      <svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path d="M7 5L12 10L7 15" stroke="#1976d2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+
+    <div id="result-panel" style="flex: 1; padding: 2rem; overflow-y: auto; background: #ffffff;">
+      <div id="welcome-message" style="text-align: center; padding: 4rem 2rem; color: #6c757d;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">📈</div>
+        <h2 style="color: #495057; margin-bottom: 1rem;">분석 결과 대시보드</h2>
+        <p>좌측에서 분석 히스토리를 선택하면 결과를 확인할 수 있습니다.</p>
+      </div>
+      
+      <div id="analysis-result" style="display: none;">
+      </div>
     </div>
-    <div id="history-list" style="padding: 1rem 1rem 1rem 1rem;">
-      <p style="text-align: center; color: #6c757d; padding: 2rem;">히스토리를 불러오는 중...</p>
+
+  </div>
+
+  <!-- 우클릭 메뉴 -->
+  <div id="context-menu" style="display: none; position: absolute; background: white; border: 1px solid #dee2e6; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 140px;">
+    <div onclick="renameAnalysis()" style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f8f9fa; color: #007bff;">
+      ✏️ 이름 변경
+    </div>
+    <div onclick="deleteAnalysis()" style="padding: 10px 15px; cursor: pointer; color: #dc3545;">
+      🗑️ 삭제
     </div>
   </div>
 
-  <!-- 미니 사이드바 버튼 -->
-  <button id="mini-sidebar-btn"
-    style="display: none; position: absolute; left: 0; top: 16px; width: 36px; height: 44px; background: none; border: none; border-radius: 0 8px 8px 0; box-shadow: none; align-items: center; justify-content: center; z-index: 20; cursor: pointer;">
-    <svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path d="M7 5L12 10L7 15" stroke="#1976d2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </button>
-
-  <div id="result-panel" style="flex: 1; padding: 2rem; overflow-y: auto; background: #ffffff;">
-    <div id="welcome-message" style="text-align: center; padding: 4rem 2rem; color: #6c757d;">
-      <div style="font-size: 4rem; margin-bottom: 1rem;">📈</div>
-      <h2 style="color: #495057; margin-bottom: 1rem;">분석 결과 대시보드</h2>
-      <p>좌측에서 분석 히스토리를 선택하면 결과를 확인할 수 있습니다.</p>
-    </div>
-    
-    <div id="analysis-result" style="display: none;">
-    </div>
-  </div>
-
-</div>
-
-<!-- 우클릭 메뉴 -->
-<div id="context-menu" style="display: none; position: absolute; background: white; border: 1px solid #dee2e6; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 140px;">
-  <div onclick="renameAnalysis()" style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f8f9fa; color: #007bff;">
-    ✏️ 이름 변경
-  </div>
-  <div onclick="deleteAnalysis()" style="padding: 10px 15px; cursor: pointer; color: #dc3545;">
-    🗑️ 삭제
-  </div>
-</div>
-
-<script>
+  <script>
 let currentSessionId = null;
 let analysisHistory = [];
 
@@ -401,7 +543,6 @@ function formatLocalTime(utcString) {
 
 function renderHistoryList(history) {
   const listContainer = document.getElementById('history-list');
-  
   if (history.length === 0) {
     listContainer.innerHTML = `
       <div style="text-align: center; padding: 2rem; color: #6c757d;">
@@ -415,16 +556,18 @@ function renderHistoryList(history) {
   const historyHTML = history.map(item => {
     return `
     <div class="history-item" data-session-id="${item.session_id}" onclick="loadAnalysisDetail('${item.session_id}')">
-      <span class="filename" title="${item.full_filename}">${item.filename}</span>
-      <div class="meta">
-        <span>${formatLocalTime(item.created_at)}</span>
-        <span class="file-type-badge">${item.file_type.toUpperCase()}</span>
-        <span style="margin-left:8px;">
-          <button class="rename-btn" title="이름 변경" onclick="event.stopPropagation(); renameAnalysisDirect('${item.session_id}')"
-            style="background:none; border:none; cursor:pointer; color:#1976d2; font-size:1.1em; margin-right:2px;">✏️</button>
-          <button class="delete-btn" title="삭제" onclick="event.stopPropagation(); deleteAnalysisDirect('${item.session_id}')"
-            style="background:none; border:none; cursor:pointer; color:#dc3545; font-size:1.1em;">🗑️</button>
-        </span>
+      <div style="flex: 1; min-width: 0;">
+        <div class="filename" title="${item.full_filename}" style="color:#173a7d; font-weight:700; margin-bottom: 3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+          ${item.filename}
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.83rem; color: #777;">
+          <span>${formatLocalTime(item.created_at)}</span>
+          <span class="file-type-badge">${item.file_type.toUpperCase()}</span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center;">
+        <button class="rename-btn" title="이름 변경" onclick="event.stopPropagation(); renameAnalysisDirect('${item.session_id}')" style="color:#1976d2;">✏️</button>
+        <button class="delete-btn" title="삭제" onclick="event.stopPropagation(); deleteAnalysisDirect('${item.session_id}')" style="color:#dc3545;">🗑️</button>
       </div>
     </div>
     `;
@@ -432,7 +575,6 @@ function renderHistoryList(history) {
 
   listContainer.innerHTML = historyHTML;
 
-  // 우클릭 메뉴 유지
   document.querySelectorAll('.history-item').forEach(item => {
     item.addEventListener('contextmenu', handleContextMenu);
   });
@@ -540,14 +682,14 @@ function renderAnalysisResult(session) {
     return;
   }
   let resultHTML = `
-  <div class="result-header" style="padding: 1rem 1.2rem; margin-bottom: 1rem;">
+  <div class="result-header">
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 1rem;">
         <h2 style="margin: 0; font-size: 1.08rem; font-weight: 700;">${session.filename}</h2>
-        <span style="font-size: 0.92rem; color: #e3e3e3;">|</span>
-        <span style="font-size: 0.92rem; color: #f1f1f1;">분석 완료: ${formatLocalTime(session.created_at)}</span>
+        <span style="font-size: 1rem; color: #90caf9;">|</span>
+        <span style="font-size: 1rem; color: #90caf9;">분석 완료: ${formatLocalTime(session.created_at)}</span>
       </div>
-      <span style="background: #28a745; padding: 3px 10px; border-radius: 10px; font-size: 0.92rem; font-weight: 600;">완료</span>
+      <span class="status-badge">완료</span>
     </div>
   </div>
   `;
@@ -889,18 +1031,14 @@ function attachShapClickHandlers() {
 
 // 사이드바 토글 기능
 const sidebar = document.getElementById('history-sidebar');
-const toggleBtn = document.getElementById('toggle-sidebar-btn');
+const toggleBtn = document.getElementById('toggle-history-btn');
 const miniSidebarBtn = document.getElementById('mini-sidebar-btn');
 let sidebarOpen = true;
 
 toggleBtn.onclick = function() {
-  sidebarOpen = false;
-  sidebar.style.width = '0';
-  sidebar.style.minWidth = '0';
-  sidebar.style.padding = '0';
-  sidebar.style.overflow = 'hidden';
-  toggleBtn.style.display = 'none';
-  miniSidebarBtn.style.display = 'flex';
+  sidebarOpen = !sidebarOpen;
+  document.getElementById('history-list').style.display = sidebarOpen ? 'block' : 'none';
+  toggleBtn.textContent = sidebarOpen ? '▼' : '▲';
 };
 
 miniSidebarBtn.onclick = function() {
