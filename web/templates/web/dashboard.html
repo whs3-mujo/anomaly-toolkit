@@ -451,6 +451,13 @@
     <!-- 사이드바 -->
     <div id="history-sidebar"
       style="width: 300px; min-width: 0; max-width: 90vw; transition: width 0.25s cubic-bezier(.4,0,.2,1); background: #fff; border-right: 1px solid #e3e6ea; box-shadow: 1px 0 8px rgba(0,0,0,0.03); position: relative; z-index: 10; overflow-x: hidden; padding: 0 0 0 0;">
+      <div style="display: flex; align-items: center; height: 56px; border-bottom: 1px solid #f1f3f5; padding: 0 16px;">
+        <span style="font-weight: 600; color: #222; font-size: 1.08rem; flex:1;">분석 히스토리</span>
+        <button id="toggle-sidebar-btn"
+          style="background: none; border: none; outline: none; cursor: pointer; padding: 6px; margin-left: 4px; border-radius: 50%; transition: background 0.15s;">
+          <svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path d="M13 5L8 10L13 15" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
       <!-- 업로드 버튼 -->
       <button class="sidebar-upload-btn" onclick="location.href='{% url 'web:upload' %}'">
         <svg width="20" height="20" fill="none" viewBox="0 0 20 20"><rect width="20" height="20" rx="4" fill="#fff" fill-opacity="0"/><path d="M10 15V5M10 5L6 9M10 5l4 4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -462,7 +469,6 @@
           <span>Detection History</span>
           <button id="delete-all-btn" title="모두 삭제" style="background:none;border:none;cursor:pointer;color:#dc3545;font-size:0.75rem;padding:0;">모두 삭제❌</button>
         </div>
-        <button id="toggle-history-btn" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:#1976d2;padding:0 8px;">▼</button>
       </div>
       <div id="loading-spinner" style="text-align: center; padding: 2rem; display: none;">
         <div style="border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
@@ -1031,14 +1037,18 @@ function attachShapClickHandlers() {
 
 // 사이드바 토글 기능
 const sidebar = document.getElementById('history-sidebar');
-const toggleBtn = document.getElementById('toggle-history-btn');
+const toggleBtn = document.getElementById('toggle-sidebar-btn');
 const miniSidebarBtn = document.getElementById('mini-sidebar-btn');
 let sidebarOpen = true;
 
 toggleBtn.onclick = function() {
-  sidebarOpen = !sidebarOpen;
-  document.getElementById('history-list').style.display = sidebarOpen ? 'block' : 'none';
-  toggleBtn.textContent = sidebarOpen ? '▼' : '▲';
+  sidebarOpen = false;
+  sidebar.style.width = '0';
+  sidebar.style.minWidth = '0';
+  sidebar.style.padding = '0';
+  sidebar.style.overflow = 'hidden';
+  toggleBtn.style.display = 'none';
+  miniSidebarBtn.style.display = 'flex';
 };
 
 miniSidebarBtn.onclick = function() {
