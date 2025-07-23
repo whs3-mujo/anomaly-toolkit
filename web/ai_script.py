@@ -103,7 +103,12 @@ def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_m
     tfidf_df_list = []
     for col in text_cols:
         tfidf_matrix = tfidf_vectorizer.fit_transform(df[col].astype(str).fillna(''))
-        tfidf_df = pd.DataFrame(tfidf_matrix.toarray(), columns=[f"{col}_tfidf_{i}" for i in range(tfidf_matrix.shape[1])])
+        # 칼럼명에 원본 칼럼명을 명확히 포함
+        column_prefix = col.replace(' ', '_').lower()
+        tfidf_df = pd.DataFrame(
+            tfidf_matrix.toarray(), 
+            columns=[f"{column_prefix}_tfidf_{i}" for i in range(tfidf_matrix.shape[1])]
+        )
         tfidf_df_list.append(tfidf_df)
     tfidf_combined = pd.concat(tfidf_df_list, axis=1) if tfidf_df_list else pd.DataFrame(index=df.index)
 
@@ -162,7 +167,7 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     )
 
     # 복원용 원본 정보 백업 (예: user_id, timestamp 등)
-    original_info = data[categorical_cols].reset_index(drop=True)
+    original_info = data.reset_index(drop=True)  # 모든 원본 칼럼 포함
 
     # user_col, time_col 복원 보완(채윤)
     if user_col and user_col in data.columns and user_col not in original_info.columns:
@@ -198,7 +203,7 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         results['Anomaly_Score'] = results['anomaly_score']
 
     # 복원한 문자열 컬럼을 결과에 다시 붙이기 (중복 컬럼 방지)
-    results_with_info = pd.concat([results_cleaned, original_info ], axis=1)
+    results_with_info = pd.concat([results_cleaned, original_info], axis=1)
 
 
     # 6. 결과 저장
@@ -250,13 +255,17 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     detected = df_full[df_full['Anomaly'] == 1]
     detected.to_csv("pycaret_detected_anomalies.csv", index=False)
 
+    # TF-IDF 컬럼은 제외하고 표를 생성
+    tfidf_cols = [col for col in detected.columns if '_tfidf_' in col]
+    detected_for_table = detected.drop(columns=tfidf_cols)
+
     # 표 미리보기(이상치 100개만)
-    preview_records = detected.head(100).to_dict(orient="records")
-    preview_table_html = detected.head(100).to_html(index=False, classes="table table-sm") if len(detected) > 0 else "<p>이상치가 없습니다.</p>"
+    preview_records = detected_for_table.head(100).to_dict(orient="records")
+    preview_table_html = detected_for_table.head(100).to_html(index=False, classes="table table-sm") if len(detected_for_table) > 0 else "<p>이상치가 없습니다.</p>"
 
     # 전체/이상치 records (다운로드용)
-    all_records = df_full.to_dict(orient="records")
-    anomaly_records = detected.to_dict(orient="records")
+    anomaly_records = detected_for_table.to_dict(orient="records")
+    all_records = df_full.drop(columns=tfidf_cols).to_dict(orient="records")
 
     # Description HTML 생성
     text_html = generate_description(detected, user_col=user_col, time_col=time_col)
@@ -266,9 +275,9 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         "summary": f"이상치 {count_anomaly:,}건 / 전체 {total:,}건",
         "anomaly_count": count_anomaly,
         "total": total,
-        "table_html": preview_table_html,
-        "records": anomaly_records,   # 이상치만
-        "all_records": all_records,   # 전체
+        "table_html": preview_table_html,  # ← TF-IDF 컬럼이 빠진 표(대시보드용)
+        "records": anomaly_records,   # 이상치만 (여긴 TF-IDF 포함)
+        "all_records": all_records,   # 전체 (여긴 TF-IDF 포함)
         "user_col": user_col,
         "time_col": time_col,
         "columns": list(df_full.columns),
