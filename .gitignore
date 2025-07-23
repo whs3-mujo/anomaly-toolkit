@@ -19,3 +19,4 @@ venv/
 *.csv
 *.pkl
 *.npy
+media/uploads/
