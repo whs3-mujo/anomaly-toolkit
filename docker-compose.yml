@@ -1,11 +1,11 @@
 version: '3.8'
 services:
   web:
-    build: .
+    image: ynjii/anomaly-toolkit:latest
     container_name: anomalytoolkit-web
     ports:
       - "8000:8000"
-    volumes:
-      - .:/app
+#    volumes:
+#      - .:/app
     env_file:
       - .env

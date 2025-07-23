@@ -13,4 +13,5 @@ RUN pip install -r requirements.txt
 COPY . /app
 EXPOSE 8000
 RUN chmod +x /app/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh
 CMD ["/app/docker-entrypoint.sh"]
