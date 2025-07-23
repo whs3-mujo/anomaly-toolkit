@@ -13,6 +13,8 @@ from django.conf import settings
 import pandas as pd
 from .ai_script import detect_anomalies
 from .visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot_anomaly_score_distribution
+import time
+import threading
 
 def redirect_dashboard(request):
     return redirect('web:dashboard')
@@ -184,7 +186,35 @@ def detect_anomalies_view(request):
             user_col = request.POST.get("user_col")
             time_col = request.POST.get("time_col")
             file_path = save_uploaded_file(file)
-            result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col)
+
+            # 타임아웃 설정 (10분)
+            timeout = 600  # 초 단위
+            
+            # 결과 변수 및 에러 플래그
+            result = None
+            analysis_error = False
+            
+            def run_analysis():
+                nonlocal result, analysis_error
+                try:
+                    result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col)
+                except Exception as e:
+                    analysis_error = True
+                    print(f"분석 중 오류 발생: {e}")
+            
+            # 분석 쓰레드 시작
+            analysis_thread = threading.Thread(target=run_analysis)
+            analysis_thread.start()
+            
+            # 지정된 시간만큼 대기
+            analysis_thread.join(timeout)
+            
+            # 타임아웃 발생 시
+            if analysis_thread.is_alive() or analysis_error:
+                return JsonResponse({
+                    'success': False, 
+                    'error': '처리할 수 없는 데이터셋입니다. 10분 이상 소요되었습니다.'
+                }, status=408)  # 408 Request Timeout
 
             # === 그래프 HTML 생성 및 저장 ===
             from .visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot_anomaly_score_distribution
@@ -216,6 +246,7 @@ def detect_anomalies_view(request):
                 score_graph_html=score_graph_html,
             )
             return JsonResponse(result)
+        
         return JsonResponse({"error": "Invalid request"}, status=400)
     except Exception as e:
         import traceback
