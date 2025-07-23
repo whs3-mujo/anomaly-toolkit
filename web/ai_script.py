@@ -1,5 +1,5 @@
 # ai_script.py
-#이제 행 개수 맞추기 하고, 사용자 그래프랑 xai랑 왜 안 맞는지 확인하고.. 끝.
+#tfidf 어케 할건지.. 해결하자
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from pycaret.anomaly import setup, create_model, assign_model
@@ -119,7 +119,7 @@ def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_m
         final_data = pd.DataFrame(scaler.fit_transform(final_data), columns=final_data.columns)
 
 
-    return final_data, categorical_cols, encoder #info 주석처리 + cateforical_cols반환(밑에서 네임인식 안되는 거 같아서)
+    return final_data, categorical_cols, encoder
 
 
 def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=None):
@@ -134,10 +134,10 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         detected_encoding = result['encoding']
 
     # 1. 데이터 불러오기, 결측치 제거
-    data = pd.read_csv(file_path, encoding=detected_encoding)  # index_col=0 제거!
+    data = pd.read_csv(file_path, encoding=detected_encoding)
     data = data.dropna(axis=1, thresh=int(len(data)*0.7))  # 70% 이상 값 없는 열 제거
 
-    # 제외할 칼럼이 있으면 제거📌📌전처리 함수 안으로 위치 옮김.
+    # 제외할 칼럼이 있으면 제거
     if exclude_columns:
         data = data.drop(columns=[col for col in exclude_columns if col in data.columns])
 
@@ -148,9 +148,9 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         scale=True,
         tfidf_max_features=100
     ) 
-    # TF-IDF 컬럼 패턴으로 추출📌추가📌
-    tfidf_cols = [col for col in processed_data.columns if col.startswith('message_tfidf_')]
-    non_tfidf_features = [col for col in processed_data.columns if col not in tfidf_cols]
+    # TF-IDF 컬럼 패턴으로 추출
+    # tfidf_cols = [col for col in processed_data.columns if col.startswith('{text_cols}_tfidf')]
+    # non_tfidf_features = [col for col in processed_data.columns if col not in tfidf_cols]
     # processed_data_no_tfidf = processed_data[non_tfidf_features]
 
     exp = setup(
@@ -161,8 +161,15 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         index=False
     )
 
-       # 복원용 원본 정보 백업 (예: user_id, timestamp 등)
+    # 복원용 원본 정보 백업 (예: user_id, timestamp 등)
     original_info = data[categorical_cols].reset_index(drop=True)
+
+    # user_col, time_col 복원 보완(채윤)
+    if user_col and user_col in data.columns and user_col not in original_info.columns:
+        original_info[user_col] = data[user_col].reset_index(drop=True)
+
+    if time_col and time_col in data.columns and time_col not in original_info.columns:
+        original_info[time_col] = data[time_col].reset_index(drop=True)
 
     model = create_model('iforest')
     results = assign_model(model, score=True)
@@ -172,11 +179,11 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     total = len(results)
     print(f"\n PyCaret이 이상치로 판단한 로그 개수: {count_anomaly:,}건 / 전체 {total:,}건")
 
-    # 원본 정보에서 인코딩된 컬럼들을 제거하고 합치기 📌📌📌📌📌📌📌📌📌📌📌  =>ai코드 꺼는 아님.
-    encoded_columns = [col for col in categorical_cols if col in results.columns]  #categorical_for_encoding?을 categorical_cols로 바꿈.
-    results_cleaned = results.drop(columns=encoded_columns, errors='ignore')  #=> 이거 왜 있는 거지?????? 밑에 쓰임.
+    # 원본 정보에서 인코딩된 컬럼들을 제거하고 합치기 
+    encoded_columns = [col for col in categorical_cols if col in results.columns]  
+    results_cleaned = results.drop(columns=encoded_columns, errors='ignore') 
 
-     # 6. SHAP 그래프를 그리기 위한 파일 생성(1)
+     # 5. SHAP 그래프를 그리기 위한 파일 생성(1)
     model_path = file_path.replace('.csv', '_model.pkl')    # SHAP값 계산을 위해 모델을 pkl파일로 추출
     joblib.dump(model, model_path)
     shap_input_path = file_path.replace('.csv', '_X_for_shap.csv')  # SHAP값 계산을 위해 실제 탐지 모델에 입력값으로 넣었던 data_scaled를 _X_for_shap.csv파일로 저장
@@ -191,13 +198,12 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         results['Anomaly_Score'] = results['anomaly_score']
 
     # 복원한 문자열 컬럼을 결과에 다시 붙이기 (중복 컬럼 방지)
-    results_with_info = pd.concat([results_cleaned, original_info], axis=1)
+    results_with_info = pd.concat([results_cleaned, original_info ], axis=1)
 
 
-    # 5. 결과 저장📌
-    # results_detected = results[results['Anomaly'] == 1]
-    # results_with_info.to_csv("full_data_with_anomaly_info.csv", index=False)
-    results_with_info = pd.concat([results_cleaned.drop(columns=tfidf_cols, errors='ignore'), original_info], axis=1)
+    # 6. 결과 저장
+    # results_with_info = pd.concat([results_cleaned.drop(columns=tfidf_cols, errors='ignore'), original_info], axis=1)
+    # results_with_info = pd.concat([results, original_info], axis=1)
     results_with_info.to_csv("full_data_with_anomaly_info.csv", index=False)
 
     if encoder is not None:
@@ -211,18 +217,10 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         print("Encoder가 없어서 복원 단계 스킵")
         output_path = "full_data_with_anomaly_info.csv"
 
-
-    # 전체 결과 복원 (문자열 컬럼) 📌위에꺼로 수정.
-    # restore_and_save_readable_anomalies(
-    #     anomaly_csv_path="full_data_with_anomaly_info.csv",
-    #     encoder_mapping_dict=encoder.mapping,
-    #     output_path="full_data_with_anomaly_info_readable.csv"
-    # )
-
-    # 복원된 전체 데이터 로드 📌
+    # 복원된 전체 데이터 로드 
     df_full = pd.read_csv("full_data_with_anomaly_info_readable.csv")
 
-    # 복원된 컬럼만 남기고, .1 붙은 컬럼명을 원래대로 변경 📌
+    # 복원된 컬럼만 남기고, .1 붙은 컬럼명을 원래대로 변경 
     for col in df_full.columns:
         if col.endswith('.1'):
             orig_col = col[:-2]
@@ -230,13 +228,13 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
                 df_full.drop(columns=[orig_col], inplace=True)
             df_full.rename(columns={col: orig_col}, inplace=True)
 
-    # 사용자/시간 컬럼 자동 감지 (없으면 직접 입력) 📌
+    # 사용자/시간 컬럼 자동 감지 (없으면 직접 입력) 
     if not user_col or not time_col:
         user_col_auto, time_col_auto = detect_user_and_time_columns(df_full)
         user_col = user_col or user_col_auto
         time_col = time_col or time_col_auto
 
-    # 그래프 시각화 (이상치만)📌
+    # 그래프 시각화 (이상치만)
     try:
         plot_anomaly_score_distribution(df_full, threshold=-0.20, score_col='Anomaly_Score')
         plot_anomaly_by_user(df_full[df_full['Anomaly'] == 1], user_col=user_col)
@@ -244,26 +242,26 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     except Exception as e:
         print("그래프 시각화 중 오류:", e)
 
-    # 7. 탐지 개수 집계📌
+    # 7. 탐지 개수 집계
     count_anomaly = int(df_full['Anomaly'].sum())
     total         = len(df_full)
 
-    # 8. 이상 탐지된 항목만 추출📌
+    # 8. 이상 탐지된 항목만 추출
     detected = df_full[df_full['Anomaly'] == 1]
     detected.to_csv("pycaret_detected_anomalies.csv", index=False)
 
-    # 표 미리보기(이상치 100개만)📌
+    # 표 미리보기(이상치 100개만)
     preview_records = detected.head(100).to_dict(orient="records")
     preview_table_html = detected.head(100).to_html(index=False, classes="table table-sm") if len(detected) > 0 else "<p>이상치가 없습니다.</p>"
 
-    # 전체/이상치 records (다운로드용)📌
+    # 전체/이상치 records (다운로드용)
     all_records = df_full.to_dict(orient="records")
     anomaly_records = detected.to_dict(orient="records")
 
-    # Description HTML 생성📌
+    # Description HTML 생성
     text_html = generate_description(detected, user_col=user_col, time_col=time_col)
 
-    # 9. 결과를 HTML 테이블 + 요약 문자열로 반환📌
+    # 9. 결과를 HTML 테이블 + 요약 문자열로 반환
     result = {
         "summary": f"이상치 {count_anomaly:,}건 / 전체 {total:,}건",
         "anomaly_count": count_anomaly,
@@ -278,39 +276,8 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         "text_html": text_html,
     }
 
-    # SHAP 값 계산
+    # 10. SHAP 그래프를 그리기 위한 파일 생성(2)
     shap_values = shap.TreeExplainer(model).shap_values(processed_data)
-
-    # TF-IDF 컬럼 인덱스 구하기
-    tfidf_indices = [processed_data.columns.get_loc(col) for col in tfidf_cols if col in processed_data.columns]
-
-    # SHAP 값에서 TF-IDF 제거
-    shap_values_non_tfidf = np.delete(shap_values, tfidf_indices, axis=1)
-    
-    # TF-IDF 제외한 feature 목록
-    # non_tfidf_features = [col for col in processed_data.columns if col not in tfidf_cols]
-    
-    # == ✅ 행 수 맞추기 == #
-    # n_samples = shap_values_non_tfidf.shape[0]
-    processed_data_no_tfidf = processed_data[non_tfidf_features]
-    print("shap_values_non_tfidf.shape:", shap_values_non_tfidf.shape)
-    print("processed_data_no_tfidf.shape:", processed_data_no_tfidf.shape)
-
-    min_samples = min(shap_values_non_tfidf.shape[0], processed_data_no_tfidf.shape[0])
-
-    shap.summary_plot(
-        shap_values_non_tfidf[:min_samples],
-        processed_data_no_tfidf.iloc[:min_samples],
-        feature_names=non_tfidf_features
-    )
-
-    # SHAP 값 저장
-    np.save(file_path.replace(".csv", "_shap_values.npy"), shap_values_non_tfidf)
-
-    # np.save(file_path.replace(".csv", "_shap_values.npy"), shap_values_non_tfidf)
-
-
-    # shap_values = shap.TreeExplainer(model).shap_values(processed_data)  #data_scaled를 processed_data 수정. 에러날 수 있음.
-    # np.save(file_path.replace(".csv", "_shap_values.npy"), shap_values)
+    np.save(file_path.replace(".csv", "_shap_values.npy"), shap_values)
     
     return result
