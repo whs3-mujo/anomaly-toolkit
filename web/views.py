@@ -330,7 +330,7 @@ def get_shap_plot(request, session_id, row_index):
         if source_col.lower() in lower_original_columns:
             # 실제 원본 컬럼명으로 표시
             matched_col = [col for col in original_columns if col.lower() == source_col.lower()][0]
-            display_name = f"{matched_col} (텍스트)"
+            display_name = f"{matched_col}"
         else:
             display_name = f"added({source_col})"
         if display_name not in tfidf_mappings:
@@ -348,23 +348,27 @@ def get_shap_plot(request, session_id, row_index):
     
     # TF-IDF 칼럼을 원본 칼럼으로 통합
     merged_shap_df = []
-    
+
     # 원본 텍스트 칼럼에 대한 모든 TF-IDF 피처의 영향도 합치기
     for source_col, related_tfidf in tfidf_mappings.items():
-        # 모든 관련 TF-IDF 피처의 SHAP 값 합산
         tfidf_rows = shap_df[shap_df['feature'].isin(related_tfidf)]
         total_shap = tfidf_rows['shap_value'].sum()
-        
-        # 새 행 추가 (원본 텍스트 칼럼 이름으로)
+        # 여러 TF-IDF 피처의 data(스케일링 값) 중 가장 크게 벗어난 값 사용
+        if not tfidf_rows.empty:
+            data_value = tfidf_rows['data'].abs().max()  # 가장 큰 절댓값 사용
+        else:
+            data_value = 0
         merged_shap_df.append({
-            'feature': f"{source_col}", # tf-idf 피처를 원본 텍스트 칼럼으로 표시
+            'feature': f"{source_col}",  # tf-idf 피처를 원본 텍스트 칼럼으로 표시
             'shap_value': total_shap,
             'abs_val': abs(total_shap),
-            'data': 1.0  # 텍스트 존재 표시
+            'data': data_value
         })
-    
+
     # 나머지 non-TF-IDF 피처 추가
-    non_tfidf_features = [f for f in feature_cols if not any(f in tfidf_list for tfidf_list in tfidf_mappings.values())]
+    # 모든 TF-IDF 피처(flatten) 리스트 생성
+    all_tfidf_features = [item for sublist in tfidf_mappings.values() for item in sublist]
+    non_tfidf_features = [f for f in feature_cols if f not in all_tfidf_features]
     for feature in non_tfidf_features:
         idx = feature_cols.index(feature)
         merged_shap_df.append({
@@ -373,7 +377,7 @@ def get_shap_plot(request, session_id, row_index):
             'abs_val': abs(row[idx]),
             'data': X[feature].iloc[int(row_index)]
         })
-    
+
     # DataFrame으로 변환
     merged_shap_df = pd.DataFrame(merged_shap_df)
     
@@ -455,8 +459,13 @@ def generate_shap_explanation(shap_row_df):
         if not feature:  # feature가 비어 있는 경우 (빈 bar용) 설명 제외
             continue
 
-        value = row['data']  # 스케일링된 값 (평균 0, std 1 기준) => 평균에서 얼마나 떨어졌는지 계산.
-        magnitude = abs(value) 
+        value = row['data']
+        # 만약 value가 Series나 배열이면 float로 변환 (대표값 사용)
+        if isinstance(value, (np.ndarray, pd.Series)):
+            magnitude = float(np.abs(value).max())
+        else:
+            magnitude = abs(value)
+
         if magnitude > 2:
             level = "<span style='color: #B22222'>매우 크게</span>"  # 빨간색
         elif magnitude > 1:
