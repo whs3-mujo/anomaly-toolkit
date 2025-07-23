@@ -276,8 +276,8 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         "anomaly_count": count_anomaly,
         "total": total,
         "table_html": preview_table_html,  # ← TF-IDF 컬럼이 빠진 표(대시보드용)
-        "records": anomaly_records,   # 이상치만 (여긴 TF-IDF 포함)
-        "all_records": all_records,   # 전체 (여긴 TF-IDF 포함)
+        "records": anomaly_records,   # 이상치 결과 (여긴 TF-IDF 제외)
+        "all_records": all_records,   # 전체 결과
         "user_col": user_col,
         "time_col": time_col,
         "columns": list(df_full.columns),
