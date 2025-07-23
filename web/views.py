@@ -311,7 +311,7 @@ def get_shap_plot(request, session_id, row_index):
     try:
         original_df = pd.read_csv(session.file_path)
         original_columns = set(original_df.columns)
-    except:
+    except (FileNotFoundError, pd.errors.EmptyDataError, pd.errors.ParserError):
         original_columns = set()
     
     # 데이터 불러오기
