@@ -14,3 +14,9 @@ venv/
 
 # VSCode
 .vscode/
+
+# upload files
+*.csv
+*.pkl
+*.npy
+media/uploads/

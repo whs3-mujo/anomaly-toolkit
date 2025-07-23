@@ -1,10 +1,13 @@
 import pandas as pd
 import plotly.graph_objects as go
+import time
 
 # -------------------------------------
 # ✅ 사용자 및 시간 컬럼 자동 감지 (수동 선택 지원)
 # -------------------------------------
 def detect_user_and_time_columns(df, user_col=None, time_col=None):
+    print("🔍 사용자 및 시간 컬럼 자동 감지 시작...")
+    
     user_candidates = [
         'user', 'user_id', 'userid', 'username', 'login', 'login_id', 'login_user',
         'account', 'account_id', 'acct', 'acct_id', 'member', 'member_id',
@@ -87,10 +90,13 @@ def hex_to_rgba(hex_color, alpha=0.2):
 # 📊 시간대별 이상탐지 시각화
 # -------------------------------------
 def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
+    print("📊 시간대별 이상탐지 그래프 생성 중...")
+    start_time = time.time()
+    
     df.columns = df.columns.str.strip()  # 칼럼명 공백 제거
-    print("df.columns:", df.columns.tolist())
-    print("user_col:", user_col)
-    print("time_col:", time_col)
+    print("  - 칼럼 정보 확인:", df.columns.tolist())
+    print("  - 사용자 컬럼:", user_col)
+    print("  - 시간 컬럼:", time_col)
     
     # 원본 사용자 컬럼명 처리 (.1이 붙은 컬럼이 있으면 그것을 사용)
     actual_user_col = user_col
@@ -101,16 +107,17 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     df[actual_user_col] = df[actual_user_col].astype(str)
     
     # 시간 칼럼에서 hour 추출 (더 견고한 방식)
-    print("time_col 샘플:", df[time_col].head())
-    print("time_col 데이터 타입:", df[time_col].dtype)
+    print("  - 시간 데이터 처리 중...")
+    print("    시간 컬럼 샘플:", df[time_col].head())
+    print("    시간 컬럼 데이터 타입:", df[time_col].dtype)
     
     # 이미 datetime 타입인지 확인
     if pd.api.types.is_datetime64_any_dtype(df[time_col]):
         df['hour'] = df[time_col].dt.hour
         print("✅ 이미 datetime 타입이므로 바로 hour 추출")
     else:
-        # 다양한 포맷 시도
-        formats_to_try = [
+        # 시간 정보가 포함된 포맷만 시도 (날짜만 있는 포맷 제외)
+        time_formats_to_try = [
             "%Y.%m.%d %H:%M",
             "%Y-%m-%d %H:%M:%S",
             "%Y-%m-%d %H:%M", 
@@ -119,29 +126,68 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
             "%d/%m/%Y %H:%M:%S",
             "%d/%m/%Y %H:%M",
             "%m/%d/%Y %H:%M:%S",
-            "%m/%d/%Y %H:%M"
+            "%m/%d/%Y %H:%M",
+            "%Y.%m.%d %H:%M:%S",
+            "%Y%m%d %H:%M:%S",
+            "%Y%m%d %H:%M",
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%dT%H:%M:%SZ",
+            "%Y-%m-%d %H:%M:%S.%f",
+            "%d-%m-%Y %H:%M:%S",
+            "%d-%m-%Y %H:%M",
+            "%d.%m.%Y %H:%M:%S",
+            "%d.%m.%Y %H:%M",
+            "%Y년 %m월 %d일 %H:%M:%S",
+            "%Y년 %m월 %d일 %H:%M",
+            "%m/%d/%y %H:%M:%S",
+            "%m/%d/%y %H:%M",
+            "%d/%m/%y %H:%M:%S",
+            "%d/%m/%y %H:%M",
+            "%y-%m-%d %H:%M:%S",
+            "%y-%m-%d %H:%M",
+            "%y.%m.%d %H:%M:%S",
+            "%y.%m.%d %H:%M",
+            "%H:%M:%S",
+            "%H:%M"
         ]
         
         success = False
-        for fmt in formats_to_try:
+        for fmt in time_formats_to_try:
             try:
-                df['hour'] = pd.to_datetime(df[time_col], format=fmt, errors='coerce').dt.hour
-                if not df['hour'].isna().all():
+                parsed_datetime = pd.to_datetime(df[time_col], format=fmt, errors='coerce')
+                if not parsed_datetime.isna().all():
+                    df['hour'] = parsed_datetime.dt.hour
                     print(f"✅ 포맷 '{fmt}'로 hour 추출 성공")
                     success = True
                     break
             except:
                 continue
         
-        # 모든 포맷 실패 시 자동 파싱 시도
+        # 시간 정보가 포함된 포맷으로 실패한 경우, 자동 파싱 시도하되 시간 정보 확인
         if not success:
             try:
-                df['hour'] = pd.to_datetime(df[time_col], errors='coerce').dt.hour
-                if not df['hour'].isna().all():
-                    print("✅ 자동 파싱으로 hour 추출 성공")
-                    success = True
+                parsed_datetime = pd.to_datetime(df[time_col], errors='coerce')
+                if not parsed_datetime.isna().all():
+                    # 시간 정보가 실제로 있는지 확인 (모든 시간이 00:00:00인지 체크)
+                    sample_times = parsed_datetime.dropna().dt.time.unique()
+                    has_time_info = len(sample_times) > 1 or (len(sample_times) == 1 and sample_times[0] != pd.Timestamp('00:00:00').time())
+                    
+                    if has_time_info:
+                        df['hour'] = parsed_datetime.dt.hour
+                        print("✅ 자동 파싱으로 hour 추출 성공 (시간 정보 확인됨)")
+                        success = True
+                    else:
+                        print("⚠️ 날짜만 있고 시간 정보가 없는 데이터입니다. 시간대별 분석이 불가능합니다.")
+                        return None
             except Exception as e:
                 print(f"❌ 자동 파싱 실패: {e}")
+    
+    # 시간 정보가 제대로 추출되었는지 확인
+    if not success or df['hour'].isna().all():
+        print(f"⚠️ '{time_col}'에서 시간 정보 추출 실패! 시간대별 분석이 불가능합니다.")
+        print("시간 칼럼 샘플 데이터:")
+        print(df[time_col].head(10))
+        return None
     
     print("hour 추출 샘플:", df['hour'].head())
     print("hour NaN 개수:", df['hour'].isna().sum())
@@ -150,7 +196,7 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
         print(f"⚠️ '{time_col}'에서 hour 추출 실패! 날짜/시간 형식 확인 필요.")
         print("시간 칼럼 샘플 데이터:")
         print(df[time_col].head(10))
-        return
+        return None
 
     df['hour_bin'] = (df['hour'] // 2) * 2  # 2시간 단위
     
@@ -197,14 +243,20 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     fig = go.Figure()
 
     for i, user in enumerate(top_users):
+        # 사용자 이름을 5글자로 제한
+        display_name = user[:5] + "..." if len(user) > 5 else user
+        
         fig.add_trace(go.Scatter(
             x=hourly_counts.index,
             y=hourly_counts[user],
             mode='lines+markers',
-            name=user,
+            name=display_name,
             line=dict(shape='linear', width=3, color=colors[i % len(colors)]),
             fill='tozeroy',
-            fillcolor=hex_to_rgba(colors[i % len(colors)], alpha=0.2)
+            fillcolor=hex_to_rgba(colors[i % len(colors)], alpha=0.2),
+            hovertemplate='<b>%s</b><br>' % user +
+                         'Hour: %{x}<br>' +
+                         'Anomaly Count: %{y}<extra></extra>'
         ))
 
     fig.update_layout(
@@ -214,10 +266,11 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
         xaxis=dict(
             tickmode='array',
             tickvals=hour_bins,
-            ticktext=[str(h) for h in hour_bins]
+            ticktext=[str(h) for h in hour_bins],
+            tickangle=0  # 시간 라벨을 가로로 표시
         ),
         plot_bgcolor='white',
-        font=dict(size=16),
+        font=dict(size=12),  # 글자 크기를 16에서 12로 줄임
         margin=dict(l=40, r=40, t=60, b=40),
         autosize=True,  # ★ 추가
     )
@@ -230,12 +283,17 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
         config={'responsive': True}
     )
 
+    elapsed_time = time.time() - start_time
+    print(f"✅ 시간대별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
     return fig_html
 
 # -------------------------------------
 # 📊 사용자별 이상탐지 시각화
 # -------------------------------------
 def plot_anomaly_by_user(df, user_col, top_n=5):
+    print("📊 사용자별 이상탐지 그래프 생성 중...")
+    start_time = time.time()
+    
     # 원본 사용자 컬럼명 처리 (.1이 붙은 컬럼이 있으면 그것을 사용)
     actual_user_col = user_col
     if f"{user_col}.1" in df.columns:
@@ -281,15 +339,20 @@ def plot_anomaly_by_user(df, user_col, top_n=5):
     fig = go.Figure([go.Bar(
         x=user_counts.index,
         y=user_counts.values,
-        marker=dict(color=colors)
+        marker=dict(color=colors),
+        hovertemplate='<b>%{x}</b><br>' +
+                     'Anomaly Count: %{y}<br>' +
+                     'Total Ratio: %{customdata:.1%}<extra></extra>',
+        customdata=user_counts.values / user_counts.sum()  # 비율 계산
     )])
 
     fig.update_layout(
         title='Anomalies by User',
         xaxis_title='User',
         yaxis_title='Anomaly Count',
+        xaxis=dict(showticklabels=False),  # X축 사용자 이름 숨기기
         plot_bgcolor='white',
-        font=dict(size=16),
+        font=dict(size=12),  # 글자 크기를 16에서 12로 줄임
         margin=dict(l=40, r=40, t=60, b=40),
         autosize=True,  # ★ 추가
     )
@@ -301,12 +364,17 @@ def plot_anomaly_by_user(df, user_col, top_n=5):
         config={'responsive': True}
     )
 
+    elapsed_time = time.time() - start_time
+    print(f"✅ 사용자별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
     return fig_html
 
 # -------------------------------------
 # 📊 이상치 점수 분포 시각화
 # -------------------------------------
 def plot_anomaly_score_distribution(df, threshold=-0.2, score_col=None):
+    print("📊 이상치 점수 분포 그래프 생성 중...")
+    start_time = time.time()
+    
     import plotly.graph_objects as go
     import pandas as pd
 
@@ -389,4 +457,6 @@ def plot_anomaly_score_distribution(df, threshold=-0.2, score_col=None):
         config={'responsive': True}
     )
 
+    elapsed_time = time.time() - start_time
+    print(f"✅ 이상치 점수 분포 그래프 생성 완료 ({elapsed_time:.2f}초)")
     return fig_html
