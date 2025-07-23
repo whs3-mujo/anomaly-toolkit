@@ -419,6 +419,12 @@ function renderHistoryList(history) {
       <div class="meta">
         <span>${formatLocalTime(item.created_at)}</span>
         <span class="file-type-badge">${item.file_type.toUpperCase()}</span>
+        <span style="margin-left:8px;">
+          <button class="rename-btn" title="이름 변경" onclick="event.stopPropagation(); renameAnalysisDirect('${item.session_id}')"
+            style="background:none; border:none; cursor:pointer; color:#1976d2; font-size:1.1em; margin-right:2px;">✏️</button>
+          <button class="delete-btn" title="삭제" onclick="event.stopPropagation(); deleteAnalysisDirect('${item.session_id}')"
+            style="background:none; border:none; cursor:pointer; color:#dc3545; font-size:1.1em;">🗑️</button>
+        </span>
       </div>
     </div>
     `;
@@ -426,10 +432,63 @@ function renderHistoryList(history) {
 
   listContainer.innerHTML = historyHTML;
 
-  // 우클릭 이벤트 추가
+  // 우클릭 메뉴 유지
   document.querySelectorAll('.history-item').forEach(item => {
     item.addEventListener('contextmenu', handleContextMenu);
   });
+}
+
+// 이름변경/삭제 직접 함수
+function renameAnalysisDirect(sessionId) {
+  const currentItem = analysisHistory.find(item => item.session_id === sessionId);
+  if (!currentItem) return;
+  const newName = prompt('새 이름을 입력하세요:', currentItem.full_filename);
+  if (newName && newName.trim() && newName !== currentItem.full_filename) {
+    fetch(`/api/analysis/rename/${sessionId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({ filename: newName.trim() })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        loadAnalysisHistory();
+        alert('이름이 변경되었습니다.');
+      } else {
+        alert('이름 변경 실패: ' + data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('네트워크 오류가 발생했습니다.');
+    });
+  }
+}
+
+function deleteAnalysisDirect(sessionId) {
+  if (!confirm('이 분석 기록을 삭제하시겠습니까?')) return;
+  fetch(`/api/analysis/delete/${sessionId}/`, { method: 'DELETE' })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        loadAnalysisHistory();
+        if (currentSessionId === sessionId) {
+          document.getElementById('welcome-message').style.display = 'block';
+          document.getElementById('analysis-result').style.display = 'none';
+          currentSessionId = null;
+        }
+        alert('분석 기록이 삭제되었습니다.');
+      } else {
+        alert('삭제 실패: ' + data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('네트워크 오류가 발생했습니다.');
+    });
 }
 
 // 분석 결과 상세 정보 로드
