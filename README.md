@@ -14,6 +14,55 @@
 
 ## 사용법
 
+### Docker로 실행하기 (간단 실행용)
+1. Docker Desktop 설치
+https://www.docker.com/products/docker-desktop
+```bash
+#2. 터미널에서 설치 확인
+$ docker --version
+$ docker compose version
+#3. Docker Hub 로그인(최초 1회)
+$ docker login
+#4. 이미지 다운로드
+$ docker pull ynjii/anomaly-toolkit:latest
+#5. 실행 폴더 생성
+$ mkdir 폴더명
+$ cd 폴더명
+```
+6. docker-compose.yml 작성
+해당 폴더 안에 아래 내용으로 docker-compose.yml 파일 생성
+```bash
+version: '3.8'
+services:
+  web:
+    image: ynjii/anomaly-toolkit:latest
+    container_name: anomalytoolkit-web
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+```
+7. .env 파일 작성
+같은 폴더에 .env 파일을 만들고 아래 내용 입력
+```bash
+SECRET_KEY="이 부분에 시크릿키값 입력"
+```
+※ 아래 명령어로 새 SECRET_KEY를 발급해 사용할 수 있습니다:
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+출력 예시)django-insecure-abc123456789
+
+8. 실행
+```bash
+$ docker compose up -d
+#업로드: http://localhost:8000/upload/ 대시보드: http://localhost:8000/dashboard/
+```
+9. 상태 확인
+```bash
+docker compose ps         # 실행 상태 확인
+docker compose logs -f    # 로그 보기
+docker compose down       # 종료
+```   
+---
 ### 실행 및 사용(보안 담당자)
 
 - 이미지 빌드, 컨테이너 실행
