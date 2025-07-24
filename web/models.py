@@ -73,7 +73,6 @@ class AnalysisSession(models.Model):
             return self.original_filename
         return self.original_filename[:max_length-3] + "..."
 
-# ✅ 준호
 class AnomalyLog(models.Model):
     """이상 로그 모델 - 사용자별 이상 로그 데이터를 저장"""
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # 사용자와 연결

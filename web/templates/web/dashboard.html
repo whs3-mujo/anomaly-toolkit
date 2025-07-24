@@ -390,7 +390,6 @@ function loadAnalysisHistory() {
       }
     })
     .catch(error => {
-      console.error('Error:', error);
       showError('네트워크 오류가 발생했습니다.');
     })
     .finally(() => {
@@ -462,7 +461,6 @@ function loadAnalysisDetail(sessionId) {
       }
     })
     .catch(error => {
-      console.error('Error:', error);
       showError('네트워크 오류가 발생했습니다.');
     });
 }
@@ -558,9 +556,8 @@ function formatAnalysisResult(result, session) {
       <div class="dashboard-flex-left" style="flex: 2 1 0; min-width: 0;">
        <!-- ...생략... -->
 <div class="dashboard-graphs-card">
-  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-    <h3 style="margin: 0; font-size: 1.5rem; font-weight: 700;">Anomaly By User</h3>
-    <a href="{% url 'web:anomaly_search' %}" style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none; cursor: pointer;">
+  <div style="margin-left: 43%; margin-bottom: 0.5rem;">
+    <a href="#" onclick="goToViewAll(); return false;" style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none; cursor: pointer;"> 
       View All
     </a>
   </div>
@@ -671,7 +668,6 @@ function renameAnalysis() {
       }
     })
     .catch(error => {
-      console.error('Error:', error);
       alert('네트워크 오류가 발생했습니다.');
     });
   }
@@ -705,7 +701,6 @@ function deleteAnalysis() {
     }
   })
   .catch(error => {
-    console.error('Error:', error);
     alert('네트워크 오류가 발생했습니다.');
   });
 }
@@ -781,11 +776,9 @@ function downloadCSV(sessionId, filename, type) {
 
 function attachShapClickHandlers() {
   const rows = document.querySelectorAll("table tbody tr");
-  console.log("[SHAP DEBUG] 행 개수:", rows.length);
 
   rows.forEach((row, index) => {
     row.addEventListener("click", () => {
-      console.log(`[SHAP DEBUG] ${index}번 행 클릭 → SHAP 요청`);
 
       // 이전 선택된 행에서 강조 스타일 제거
       document.querySelectorAll("table tbody tr").forEach(r => {
@@ -865,8 +858,15 @@ miniSidebarBtn.onclick = function() {
   miniSidebarBtn.style.display = 'none';
 };
 
+function goToViewAll() {
+  if (currentSessionId) {
+    const url = `/anomaly-search/?session_id=${currentSessionId}`;
+    window.location.href = url;
+  } else {
+    window.location.href = '/anomaly-search/';
+  }
+}
 </script>
 
 </body>
 </html>
-

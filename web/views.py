@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from .forms import UploadFileForm
-from .models import AnalysisSession
+from .models import AnalysisSession, AnomalyLog
 import uuid
 import json
 import os
@@ -12,7 +12,7 @@ from django.conf import settings
 import pandas as pd
 from .ai_script import detect_anomalies
 from .visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot_anomaly_score_distribution
-from django.db.models import Count  # Count를 명확히 import
+from django.db.models import Count, Q
 from django.contrib.auth.models import User
 
 def redirect_dashboard(request):
@@ -189,15 +189,16 @@ def detect_anomalies_view(request):
             result_csv_path = result.get("result_csv_path")
             df_result = pd.read_csv(result_csv_path)
 
-            # === 이상 로그 저장 및 디버깅 === 준호
+            # === 이상 로그 저장 및 디버깅 === 
             if user_col and "Anomaly" in df_result.columns:
                 print("user_col:", user_col)
                 print("df_result.columns:", df_result.columns.tolist())
                 print("Anomaly 값 종류:", df_result["Anomaly"].unique())
                 anomalies = df_result[df_result["Anomaly"].astype(str).isin(["1", "1.0", "True", "true"])]
                 print("이상치 개수:", len(anomalies))
-                print("Anomaly 값 종류:", df_result["Anomaly"].unique())
-                print("Anomaly dtype:", df_result["Anomaly"].dtype)
+                print("기존 AnomalyLog 삭제 중...")
+                AnomalyLog.objects.all().delete()  # 기존 로그 모두 삭제
+                
                 for _, row in anomalies.iterrows():
                     username = row[user_col]
                     print("저장할 username:", username)
@@ -304,7 +305,7 @@ from django.shortcuts import get_object_or_404
 from .models import AnalysisSession
 import platform
 
-# ✅ 한글 폰트 설정 (윈도우 기준 예시)
+# 한글 폰트 설정 (윈도우 기준 예시)
 matplotlib.rc('font', family='Malgun Gothic')  # 윈도우용
 matplotlib.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
 matplotlib.use('Agg')
@@ -337,7 +338,7 @@ def get_shap_plot(request, session_id, row_index):
     negative_df = negative_df.reindex(range(6)).fillna({
         'feature': '', 'shap_value': 0, 'abs_val': 0, 'data': 0
     })
-    max_len = 6  # ✅ 항상 bar 6개로 고정
+    max_len = 6  
 
 
     y_pos = np.arange(max_len)
@@ -345,7 +346,7 @@ def get_shap_plot(request, session_id, row_index):
 
 
     # SHAP 값을 절댓값으로 바꿔 오른쪽으로 표시
-    flipped_values = -negative_df['shap_value']  # → 양수로 변환
+    flipped_values = -negative_df['shap_value']  
     ax.set_xlim(0, flipped_values.max() * 1.2)
 
     ax.barh(y_pos, flipped_values, color='salmon', label='이상치 기여도', align='center', height = 0.5)
@@ -439,7 +440,7 @@ def delete_all_analysis_sessions(request):
 
 from django.shortcuts import get_object_or_404
 from .models import AnomalyLog  
-#준호
+
 def user_anomaly_count(request, username):
     """
     사용자명을 입력받아 해당 사용자가 발생시킨 이상 로그 건수를 반환합니다.
@@ -449,7 +450,7 @@ def user_anomaly_count(request, username):
         return JsonResponse({'username': username, 'anomaly_count': count})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-#준호
+
 def top_anomaly_users(request, top_n):
     """
     숫자를 입력받아 이상 로그를 많이 발생시킨 상위 N명의 사용자와 로그 건수를 반환합니다.
@@ -464,8 +465,7 @@ def top_anomaly_users(request, top_n):
         return JsonResponse({'top_users': formatted_users})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-    from django.db.models import Q  # Q 객체를 사용하여 OR 조건 검색
-#준호
+
 @require_http_methods(["GET"])
 def search_anomaly_logs(request):
     """
@@ -481,6 +481,83 @@ def search_anomaly_logs(request):
 from django.shortcuts import render
 
 
-
 def anomaly_search_view(request):
     return render(request, 'web/viewall.html')
+
+
+
+@require_http_methods(["GET"])
+def get_user_graph(request):
+    """
+    사용자별 이상 로그 그래프를 반환하는 뷰 (viewall.html용)
+    """
+    try:
+        latest_session = AnalysisSession.objects.filter(
+            user_graph_html__isnull=False
+        ).order_by('-created_at').first()
+        
+        if latest_session and latest_session.user_graph_html:
+            user_graph_html = latest_session.user_graph_html
+
+            # 그래프 시각 요소 조정 스크립트
+            size_adjustment_script = """
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                    try {
+                        var plotElement = document.querySelector('.plotly-graph-div');
+                        if (plotElement && window.Plotly) {
+                            var currentLayout = plotElement.layout || {};
+                            
+                            var newLayout = {
+                                ...currentLayout,
+                                height: 600,
+                                font: {size: 16},
+                                margin: {l: 60, r: 60, t: 80, b: 60},
+                                title: {
+                                    text: currentLayout.title?.text || 'Anomalies by User',
+                                    font: {size: 20}
+                                }
+                            };
+                            
+                            Plotly.relayout(plotElement, newLayout);
+                        }
+                    } catch (e) {
+                    }
+                }, 500);
+            });
+            </script>
+            """
+
+            return HttpResponse(user_graph_html + size_adjustment_script)
+
+        # user_graph_html이 없으면 아무것도 출력하지 않음
+        return HttpResponse("")
+    
+    except Exception as e:
+        print(f"get_user_graph 오류: {e}")
+        return HttpResponse(f"""
+            <div style="display: flex; align-items: center; justify-content: center; height: 400px; color: #dc3545;">
+                <div style="text-align: center;">
+                    <h3>그래프 로딩 오류</h3>
+                    <p>그래프를 불러오는 중 오류가 발생했습니다.</p>
+                    <small>{str(e)}</small>
+                    <br><br>
+                    <a href="/dashboard/" style="color: #007bff; text-decoration: none;">
+                        대시보드로 돌아가기 →
+                    </a>
+                </div>
+            </div>
+        """)
+
+
+    
+def total_anomaly_count(request):
+    """
+    전체 이상 로그 건수를 반환합니다.
+    """
+    try:
+        total_count = AnomalyLog.objects.count()
+        return JsonResponse({'total_count': total_count})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
