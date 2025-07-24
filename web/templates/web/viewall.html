@@ -141,13 +141,32 @@
       color: #007bff;
       font-style: italic;
     }
+
+    .dashboard-button {
+      background-color: rgb(225, 222, 222);
+      color: black;
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    .dashboard-button:hover {
+      background-color: gray;
+    }
+
   </style>
 </head>
 <body>
   <div class="wrapper">
     <!-- 상단 그래프 -->
     <div class="graph-section">
-      <div class="graph-title">사용자별 이상 로그 그래프</div>
+      <div class="graph-title-bar" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="graph-title">사용자별 이상 로그 그래프</div>
+        <a href="{% url 'web:dashboard' %}" class="dashboard-button">대시보드</a>
+      </div>
       <div id="graph-container" class="graph-container">
         <div class="loading">그래프를 로딩하는 중...</div>
       </div>
