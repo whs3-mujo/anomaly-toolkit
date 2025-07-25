@@ -446,8 +446,12 @@ def user_anomaly_count(request, username):
     사용자명을 입력받아 해당 사용자가 발생시킨 이상 로그 건수를 반환합니다.
     """
     try:
-        count = AnomalyLog.objects.filter(user__username=username).count()
+        # 먼저 해당 사용자가 실제로 존재하는지 확인
+        user = User.objects.get(username=username)
+        count = AnomalyLog.objects.filter(user=user).count()
         return JsonResponse({'username': username, 'anomaly_count': count})
+    except User.DoesNotExist:
+        return JsonResponse({'error': '정확한 사용자명을 입력해주세요.'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
@@ -473,9 +477,14 @@ def search_anomaly_logs(request):
     """
     query = request.GET.get('username', '')  # GET 요청에서 'username' 파라미터 가져오기
     if query:
-        results = AnomalyLog.objects.filter(user__username__icontains=query)  # 사용자명 검색 (대소문자 구분 없음)
-        count = results.count()  # 검색된 이상 로그 건수
-        return JsonResponse({'username': query, 'anomaly_count': count})
+        # 먼저 해당 사용자가 실제로 존재하는지 확인
+        try:
+            user = User.objects.get(username=query)  # 정확한 사용자명으로 검색
+            results = AnomalyLog.objects.filter(user=user)  # 해당 사용자의 이상 로그 검색
+            count = results.count()  # 검색된 이상 로그 건수
+            return JsonResponse({'username': query, 'anomaly_count': count})
+        except User.DoesNotExist:
+            return JsonResponse({'error': '정확한 사용자명을 입력해주세요.'}, status=404)
     else:
         return JsonResponse({'error': '검색어를 입력해주세요.'}, status=400)
 from django.shortcuts import render

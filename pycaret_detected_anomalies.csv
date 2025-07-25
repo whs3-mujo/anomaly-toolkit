@@ -1,151 +1,151 @@
-Anomaly,Anomaly_Score,timestamp,hostname,user_id,dept,action_type,resource,result,process_name,severity,client_ip,location
-1,0.0078233363473482,2025.1.1 00:00,exim-db-21,exim_u3081,자금운용부,process_start,powershell.exe,success,postgresql,WARNING,161.247.198.72,부산지점
-1,0.0065209304427545,2025.1.1 00:25,exim-core-30,exim_u3025,자금운용부,process_start,powershell.exe,fail,powershell.exe,WARNING,128.106.86.87,부산지점
-1,0.0023751964582122,2025.1.1 00:35,exim-ops-16,exim_u3000,자금운용부,login_attempt,db_dump.sql,success,powershell.exe,ERROR,84.107.88.153,부산지점
-1,0.0007863873584167,2025.1.1 00:49,exim-ops-16,exim_u3012,자금운용부,login_attempt,powershell.exe,fail,powershell.exe,INFO,139.65.151.202,부산지점
-1,0.0271937149796428,2025.1.1 00:56,exim-db-21,exim_u3058,자금운용부,login_attempt,powershell.exe,success,powershell.exe,INFO,196.34.107.167,부산지점
-1,0.0135149520002371,2025.1.1 01:26,exim-db-21,exim_u3026,정보기술실,process_start,powershell.exe,fail,postgresql,WARNING,16.121.198.138,서울본점
-1,0.0005952274847943,2025.1.1 01:40,exim-db-21,exim_u3059,자금운용부,trade_doc_upload,수출계약서_2025.pdf,fail,authd,INFO,163.10.85.254,부산지점
-1,0.0053117911050493,2025.1.1 01:43,exim-core-30,exim_u3081,자금운용부,process_start,수출계약서_2025.pdf,success,postgresql,INFO,217.195.225.250,수출입보증센터
-1,0.0241910764897954,2025.1.1 01:44,exim-db-21,exim_u3088,정보기술실,process_start,수출계약서_2025.pdf,fail,powershell.exe,INFO,206.136.21.104,부산지점
-1,0.0068937007732,2025.1.1 01:53,exim-db-21,exim_u3004,자금운용부,trade_doc_upload,powershell.exe,success,powershell.exe,INFO,11.22.56.235,부산지점
-1,0.002974224515993,2025.1.1 02:04,exim-db-21,exim_u3063,디지털전략부,process_start,수출계약서_2025.pdf,success,authd,INFO,189.116.85.99,부산지점
-1,0.0075683653770443,2025.1.1 03:00,exim-core-30,exim_u3000,자금운용부,process_start,db_dump.sql,fail,postgresql,ERROR,38.17.150.40,부산지점
-1,0.0300225221727075,2025.1.1 03:08,exim-ops-16,exim_u3013,자금운용부,process_start,수출계약서_2025.pdf,success,powershell.exe,INFO,3.233.227.245,부산지점
-1,0.009899048645423,2025.1.1 03:47,exim-db-21,exim_u3021,디지털전략부,process_start,수출계약서_2025.pdf,success,keximdoc,WARNING,132.219.223.203,부산지점
-1,0.0010862572237427,2025.1.1 03:57,exim-ops-16,exim_u3025,자금운용부,login_attempt,수출계약서_2025.pdf,success,powershell.exe,WARNING,7.116.10.167,부산지점
-1,0.0523056702668875,2025.1.1 04:12,exim-db-21,exim_u3002,정보기술실,process_start,수출계약서_2025.pdf,fail,powershell.exe,INFO,63.46.93.151,부산지점
-1,0.001771394885123,2025.1.1 04:16,exim-ops-16,exim_u3075,디지털전략부,process_start,db_dump.sql,fail,powershell.exe,INFO,56.145.114.0,부산지점
-1,0.0018050979125265,2025.1.1 04:18,exim-db-21,exim_u3000,자금운용부,login_attempt,db_dump.sql,fail,authd,WARNING,79.152.253.144,부산지점
-1,0.0038048630062994,2025.1.1 04:23,exim-db-21,exim_u3029,디지털전략부,trade_doc_upload,db_dump.sql,fail,powershell.exe,INFO,101.230.148.137,부산지점
-1,0.004782466283427,2025.1.1 04:40,exim-db-21,exim_u3031,정보기술실,process_start,수출계약서_2025.pdf,fail,powershell.exe,INFO,33.128.193.7,수출입보증센터
-1,0.0047268137384063,2025.1.1 04:46,exim-core-30,exim_u3012,위험관리부,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,133.88.69.98,부산지점
-1,0.0012182251018598,2025.1.1 05:12,exim-db-21,exim_u3035,정보기술실,login_attempt,db_dump.sql,fail,postgresql,INFO,96.253.161.133,부산지점
-1,0.0014305940237941,2025.1.1 05:18,exim-ops-16,exim_u3012,위험관리부,process_start,수출계약서_2025.pdf,success,postgresql,INFO,184.87.13.232,부산지점
-1,0.0014724609486324,2025.1.1 05:40,exim-core-30,exim_u3058,자금운용부,process_start,수출계약서_2025.pdf,fail,powershell.exe,ERROR,68.250.32.8,부산지점
-1,0.0051678660229327,2025.1.1 06:19,exim-db-21,exim_u3072,디지털전략부,process_start,수출계약서_2025.pdf,success,keximdoc,INFO,23.126.119.178,부산지점
-1,0.0083193677298328,2025.1.1 06:39,exim-db-21,exim_u3050,자금운용부,trade_doc_upload,db_dump.sql,success,keximdoc,INFO,207.60.2.95,부산지점
-1,0.0050859844009496,2025.1.1 07:04,exim-core-30,exim_u3020,정보기술실,process_start,db_dump.sql,fail,keximdoc,INFO,6.150.101.102,부산지점
-1,0.0225459984502187,2025.1.1 07:31,exim-core-30,exim_u3026,정보기술실,process_start,powershell.exe,success,postgresql,ERROR,222.76.15.101,부산지점
-1,0.0037863579044611,2025.1.1 07:34,exim-core-30,exim_u3033,정보기술실,process_start,수출계약서_2025.pdf,success,authd,INFO,190.55.231.61,부산지점
-1,0.0017877668261684,2025.1.1 07:57,exim-ops-16,exim_u3001,위험관리부,login_attempt,powershell.exe,success,postgresql,INFO,208.159.146.95,부산지점
-1,0.0036200756711809,2025.1.1 07:58,exim-core-30,exim_u3014,위험관리부,process_start,수출계약서_2025.pdf,success,postgresql,INFO,205.5.132.48,부산지점
-1,0.0079877334210041,2025.1.1 08:10,exim-ops-16,exim_u3005,자금운용부,process_start,db_dump.sql,success,postgresql,INFO,3.141.246.222,부산지점
-1,0.002199581115558,2025.1.1 09:12,exim-core-30,exim_u3014,자금운용부,trade_doc_upload,수출계약서_2025.pdf,fail,postgresql,INFO,199.152.148.46,부산지점
-1,0.0133241622645309,2025.1.1 10:49,exim-db-21,exim_u3039,정보기술실,process_start,db_dump.sql,fail,postgresql,INFO,36.18.87.167,부산지점
-1,0.0217624259735037,2025.1.1 11:59,exim-db-21,exim_u3030,자금운용부,process_start,수출계약서_2025.pdf,success,powershell.exe,ERROR,34.0.197.161,런던지점
-1,0.032951034446061,2025.1.1 12:01,exim-db-21,exim_u3056,자금운용부,process_start,powershell.exe,fail,postgresql,INFO,39.190.241.69,부산지점
-1,0.0082273060249751,2025.1.1 12:30,exim-db-21,exim_u3098,위험관리부,login_attempt,수출계약서_2025.pdf,success,powershell.exe,INFO,221.51.181.144,부산지점
-1,0.0212245399036697,2025.1.1 13:53,exim-ops-16,exim_u3030,정보기술실,login_attempt,수출계약서_2025.pdf,fail,powershell.exe,INFO,57.213.147.250,부산지점
-1,0.0247355440543382,2025.1.1 14:05,exim-ops-16,exim_u3021,자금운용부,login_attempt,powershell.exe,success,postgresql,INFO,71.85.175.21,부산지점
-1,0.0010418909797952,2025.1.1 14:21,exim-db-21,exim_u3050,자금운용부,process_start,db_dump.sql,fail,authd,INFO,90.87.222.196,수출입보증센터
-1,0.0068640537628551,2025.1.1 14:23,exim-db-21,exim_u3025,자금운용부,process_start,수출계약서_2025.pdf,success,postgresql,ERROR,52.107.130.68,서울본점
-1,0.0087107544355454,2025.1.1 14:28,exim-db-21,exim_u3031,정보기술실,trade_doc_upload,db_dump.sql,success,postgresql,INFO,174.155.164.20,부산지점
-1,0.0274997638012594,2025.1.1 14:48,exim-core-30,exim_u3001,위험관리부,process_start,수출계약서_2025.pdf,success,postgresql,ERROR,75.248.144.193,부산지점
-1,0.0159004407018257,2025.1.1 15:00,exim-db-21,exim_u3093,자금운용부,process_start,수출계약서_2025.pdf,fail,postgresql,ERROR,151.67.181.176,런던지점
-1,0.0013618002387661,2025.1.1 15:07,exim-db-21,exim_u3061,디지털전략부,process_start,수출계약서_2025.pdf,fail,keximdoc,ERROR,124.63.46.99,부산지점
-1,0.0068928333916589,2025.1.1 15:30,exim-db-21,exim_u3062,자금운용부,process_start,수출계약서_2025.pdf,success,powershell.exe,INFO,60.170.248.155,서울본점
-1,0.0159739251477862,2025.1.1 16:11,exim-core-30,exim_u3044,자금운용부,login_attempt,수출계약서_2025.pdf,success,powershell.exe,INFO,54.12.208.17,부산지점
-1,0.0207322888657066,2025.1.1 16:43,exim-db-21,exim_u3036,위험관리부,process_start,수출계약서_2025.pdf,success,powershell.exe,INFO,11.237.146.117,런던지점
-1,0.0040210366223132,2025.1.1 16:48,exim-db-21,exim_u3046,정보기술실,process_start,수출계약서_2025.pdf,fail,powershell.exe,INFO,99.17.83.105,런던지점
-1,0.0305690472659654,2025.1.1 17:08,exim-db-21,exim_u3036,정보기술실,login_attempt,db_dump.sql,fail,powershell.exe,INFO,40.152.183.229,부산지점
-1,0.0088316506037754,2025.1.1 17:35,exim-core-30,exim_u3053,자금운용부,process_start,수출계약서_2025.pdf,fail,authd,INFO,98.13.83.234,부산지점
-1,0.0125046635994164,2025.1.1 17:52,exim-db-21,exim_u3078,정보기술실,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,122.43.15.103,부산지점
-1,0.0305078557271073,2025.1.1 17:56,exim-db-21,exim_u3026,정보기술실,process_start,db_dump.sql,fail,keximdoc,ERROR,9.53.60.33,부산지점
-1,0.0009569393524829,2025.1.1 17:58,exim-ops-16,exim_u3027,디지털전략부,process_start,수출계약서_2025.pdf,success,postgresql,INFO,207.177.124.246,부산지점
-1,0.0008172906958292,2025.1.1 18:01,exim-core-30,exim_u3010,디지털전략부,login_attempt,수출계약서_2025.pdf,success,postgresql,INFO,191.183.22.70,부산지점
-1,0.0014797198186973,2025.1.1 18:30,exim-core-30,exim_u3025,자금운용부,trade_doc_upload,db_dump.sql,success,authd,INFO,66.178.157.139,부산지점
-1,0.0165699478402694,2025.1.1 18:47,exim-db-21,exim_u3056,자금운용부,trade_doc_upload,수출계약서_2025.pdf,success,postgresql,INFO,140.70.16.239,런던지점
-1,0.0097696644205184,2025.1.1 19:05,exim-ops-16,exim_u3077,자금운용부,process_start,수출계약서_2025.pdf,fail,postgresql,ERROR,207.237.217.71,부산지점
-1,0.0103756126967138,2025.1.1 19:13,exim-db-21,exim_u3002,자금운용부,trade_doc_upload,수출계약서_2025.pdf,success,postgresql,INFO,121.80.53.98,서울본점
-1,0.0102061263227125,2025.1.1 19:28,exim-db-21,exim_u3074,자금운용부,process_start,수출계약서_2025.pdf,success,authd,INFO,182.196.53.228,부산지점
-1,0.0037516170203245,2025.1.1 20:07,exim-core-30,exim_u3066,정보기술실,login_attempt,수출계약서_2025.pdf,success,postgresql,INFO,14.162.185.169,수출입보증센터
-1,0.0138806988303854,2025.1.1 20:33,exim-ops-16,exim_u3001,정보기술실,login_attempt,수출계약서_2025.pdf,success,powershell.exe,WARNING,44.159.61.84,부산지점
-1,0.0097103924894621,2025.1.1 21:12,exim-core-30,exim_u3092,정보기술실,process_start,db_dump.sql,fail,postgresql,INFO,90.250.142.215,부산지점
-1,0.0142122962014628,2025.1.1 21:14,exim-ops-16,exim_u3075,정보기술실,process_start,powershell.exe,success,powershell.exe,INFO,47.118.87.164,부산지점
-1,0.0158227699711074,2025.1.1 21:52,exim-db-21,exim_u3075,자금운용부,process_start,powershell.exe,fail,postgresql,INFO,47.94.63.154,부산지점
-1,0.0170954177090779,2025.1.1 21:59,exim-db-21,exim_u3001,정보기술실,login_attempt,수출계약서_2025.pdf,success,keximdoc,WARNING,142.85.36.89,부산지점
-1,0.0040210366223132,2025.1.1 22:00,exim-db-21,exim_u3092,정보기술실,process_start,수출계약서_2025.pdf,fail,powershell.exe,INFO,124.230.0.127,런던지점
-1,0.0030258031507716,2025.1.1 22:12,exim-db-21,exim_u3050,자금운용부,process_start,powershell.exe,success,keximdoc,ERROR,35.189.10.73,부산지점
-1,0.0103242940822951,2025.1.1 23:30,exim-core-30,exim_u3054,위험관리부,process_start,수출계약서_2025.pdf,success,powershell.exe,INFO,125.32.50.131,부산지점
-1,0.0001853723221,2025.1.2 00:06,exim-core-30,exim_u3081,정보기술실,trade_doc_upload,db_dump.sql,fail,postgresql,INFO,98.195.79.45,부산지점
-1,0.0114360870664101,2025.1.2 00:44,exim-core-30,exim_u3021,위험관리부,process_start,수출계약서_2025.pdf,fail,keximdoc,WARNING,64.102.70.165,부산지점
-1,0.0024761243804594,2025.1.2 00:47,exim-ops-16,exim_u3037,위험관리부,process_start,수출계약서_2025.pdf,fail,powershell.exe,INFO,75.147.164.248,부산지점
-1,0.0102510086980133,2025.1.2 00:50,exim-db-21,exim_u3014,자금운용부,process_start,db_dump.sql,fail,authd,INFO,34.174.121.100,부산지점
-1,0.0045934339044929,2025.1.2 01:08,exim-core-30,exim_u3058,정보기술실,process_start,수출계약서_2025.pdf,success,powershell.exe,INFO,96.3.199.174,서울본점
-1,0.0261459030577612,2025.1.2 01:13,exim-core-30,exim_u3033,자금운용부,process_start,수출계약서_2025.pdf,fail,powershell.exe,INFO,64.47.154.183,부산지점
-1,0.0297063842572299,2025.1.2 01:30,exim-db-21,exim_u3081,자금운용부,process_start,수출계약서_2025.pdf,fail,postgresql,ERROR,165.12.233.92,부산지점
-1,0.0035120611795771,2025.1.2 01:33,exim-ops-16,exim_u3038,자금운용부,process_start,powershell.exe,success,postgresql,INFO,96.230.122.8,부산지점
-1,0.011860387573399,2025.1.2 01:38,exim-ops-16,exim_u3005,정보기술실,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,135.9.79.37,부산지점
-1,0.0075801974774932,2025.1.2 01:39,exim-db-21,exim_u3004,자금운용부,process_start,수출계약서_2025.pdf,fail,authd,ERROR,171.244.12.30,부산지점
-1,0.0081276890138286,2025.1.2 01:46,exim-db-21,exim_u3017,자금운용부,trade_doc_upload,db_dump.sql,fail,postgresql,INFO,120.105.202.173,부산지점
-1,0.0018912066652618,2025.1.2 02:07,exim-db-21,exim_u3088,위험관리부,process_start,수출계약서_2025.pdf,fail,powershell.exe,ERROR,11.56.21.165,부산지점
-1,1.316399414785785e-05,2025.1.2 02:43,exim-db-21,exim_u3070,정보기술실,trade_doc_upload,수출계약서_2025.pdf,fail,postgresql,INFO,49.178.86.73,런던지점
-1,0.0231993559213903,2025.1.2 03:49,exim-db-21,exim_u3056,자금운용부,login_attempt,powershell.exe,fail,powershell.exe,ERROR,14.85.174.49,부산지점
-1,0.0197504305328743,2025.1.2 05:31,exim-db-21,exim_u3086,자금운용부,process_start,수출계약서_2025.pdf,fail,authd,INFO,18.119.70.151,부산지점
-1,0.014559799308626,2025.1.2 05:55,exim-ops-16,exim_u3094,정보기술실,process_start,수출계약서_2025.pdf,fail,powershell.exe,INFO,92.181.93.159,부산지점
-1,0.0108478516688226,2025.1.2 06:04,exim-ops-16,exim_u3058,자금운용부,login_attempt,수출계약서_2025.pdf,success,keximdoc,INFO,132.45.228.195,부산지점
-1,0.0109633018789596,2025.1.2 06:24,exim-ops-16,exim_u3056,위험관리부,process_start,수출계약서_2025.pdf,fail,authd,INFO,90.157.98.1,부산지점
-1,0.0359054982275381,2025.1.2 06:25,exim-db-21,exim_u3084,자금운용부,process_start,수출계약서_2025.pdf,success,postgresql,INFO,26.144.173.181,부산지점
-1,0.0067876028392028,2025.1.2 06:49,exim-ops-16,exim_u3050,정보기술실,login_attempt,powershell.exe,success,powershell.exe,INFO,80.246.142.145,부산지점
-1,0.0359959179021166,2025.1.2 07:59,exim-core-30,exim_u3021,자금운용부,process_start,수출계약서_2025.pdf,success,postgresql,ERROR,78.22.115.99,부산지점
-1,0.0160008321292051,2025.1.2 08:10,exim-ops-16,exim_u3093,위험관리부,process_start,db_dump.sql,fail,postgresql,INFO,162.2.237.74,부산지점
-1,0.030211266498399,2025.1.2 08:37,exim-db-21,exim_u3082,자금운용부,process_start,powershell.exe,fail,powershell.exe,INFO,125.19.85.228,부산지점
-1,0.0066935349067474,2025.1.2 08:44,exim-core-30,exim_u3056,디지털전략부,process_start,수출계약서_2025.pdf,success,postgresql,ERROR,8.100.229.62,부산지점
-1,0.0350716098325909,2025.1.2 08:47,exim-db-21,exim_u3056,정보기술실,process_start,수출계약서_2025.pdf,success,powershell.exe,WARNING,19.127.184.40,부산지점
-1,0.0022698024059574,2025.1.2 09:47,exim-ops-16,exim_u3099,정보기술실,process_start,db_dump.sql,success,postgresql,INFO,162.54.205.65,부산지점
-1,0.0132717462026712,2025.1.2 09:49,exim-db-21,exim_u3086,디지털전략부,login_attempt,수출계약서_2025.pdf,success,postgresql,INFO,166.60.72.36,부산지점
-1,0.0061300779573635,2025.1.2 10:11,exim-core-30,exim_u3018,자금운용부,process_start,db_dump.sql,fail,keximdoc,INFO,135.137.22.248,부산지점
-1,0.0065658746024821,2025.1.2 10:39,exim-ops-16,exim_u3002,자금운용부,login_attempt,powershell.exe,success,powershell.exe,ERROR,94.232.131.214,부산지점
-1,0.004633249896817,2025.1.2 10:43,exim-db-21,exim_u3027,자금운용부,login_attempt,powershell.exe,fail,powershell.exe,INFO,163.163.141.167,부산지점
-1,0.0008347499744678,2025.1.2 10:52,exim-core-30,exim_u3037,자금운용부,process_start,수출계약서_2025.pdf,success,powershell.exe,INFO,111.126.199.209,런던지점
-1,0.0007079850013392,2025.1.2 11:16,exim-core-30,exim_u3056,위험관리부,login_attempt,powershell.exe,success,powershell.exe,INFO,24.170.163.173,부산지점
-1,0.0013570711127168,2025.1.2 11:42,exim-core-30,exim_u3098,정보기술실,process_start,powershell.exe,fail,keximdoc,INFO,106.137.44.114,부산지점
-1,0.0279714941842798,2025.1.2 11:51,exim-ops-16,exim_u3077,자금운용부,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,10.1.0.84,부산지점
-1,0.012662771558093,2025.1.2 11:58,exim-db-21,exim_u3070,자금운용부,trade_doc_upload,수출계약서_2025.pdf,success,postgresql,WARNING,212.62.37.185,부산지점
-1,0.0016032662210385,2025.1.2 13:07,exim-ops-16,exim_u3058,정보기술실,login_attempt,db_dump.sql,fail,postgresql,INFO,31.86.234.206,부산지점
-1,0.0092148453473501,2025.1.2 13:22,exim-db-21,exim_u3000,정보기술실,login_attempt,db_dump.sql,fail,postgresql,ERROR,212.242.57.204,부산지점
-1,0.0014237644242179,2025.1.2 13:32,exim-core-30,exim_u3067,자금운용부,process_start,powershell.exe,success,postgresql,INFO,103.23.197.182,부산지점
-1,0.0373959050933282,2025.1.2 13:41,exim-ops-16,exim_u3002,자금운용부,login_attempt,수출계약서_2025.pdf,fail,powershell.exe,INFO,62.196.1.76,부산지점
-1,0.0101331477533941,2025.1.2 13:50,exim-core-30,exim_u3002,자금운용부,login_attempt,powershell.exe,success,powershell.exe,ERROR,193.118.247.84,부산지점
-1,0.0019687852909681,2025.1.2 14:06,exim-core-30,exim_u3005,자금운용부,login_attempt,powershell.exe,fail,postgresql,INFO,6.195.253.146,부산지점
-1,0.0287155389287327,2025.1.2 14:28,exim-core-30,exim_u3025,자금운용부,login_attempt,수출계약서_2025.pdf,fail,postgresql,INFO,37.87.189.81,부산지점
-1,0.0266862446868377,2025.1.2 14:41,exim-db-21,exim_u3036,디지털전략부,trade_doc_upload,수출계약서_2025.pdf,success,postgresql,INFO,166.81.61.204,부산지점
-1,0.0065343382267248,2025.1.2 14:42,exim-db-21,exim_u3045,위험관리부,process_start,db_dump.sql,fail,authd,INFO,20.119.106.128,부산지점
-1,0.012404155673038,2025.1.2 15:04,exim-ops-16,exim_u3093,정보기술실,process_start,수출계약서_2025.pdf,fail,powershell.exe,ERROR,119.242.81.176,부산지점
-1,0.0098003309642877,2025.1.2 15:18,exim-db-21,exim_u3039,정보기술실,login_attempt,수출계약서_2025.pdf,fail,powershell.exe,INFO,32.199.9.224,부산지점
-1,0.007822535248825,2025.1.2 15:28,exim-core-30,exim_u3005,디지털전략부,process_start,db_dump.sql,fail,powershell.exe,INFO,132.88.152.205,부산지점
-1,0.0008745482642625,2025.1.2 15:47,exim-core-30,exim_u3077,정보기술실,process_start,수출계약서_2025.pdf,fail,powershell.exe,INFO,74.216.204.40,런던지점
-1,0.0053151841743508,2025.1.2 16:03,exim-db-21,exim_u3019,정보기술실,login_attempt,db_dump.sql,fail,postgresql,INFO,54.142.134.132,부산지점
-1,0.0052332980697425,2025.1.2 16:23,exim-core-30,exim_u3023,위험관리부,process_start,수출계약서_2025.pdf,success,postgresql,INFO,90.97.85.180,수출입보증센터
-1,0.0125046635994164,2025.1.2 16:33,exim-db-21,exim_u3057,정보기술실,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,19.218.159.67,부산지점
-1,0.0180946335841032,2025.1.2 16:57,exim-db-21,exim_u3038,위험관리부,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,91.108.27.181,부산지점
-1,0.0114889780391087,2025.1.2 17:48,exim-db-21,exim_u3023,디지털전략부,process_start,powershell.exe,fail,powershell.exe,ERROR,157.244.82.35,부산지점
-1,0.0050859844009496,2025.1.2 17:50,exim-core-30,exim_u3016,정보기술실,process_start,db_dump.sql,fail,keximdoc,INFO,167.183.38.90,부산지점
-1,0.000274626769004,2025.1.2 17:55,exim-ops-16,exim_u3066,정보기술실,process_start,db_dump.sql,fail,postgresql,INFO,76.192.90.251,서울본점
-1,0.0027577329464186,2025.1.2 18:05,exim-db-21,exim_u3036,위험관리부,trade_doc_upload,수출계약서_2025.pdf,fail,postgresql,WARNING,116.246.123.40,부산지점
-1,0.0339962127201594,2025.1.2 18:08,exim-db-21,exim_u3025,정보기술실,process_start,수출계약서_2025.pdf,fail,postgresql,ERROR,180.207.190.48,부산지점
-1,0.0036699715675566,2025.1.2 18:21,exim-core-30,exim_u3075,자금운용부,process_start,db_dump.sql,fail,powershell.exe,WARNING,196.135.149.185,부산지점
-1,0.0049025691332663,2025.1.2 18:25,exim-db-21,exim_u3084,자금운용부,login_attempt,db_dump.sql,fail,powershell.exe,INFO,28.255.86.33,런던지점
-1,0.0257795988730749,2025.1.2 18:53,exim-db-21,exim_u3061,자금운용부,login_attempt,수출계약서_2025.pdf,fail,powershell.exe,INFO,91.34.70.192,부산지점
-1,0.0133093086776701,2025.1.2 18:57,exim-db-21,exim_u3038,자금운용부,process_start,수출계약서_2025.pdf,success,postgresql,INFO,6.25.174.148,런던지점
-1,0.0027548892280091,2025.1.2 19:01,exim-db-21,exim_u3007,자금운용부,trade_doc_upload,수출계약서_2025.pdf,success,powershell.exe,ERROR,15.192.34.103,부산지점
-1,0.0108894251261735,2025.1.2 19:52,exim-core-30,exim_u3002,자금운용부,trade_doc_upload,수출계약서_2025.pdf,success,powershell.exe,WARNING,20.5.180.180,부산지점
-1,0.0185369604617102,2025.1.2 19:55,exim-db-21,exim_u3064,정보기술실,login_attempt,수출계약서_2025.pdf,success,postgresql,INFO,179.146.241.216,부산지점
-1,0.0025561717578675,2025.1.2 20:09,exim-core-30,exim_u3036,자금운용부,login_attempt,수출계약서_2025.pdf,fail,authd,INFO,180.168.36.147,서울본점
-1,0.0364968068229101,2025.1.2 20:16,exim-db-21,exim_u3093,자금운용부,process_start,수출계약서_2025.pdf,fail,powershell.exe,ERROR,146.6.40.224,부산지점
-1,0.0081133966742351,2025.1.2 20:47,exim-db-21,exim_u3046,자금운용부,process_start,수출계약서_2025.pdf,fail,keximdoc,INFO,60.24.22.82,부산지점
-1,0.0161017141152089,2025.1.2 20:50,exim-db-21,exim_u3025,자금운용부,process_start,db_dump.sql,success,powershell.exe,INFO,113.189.203.239,수출입보증센터
-1,0.0039059438116065,2025.1.2 21:30,exim-db-21,exim_u3014,자금운용부,process_start,db_dump.sql,success,powershell.exe,ERROR,115.165.129.91,부산지점
-1,0.0125639751089515,2025.1.2 22:07,exim-db-21,exim_u3056,정보기술실,process_start,db_dump.sql,success,powershell.exe,INFO,158.42.11.113,런던지점
-1,0.0409010742484954,2025.1.2 22:25,exim-core-30,exim_u3026,자금운용부,login_attempt,수출계약서_2025.pdf,fail,postgresql,INFO,114.40.130.8,부산지점
-1,0.0073196476317222,2025.1.2 22:43,exim-core-30,exim_u3082,자금운용부,trade_doc_upload,수출계약서_2025.pdf,success,keximdoc,INFO,171.198.123.210,부산지점
-1,0.0003163048355405,2025.1.2 22:50,exim-db-21,exim_u3035,위험관리부,trade_doc_upload,수출계약서_2025.pdf,fail,postgresql,INFO,106.169.14.245,부산지점
-1,0.0219265515470912,2025.1.2 22:56,exim-core-30,exim_u3036,정보기술실,process_start,수출계약서_2025.pdf,success,powershell.exe,ERROR,4.102.130.78,부산지점
-1,0.0137905752389889,2025.1.2 22:58,exim-db-21,exim_u3026,위험관리부,process_start,db_dump.sql,success,postgresql,INFO,103.114.136.228,런던지점
-1,0.0187033732923397,2025.1.2 23:20,exim-db-21,exim_u3036,자금운용부,trade_doc_upload,powershell.exe,fail,postgresql,WARNING,62.9.236.66,부산지점
-1,0.0106654713241408,2025.1.2 23:47,exim-db-21,exim_u3081,위험관리부,trade_doc_upload,수출계약서_2025.pdf,fail,postgresql,INFO,149.40.93.21,부산지점
-1,0.0081200585504072,2025.1.3 00:07,exim-ops-16,exim_u3025,정보기술실,login_attempt,db_dump.sql,fail,powershell.exe,INFO,123.126.90.222,부산지점
-1,0.0036358229971167,2025.1.3 00:39,exim-db-21,exim_u3042,정보기술실,process_start,db_dump.sql,fail,keximdoc,INFO,129.239.8.0,부산지점
-1,0.0300997099764079,2025.1.3 00:55,exim-core-30,exim_u3058,자금운용부,login_attempt,수출계약서_2025.pdf,success,postgresql,INFO,196.232.173.206,부산지점
-1,0.0472387516223811,2025.1.3 00:59,exim-db-21,exim_u3023,자금운용부,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,223.238.93.248,부산지점
+Anomaly,Anomaly_Score,timestamp,hostname,user_id,dept,action_type,resource,result,process_name,severity,client_ip,location,message_id,message,bank
+1,0.0363175053914442,2025.1.1 00:26,exim-core-30,exim_u3091,자금운용부,trade_doc_upload,powershell.exe,success,authd,INFO,121.165.227.200,수출입보증센터,MSG992244,exim_u3091 performed trade_doc_upload on powershell.exe at 수출입보증센터 - result=success,수출입은행
+1,0.0018455142613595,2025.1.1 00:56,exim-db-21,exim_u3058,자금운용부,login_attempt,powershell.exe,success,powershell.exe,INFO,196.34.107.167,부산지점,MSG959873,exim_u3058 performed login_attempt on powershell.exe at 부산지점 - result=success,수출입은행
+1,0.0135301783246529,2025.1.1 01:18,exim-db-21,exim_u3048,디지털전략부,process_start,수출계약서_2025.pdf,success,keximdoc,INFO,200.42.60.247,부산지점,MSG907897,exim_u3048 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0121112500533292,2025.1.1 01:44,exim-db-21,exim_u3088,정보기술실,process_start,수출계약서_2025.pdf,fail,powershell.exe,INFO,206.136.21.104,부산지점,MSG970419,exim_u3088 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.045869098705765,2025.1.1 01:47,exim-db-21,exim_u3087,정보기술실,process_start,db_dump.sql,fail,powershell.exe,INFO,24.102.100.74,런던지점,MSG916691,exim_u3087 performed process_start on db_dump.sql at 런던지점 - result=fail,수출입은행
+1,0.0015009431793838,2025.1.1 01:53,exim-db-21,exim_u3004,자금운용부,trade_doc_upload,powershell.exe,success,powershell.exe,INFO,11.22.56.235,부산지점,MSG939107,exim_u3004 performed trade_doc_upload on powershell.exe at 부산지점 - result=success,수출입은행
+1,0.0183481558889572,2025.1.1 02:37,exim-core-30,exim_u3049,디지털전략부,login_attempt,db_dump.sql,fail,powershell.exe,WARNING,94.31.55.76,부산지점,MSG966046,exim_u3049 performed login_attempt on db_dump.sql at 부산지점 - result=fail,수출입은행
+1,0.0181242345819707,2025.1.1 02:46,exim-ops-16,exim_u3092,자금운용부,trade_doc_upload,수출계약서_2025.pdf,fail,authd,ERROR,220.190.203.221,수출입보증센터,MSG942030,exim_u3092 performed trade_doc_upload on 수출계약서_2025.pdf at 수출입보증센터 - result=fail,수출입은행
+1,0.0232006045236573,2025.1.1 02:48,exim-core-30,exim_u3087,디지털전략부,login_attempt,수출계약서_2025.pdf,success,powershell.exe,ERROR,144.96.100.44,수출입보증센터,MSG939552,exim_u3087 performed login_attempt on 수출계약서_2025.pdf at 수출입보증센터 - result=success,수출입은행
+1,0.0495616452977702,2025.1.1 03:08,exim-ops-16,exim_u3013,자금운용부,process_start,수출계약서_2025.pdf,success,powershell.exe,INFO,3.233.227.245,부산지점,MSG984320,exim_u3013 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.048796613710685,2025.1.1 03:23,exim-ops-16,exim_u3076,자금운용부,process_start,powershell.exe,fail,postgresql,WARNING,106.60.86.52,부산지점,MSG931584,exim_u3076 performed process_start on powershell.exe at 부산지점 - result=fail,수출입은행
+1,0.001230235872966,2025.1.1 03:46,exim-ops-16,exim_u3070,디지털전략부,login_attempt,powershell.exe,success,postgresql,ERROR,126.118.50.54,런던지점,MSG970206,exim_u3070 performed login_attempt on powershell.exe at 런던지점 - result=success,수출입은행
+1,0.002628644158076,2025.1.1 03:47,exim-db-21,exim_u3021,디지털전략부,process_start,수출계약서_2025.pdf,success,keximdoc,WARNING,132.219.223.203,부산지점,MSG994972,exim_u3021 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.020172999996748,2025.1.1 04:12,exim-db-21,exim_u3002,정보기술실,process_start,수출계약서_2025.pdf,fail,powershell.exe,INFO,63.46.93.151,부산지점,MSG915376,exim_u3002 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0024173803035579,2025.1.1 04:15,exim-db-21,exim_u3029,자금운용부,login_attempt,db_dump.sql,success,postgresql,INFO,199.143.72.167,런던지점,MSG962773,exim_u3029 performed login_attempt on db_dump.sql at 런던지점 - result=success,수출입은행
+1,0.0316964210237871,2025.1.1 04:19,exim-core-30,exim_u3009,자금운용부,login_attempt,db_dump.sql,success,powershell.exe,WARNING,136.153.82.217,부산지점,MSG992244,exim_u3009 performed login_attempt on db_dump.sql at 부산지점 - result=success,수출입은행
+1,0.0634621971836884,2025.1.1 04:37,exim-db-21,exim_u3073,위험관리부,process_start,수출계약서_2025.pdf,fail,keximdoc,ERROR,150.21.216.194,수출입보증센터,MSG912924,exim_u3073 performed process_start on 수출계약서_2025.pdf at 수출입보증센터 - result=fail,수출입은행
+1,0.0529211658030592,2025.1.1 04:46,exim-core-30,exim_u3012,위험관리부,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,133.88.69.98,부산지점,MSG905992,exim_u3012 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0020090031039005,2025.1.1 04:53,exim-core-30,exim_u3093,디지털전략부,process_start,수출계약서_2025.pdf,fail,authd,ERROR,63.82.69.139,부산지점,MSG972523,exim_u3093 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0034353161102084,2025.1.1 05:06,exim-core-30,exim_u3024,정보기술실,login_attempt,db_dump.sql,success,postgresql,ERROR,71.135.58.254,런던지점,MSG965444,exim_u3024 performed login_attempt on db_dump.sql at 런던지점 - result=success,수출입은행
+1,0.0254471672731664,2025.1.1 05:09,exim-core-30,exim_u3017,자금운용부,process_start,db_dump.sql,success,keximdoc,ERROR,70.213.133.181,수출입보증센터,MSG989764,exim_u3017 performed process_start on db_dump.sql at 수출입보증센터 - result=success,수출입은행
+1,0.064682407295632,2025.1.1 06:26,exim-db-21,exim_u3053,위험관리부,process_start,수출계약서_2025.pdf,success,authd,INFO,29.219.192.178,부산지점,MSG910357,exim_u3053 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.004682438054082,2025.1.1 06:29,exim-core-30,exim_u3072,위험관리부,login_attempt,db_dump.sql,success,powershell.exe,ERROR,109.196.120.10,부산지점,MSG960161,exim_u3072 performed login_attempt on db_dump.sql at 부산지점 - result=success,수출입은행
+1,0.0260320893860026,2025.1.1 06:44,exim-ops-16,exim_u3058,자금운용부,login_attempt,db_dump.sql,success,powershell.exe,INFO,21.220.253.14,서울본점,MSG949436,exim_u3058 performed login_attempt on db_dump.sql at 서울본점 - result=success,수출입은행
+1,0.0031161951777471,2025.1.1 08:10,exim-ops-16,exim_u3005,자금운용부,process_start,db_dump.sql,success,postgresql,INFO,3.141.246.222,부산지점,MSG911232,exim_u3005 performed process_start on db_dump.sql at 부산지점 - result=success,수출입은행
+1,0.0065304225921697,2025.1.1 09:12,exim-core-30,exim_u3014,자금운용부,trade_doc_upload,수출계약서_2025.pdf,fail,postgresql,INFO,199.152.148.46,부산지점,MSG935180,exim_u3014 performed trade_doc_upload on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0317210697818243,2025.1.1 09:32,exim-db-21,exim_u3032,디지털전략부,login_attempt,powershell.exe,fail,authd,INFO,209.62.45.115,런던지점,MSG960012,exim_u3032 performed login_attempt on powershell.exe at 런던지점 - result=fail,수출입은행
+1,0.0103708431083445,2025.1.1 09:52,exim-ops-16,exim_u3084,자금운용부,login_attempt,db_dump.sql,fail,postgresql,WARNING,168.129.140.88,런던지점,MSG926326,exim_u3084 performed login_attempt on db_dump.sql at 런던지점 - result=fail,수출입은행
+1,0.0237348632100252,2025.1.1 10:19,exim-db-21,exim_u3038,정보기술실,process_start,수출계약서_2025.pdf,success,authd,ERROR,131.29.63.93,서울본점,MSG995317,exim_u3038 performed process_start on 수출계약서_2025.pdf at 서울본점 - result=success,수출입은행
+1,0.0247375334778137,2025.1.1 10:29,exim-ops-16,exim_u3056,자금운용부,trade_doc_upload,powershell.exe,fail,authd,WARNING,142.124.71.247,수출입보증센터,MSG965444,exim_u3056 performed trade_doc_upload on powershell.exe at 수출입보증센터 - result=fail,수출입은행
+1,0.0049935258483813,2025.1.1 10:39,exim-db-21,exim_u3036,위험관리부,trade_doc_upload,db_dump.sql,success,powershell.exe,ERROR,73.156.201.215,서울본점,MSG949412,exim_u3036 performed trade_doc_upload on db_dump.sql at 서울본점 - result=success,수출입은행
+1,0.0081527966934339,2025.1.1 10:44,exim-db-21,exim_u3042,정보기술실,trade_doc_upload,db_dump.sql,success,postgresql,INFO,149.94.59.134,부산지점,MSG976315,exim_u3042 performed trade_doc_upload on db_dump.sql at 부산지점 - result=success,수출입은행
+1,0.0075303406019081,2025.1.1 10:47,exim-core-30,exim_u3030,정보기술실,login_attempt,db_dump.sql,success,keximdoc,WARNING,161.218.147.246,부산지점,MSG966402,exim_u3030 performed login_attempt on db_dump.sql at 부산지점 - result=success,수출입은행
+1,0.0041415129981302,2025.1.1 11:17,exim-core-30,exim_u3013,정보기술실,trade_doc_upload,db_dump.sql,fail,keximdoc,WARNING,37.191.103.227,부산지점,MSG912924,exim_u3013 performed trade_doc_upload on db_dump.sql at 부산지점 - result=fail,수출입은행
+1,0.0302902813051801,2025.1.1 12:01,exim-db-21,exim_u3056,자금운용부,process_start,powershell.exe,fail,postgresql,INFO,39.190.241.69,부산지점,MSG941800,exim_u3056 performed process_start on powershell.exe at 부산지점 - result=fail,수출입은행
+1,0.0395311153562715,2025.1.1 12:29,exim-ops-16,exim_u3049,디지털전략부,process_start,수출계약서_2025.pdf,success,authd,ERROR,153.100.83.246,부산지점,MSG986154,exim_u3049 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.000888264459677,2025.1.1 12:34,exim-ops-16,exim_u3097,정보기술실,trade_doc_upload,수출계약서_2025.pdf,fail,powershell.exe,ERROR,141.221.204.219,서울본점,MSG980492,exim_u3097 performed trade_doc_upload on 수출계약서_2025.pdf at 서울본점 - result=fail,수출입은행
+1,0.0262455587687487,2025.1.1 12:40,exim-core-30,exim_u3038,자금운용부,process_start,db_dump.sql,success,postgresql,INFO,26.98.29.131,서울본점,MSG900583,exim_u3038 performed process_start on db_dump.sql at 서울본점 - result=success,수출입은행
+1,0.0378527400156732,2025.1.1 13:11,exim-db-21,exim_u3084,정보기술실,login_attempt,수출계약서_2025.pdf,fail,postgresql,WARNING,46.49.17.172,서울본점,MSG960012,exim_u3084 performed login_attempt on 수출계약서_2025.pdf at 서울본점 - result=fail,수출입은행
+1,0.0160315666799292,2025.1.1 13:17,exim-ops-16,exim_u3059,자금운용부,process_start,powershell.exe,success,powershell.exe,ERROR,72.158.4.247,런던지점,MSG980541,exim_u3059 performed process_start on powershell.exe at 런던지점 - result=success,수출입은행
+1,0.0107235161743045,2025.1.1 14:05,exim-ops-16,exim_u3021,자금운용부,login_attempt,powershell.exe,success,postgresql,INFO,71.85.175.21,부산지점,MSG964876,exim_u3021 performed login_attempt on powershell.exe at 부산지점 - result=success,수출입은행
+1,0.0021261850185778,2025.1.1 14:21,exim-db-21,exim_u3050,자금운용부,process_start,db_dump.sql,fail,authd,INFO,90.87.222.196,수출입보증센터,MSG936025,exim_u3050 performed process_start on db_dump.sql at 수출입보증센터 - result=fail,수출입은행
+1,0.0046695474443478,2025.1.1 14:23,exim-db-21,exim_u3025,자금운용부,process_start,수출계약서_2025.pdf,success,postgresql,ERROR,52.107.130.68,서울본점,MSG970465,exim_u3025 performed process_start on 수출계약서_2025.pdf at 서울본점 - result=success,수출입은행
+1,0.0306378124367967,2025.1.1 14:33,exim-db-21,exim_u3087,정보기술실,login_attempt,수출계약서_2025.pdf,fail,authd,WARNING,190.35.116.210,부산지점,MSG975066,exim_u3087 performed login_attempt on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0103255613496938,2025.1.1 15:30,exim-db-21,exim_u3062,자금운용부,process_start,수출계약서_2025.pdf,success,powershell.exe,INFO,60.170.248.155,서울본점,MSG989037,exim_u3062 performed process_start on 수출계약서_2025.pdf at 서울본점 - result=success,수출입은행
+1,0.0068717878802734,2025.1.1 15:46,exim-core-30,exim_u3052,정보기술실,trade_doc_upload,powershell.exe,success,powershell.exe,INFO,107.110.136.5,부산지점,MSG999807,exim_u3052 performed trade_doc_upload on powershell.exe at 부산지점 - result=success,수출입은행
+1,0.0112918249186827,2025.1.1 16:37,exim-db-21,exim_u3035,정보기술실,process_start,db_dump.sql,fail,keximdoc,WARNING,75.212.161.135,수출입보증센터,MSG989463,exim_u3035 performed process_start on db_dump.sql at 수출입보증센터 - result=fail,수출입은행
+1,0.0134087643342738,2025.1.1 16:43,exim-db-21,exim_u3036,위험관리부,process_start,수출계약서_2025.pdf,success,powershell.exe,INFO,11.237.146.117,런던지점,MSG960238,exim_u3036 performed process_start on 수출계약서_2025.pdf at 런던지점 - result=success,수출입은행
+1,0.0164864985382464,2025.1.1 17:02,exim-db-21,exim_u3081,위험관리부,trade_doc_upload,powershell.exe,success,postgresql,INFO,187.116.80.187,서울본점,MSG910803,exim_u3081 performed trade_doc_upload on powershell.exe at 서울본점 - result=success,수출입은행
+1,0.0138880846546853,2025.1.1 17:08,exim-db-21,exim_u3036,정보기술실,login_attempt,db_dump.sql,fail,powershell.exe,INFO,40.152.183.229,부산지점,MSG951949,exim_u3036 performed login_attempt on db_dump.sql at 부산지점 - result=fail,수출입은행
+1,0.010579657964841,2025.1.1 17:52,exim-db-21,exim_u3078,정보기술실,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,122.43.15.103,부산지점,MSG917451,exim_u3078 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0006968782086053,2025.1.1 18:15,exim-core-30,exim_u3004,자금운용부,login_attempt,수출계약서_2025.pdf,success,powershell.exe,ERROR,59.93.119.68,부산지점,MSG911362,exim_u3004 performed login_attempt on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0097211531595966,2025.1.1 18:47,exim-db-21,exim_u3056,자금운용부,trade_doc_upload,수출계약서_2025.pdf,success,postgresql,INFO,140.70.16.239,런던지점,MSG998021,exim_u3056 performed trade_doc_upload on 수출계약서_2025.pdf at 런던지점 - result=success,수출입은행
+1,0.0103845659008429,2025.1.1 18:51,exim-db-21,exim_u3038,디지털전략부,login_attempt,db_dump.sql,fail,postgresql,ERROR,191.145.68.176,서울본점,MSG907152,exim_u3038 performed login_attempt on db_dump.sql at 서울본점 - result=fail,수출입은행
+1,0.0177622984934381,2025.1.1 18:58,exim-core-30,exim_u3056,디지털전략부,process_start,db_dump.sql,success,powershell.exe,INFO,173.12.6.246,런던지점,MSG983634,exim_u3056 performed process_start on db_dump.sql at 런던지점 - result=success,수출입은행
+1,0.0041073268670258,2025.1.1 19:05,exim-ops-16,exim_u3077,자금운용부,process_start,수출계약서_2025.pdf,fail,postgresql,ERROR,207.237.217.71,부산지점,MSG917299,exim_u3077 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0025711946791167,2025.1.1 19:13,exim-db-21,exim_u3002,자금운용부,trade_doc_upload,수출계약서_2025.pdf,success,postgresql,INFO,121.80.53.98,서울본점,MSG999972,exim_u3002 performed trade_doc_upload on 수출계약서_2025.pdf at 서울본점 - result=success,수출입은행
+1,0.010954562002536,2025.1.1 19:21,exim-core-30,exim_u3022,정보기술실,login_attempt,수출계약서_2025.pdf,success,postgresql,INFO,70.149.52.22,서울본점,MSG928277,exim_u3022 performed login_attempt on 수출계약서_2025.pdf at 서울본점 - result=success,수출입은행
+1,0.0560280561341057,2025.1.1 19:25,exim-db-21,exim_u3056,위험관리부,login_attempt,powershell.exe,fail,authd,WARNING,222.54.224.125,부산지점,MSG966402,exim_u3056 performed login_attempt on powershell.exe at 부산지점 - result=fail,수출입은행
+1,0.0026629720110914,2025.1.1 19:28,exim-db-21,exim_u3074,자금운용부,process_start,수출계약서_2025.pdf,success,authd,INFO,182.196.53.228,부산지점,MSG993405,exim_u3074 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0117707650591657,2025.1.1 19:34,exim-ops-16,exim_u3044,디지털전략부,process_start,powershell.exe,fail,powershell.exe,ERROR,88.62.93.8,런던지점,MSG910803,exim_u3044 performed process_start on powershell.exe at 런던지점 - result=fail,수출입은행
+1,0.0061086029674638,2025.1.1 19:43,exim-ops-16,exim_u3088,정보기술실,login_attempt,db_dump.sql,fail,powershell.exe,INFO,136.133.125.38,수출입보증센터,MSG910357,exim_u3088 performed login_attempt on db_dump.sql at 수출입보증센터 - result=fail,수출입은행
+1,0.0083679575320818,2025.1.1 20:21,exim-db-21,exim_u3056,디지털전략부,process_start,db_dump.sql,success,keximdoc,INFO,52.215.132.154,런던지점,MSG901487,exim_u3056 performed process_start on db_dump.sql at 런던지점 - result=success,수출입은행
+1,0.0241959902852632,2025.1.1 20:22,exim-core-30,exim_u3089,자금운용부,trade_doc_upload,수출계약서_2025.pdf,success,powershell.exe,WARNING,203.174.59.59,부산지점,MSG921473,exim_u3089 performed trade_doc_upload on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0162271889028698,2025.1.1 20:44,exim-db-21,exim_u3091,위험관리부,login_attempt,powershell.exe,fail,authd,INFO,157.233.49.134,서울본점,MSG975582,exim_u3091 performed login_attempt on powershell.exe at 서울본점 - result=fail,수출입은행
+1,0.0265634497624346,2025.1.1 21:26,exim-db-21,exim_u3069,위험관리부,trade_doc_upload,수출계약서_2025.pdf,fail,postgresql,ERROR,101.158.194.175,런던지점,MSG994409,exim_u3069 performed trade_doc_upload on 수출계약서_2025.pdf at 런던지점 - result=fail,수출입은행
+1,0.0076035364577259,2025.1.1 21:31,exim-db-21,exim_u3089,정보기술실,trade_doc_upload,수출계약서_2025.pdf,success,keximdoc,WARNING,96.152.164.183,부산지점,MSG948864,exim_u3089 performed trade_doc_upload on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.024647517086234,2025.1.1 21:52,exim-db-21,exim_u3075,자금운용부,process_start,powershell.exe,fail,postgresql,INFO,47.94.63.154,부산지점,MSG938219,exim_u3075 performed process_start on powershell.exe at 부산지점 - result=fail,수출입은행
+1,0.0373389149810861,2025.1.1 22:20,exim-core-30,exim_u3080,디지털전략부,login_attempt,powershell.exe,fail,postgresql,WARNING,131.182.213.101,부산지점,MSG986154,exim_u3080 performed login_attempt on powershell.exe at 부산지점 - result=fail,수출입은행
+1,0.0239045370740365,2025.1.1 22:23,exim-db-21,exim_u3062,디지털전략부,trade_doc_upload,수출계약서_2025.pdf,fail,keximdoc,ERROR,203.98.103.8,런던지점,MSG995317,exim_u3062 performed trade_doc_upload on 수출계약서_2025.pdf at 런던지점 - result=fail,수출입은행
+1,0.0044090118919317,2025.1.1 22:40,exim-db-21,exim_u3012,자금운용부,process_start,powershell.exe,success,keximdoc,WARNING,138.152.46.225,부산지점,MSG991861,exim_u3012 performed process_start on powershell.exe at 부산지점 - result=success,수출입은행
+1,0.0382655262858486,2025.1.1 23:03,exim-core-30,exim_u3078,디지털전략부,process_start,수출계약서_2025.pdf,fail,authd,INFO,107.31.190.168,부산지점,MSG991845,exim_u3078 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0175414741509388,2025.1.1 23:25,exim-db-21,exim_u3056,디지털전략부,login_attempt,powershell.exe,fail,keximdoc,INFO,77.38.121.172,부산지점,MSG927215,exim_u3056 performed login_attempt on powershell.exe at 부산지점 - result=fail,수출입은행
+1,0.0047601805277996,2025.1.1 23:29,exim-ops-16,exim_u3081,자금운용부,trade_doc_upload,수출계약서_2025.pdf,fail,keximdoc,WARNING,208.125.252.181,부산지점,MSG934735,exim_u3081 performed trade_doc_upload on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0732724945265314,2025.1.2 01:15,exim-db-21,exim_u3048,정보기술실,process_start,수출계약서_2025.pdf,success,keximdoc,ERROR,41.100.181.15,부산지점,MSG993502,exim_u3048 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0157531948458146,2025.1.2 01:30,exim-db-21,exim_u3081,자금운용부,process_start,수출계약서_2025.pdf,fail,postgresql,ERROR,165.12.233.92,부산지점,MSG928707,exim_u3081 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0266672844892696,2025.1.2 01:32,exim-db-21,exim_u3089,자금운용부,trade_doc_upload,수출계약서_2025.pdf,success,powershell.exe,WARNING,53.142.184.70,부산지점,MSG936822,exim_u3089 performed trade_doc_upload on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0177522604253285,2025.1.2 01:37,exim-db-21,exim_u3017,디지털전략부,login_attempt,db_dump.sql,fail,postgresql,WARNING,104.219.204.242,런던지점,MSG976544,exim_u3017 performed login_attempt on db_dump.sql at 런던지점 - result=fail,수출입은행
+1,0.008923650818562,2025.1.2 01:38,exim-ops-16,exim_u3005,정보기술실,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,135.9.79.37,부산지점,MSG930508,exim_u3005 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0361594943389054,2025.1.2 02:34,exim-db-21,exim_u3100,위험관리부,process_start,powershell.exe,fail,powershell.exe,WARNING,99.6.9.51,수출입보증센터,MSG902872,exim_u3100 performed process_start on powershell.exe at 수출입보증센터 - result=fail,수출입은행
+1,0.0302803836325691,2025.1.2 02:50,exim-core-30,exim_u3018,정보기술실,process_start,db_dump.sql,fail,postgresql,INFO,3.144.248.184,수출입보증센터,MSG939552,exim_u3018 performed process_start on db_dump.sql at 수출입보증센터 - result=fail,수출입은행
+1,0.014794159938815,2025.1.2 03:15,exim-core-30,exim_u3094,디지털전략부,login_attempt,db_dump.sql,fail,postgresql,WARNING,173.183.72.38,수출입보증센터,MSG916691,exim_u3094 performed login_attempt on db_dump.sql at 수출입보증센터 - result=fail,수출입은행
+1,0.0174058619526167,2025.1.2 03:49,exim-db-21,exim_u3056,자금운용부,login_attempt,powershell.exe,fail,powershell.exe,ERROR,14.85.174.49,부산지점,MSG901493,exim_u3056 performed login_attempt on powershell.exe at 부산지점 - result=fail,수출입은행
+1,0.0285939593965099,2025.1.2 04:05,exim-ops-16,exim_u3076,자금운용부,login_attempt,수출계약서_2025.pdf,success,powershell.exe,ERROR,121.85.21.156,서울본점,MSG921802,exim_u3076 performed login_attempt on 수출계약서_2025.pdf at 서울본점 - result=success,수출입은행
+1,0.0207861718137076,2025.1.2 05:02,exim-db-21,exim_u3054,위험관리부,process_start,db_dump.sql,fail,postgresql,ERROR,106.107.240.241,수출입보증센터,MSG936899,exim_u3054 performed process_start on db_dump.sql at 수출입보증센터 - result=fail,수출입은행
+1,0.0359689353160789,2025.1.2 05:05,exim-core-30,exim_u3036,자금운용부,trade_doc_upload,db_dump.sql,success,powershell.exe,INFO,152.61.98.218,서울본점,MSG912571,exim_u3036 performed trade_doc_upload on db_dump.sql at 서울본점 - result=success,수출입은행
+1,0.0291329281422364,2025.1.2 05:09,exim-ops-16,exim_u3013,자금운용부,login_attempt,db_dump.sql,success,powershell.exe,INFO,221.115.88.95,부산지점,MSG972045,exim_u3013 performed login_attempt on db_dump.sql at 부산지점 - result=success,수출입은행
+1,0.0032061897398673,2025.1.2 05:31,exim-db-21,exim_u3086,자금운용부,process_start,수출계약서_2025.pdf,fail,authd,INFO,18.119.70.151,부산지점,MSG915139,exim_u3086 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0064368011618664,2025.1.2 06:04,exim-ops-16,exim_u3058,자금운용부,login_attempt,수출계약서_2025.pdf,success,keximdoc,INFO,132.45.228.195,부산지점,MSG945061,exim_u3058 performed login_attempt on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0070541294174196,2025.1.2 06:18,exim-core-30,exim_u3096,자금운용부,trade_doc_upload,db_dump.sql,success,powershell.exe,WARNING,63.185.237.96,수출입보증센터,MSG975066,exim_u3096 performed trade_doc_upload on db_dump.sql at 수출입보증센터 - result=success,수출입은행
+1,0.0289363424639397,2025.1.2 06:25,exim-db-21,exim_u3084,자금운용부,process_start,수출계약서_2025.pdf,success,postgresql,INFO,26.144.173.181,부산지점,MSG904551,exim_u3084 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0412437612516569,2025.1.2 06:39,exim-core-30,exim_u3036,자금운용부,trade_doc_upload,db_dump.sql,success,postgresql,INFO,210.248.239.137,서울본점,MSG925260,exim_u3036 performed trade_doc_upload on db_dump.sql at 서울본점 - result=success,수출입은행
+1,0.0332709415836259,2025.1.2 07:03,exim-ops-16,exim_u3000,디지털전략부,process_start,powershell.exe,fail,postgresql,INFO,76.64.212.71,서울본점,MSG901620,exim_u3000 performed process_start on powershell.exe at 서울본점 - result=fail,수출입은행
+1,0.0540066239438439,2025.1.2 07:22,exim-db-21,exim_u3002,정보기술실,login_attempt,수출계약서_2025.pdf,fail,postgresql,WARNING,191.236.34.122,런던지점,MSG970206,exim_u3002 performed login_attempt on 수출계약서_2025.pdf at 런던지점 - result=fail,수출입은행
+1,0.0896773721944481,2025.1.2 07:59,exim-core-30,exim_u3021,자금운용부,process_start,수출계약서_2025.pdf,success,postgresql,ERROR,78.22.115.99,부산지점,MSG989764,exim_u3021 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0534566936378048,2025.1.2 08:09,exim-db-21,exim_u3044,정보기술실,trade_doc_upload,powershell.exe,fail,postgresql,INFO,80.90.182.41,부산지점,MSG954627,exim_u3044 performed trade_doc_upload on powershell.exe at 부산지점 - result=fail,수출입은행
+1,0.0102718661018812,2025.1.2 08:37,exim-db-21,exim_u3082,자금운용부,process_start,powershell.exe,fail,powershell.exe,INFO,125.19.85.228,부산지점,MSG907553,exim_u3082 performed process_start on powershell.exe at 부산지점 - result=fail,수출입은행
+1,0.0195802439292199,2025.1.2 08:47,exim-db-21,exim_u3056,정보기술실,process_start,수출계약서_2025.pdf,success,powershell.exe,WARNING,19.127.184.40,부산지점,MSG960846,exim_u3056 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0185444276777306,2025.1.2 09:12,exim-db-21,exim_u3070,자금운용부,process_start,수출계약서_2025.pdf,success,keximdoc,ERROR,6.239.196.152,서울본점,MSG950667,exim_u3070 performed process_start on 수출계약서_2025.pdf at 서울본점 - result=success,수출입은행
+1,0.0012143648778119,2025.1.2 09:46,exim-core-30,exim_u3052,위험관리부,login_attempt,powershell.exe,fail,authd,ERROR,21.1.161.157,부산지점,MSG960161,exim_u3052 performed login_attempt on powershell.exe at 부산지점 - result=fail,수출입은행
+1,0.0010564516384927,2025.1.2 09:56,exim-db-21,exim_u3042,자금운용부,trade_doc_upload,db_dump.sql,success,postgresql,ERROR,56.85.80.188,부산지점,MSG913410,exim_u3042 performed trade_doc_upload on db_dump.sql at 부산지점 - result=success,수출입은행
+1,0.0383879927292649,2025.1.2 10:49,exim-core-30,exim_u3017,정보기술실,login_attempt,powershell.exe,success,postgresql,INFO,143.144.5.140,부산지점,MSG993502,exim_u3017 performed login_attempt on powershell.exe at 부산지점 - result=success,수출입은행
+1,0.0304898136076471,2025.1.2 11:51,exim-ops-16,exim_u3077,자금운용부,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,10.1.0.84,부산지점,MSG953633,exim_u3077 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0005679174922929,2025.1.2 12:21,exim-db-21,exim_u3047,정보기술실,process_start,db_dump.sql,success,keximdoc,ERROR,17.87.148.83,서울본점,MSG952873,exim_u3047 performed process_start on db_dump.sql at 서울본점 - result=success,수출입은행
+1,0.0233720784449771,2025.1.2 12:35,exim-ops-16,exim_u3004,자금운용부,login_attempt,db_dump.sql,success,keximdoc,ERROR,143.182.215.77,서울본점,MSG924979,exim_u3004 performed login_attempt on db_dump.sql at 서울본점 - result=success,수출입은행
+1,0.0232739528098309,2025.1.2 13:07,exim-ops-16,exim_u3058,정보기술실,login_attempt,db_dump.sql,fail,postgresql,INFO,31.86.234.206,부산지점,MSG964248,exim_u3058 performed login_attempt on db_dump.sql at 부산지점 - result=fail,수출입은행
+1,0.0009246234535786,2025.1.2 13:20,exim-core-30,exim_u3037,정보기술실,process_start,db_dump.sql,success,powershell.exe,WARNING,145.22.241.148,서울본점,MSG902872,exim_u3037 performed process_start on db_dump.sql at 서울본점 - result=success,수출입은행
+1,0.0116675093162003,2025.1.2 13:41,exim-ops-16,exim_u3002,자금운용부,login_attempt,수출계약서_2025.pdf,fail,powershell.exe,INFO,62.196.1.76,부산지점,MSG906322,exim_u3002 performed login_attempt on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0337517457420476,2025.1.2 13:44,exim-core-30,exim_u3005,위험관리부,process_start,수출계약서_2025.pdf,fail,powershell.exe,ERROR,110.11.56.219,수출입보증센터,MSG954627,exim_u3005 performed process_start on 수출계약서_2025.pdf at 수출입보증센터 - result=fail,수출입은행
+1,0.0177625735011239,2025.1.2 14:07,exim-core-30,exim_u3045,위험관리부,trade_doc_upload,powershell.exe,fail,postgresql,INFO,165.91.29.65,런던지점,MSG991845,exim_u3045 performed trade_doc_upload on powershell.exe at 런던지점 - result=fail,수출입은행
+1,0.0102655193992432,2025.1.2 14:15,exim-db-21,exim_u3089,정보기술실,trade_doc_upload,수출계약서_2025.pdf,success,authd,WARNING,65.194.241.208,부산지점,MSG937054,exim_u3089 performed trade_doc_upload on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0242105625205752,2025.1.2 14:28,exim-core-30,exim_u3025,자금운용부,login_attempt,수출계약서_2025.pdf,fail,postgresql,INFO,37.87.189.81,부산지점,MSG938712,exim_u3025 performed login_attempt on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0131814209618404,2025.1.2 14:41,exim-db-21,exim_u3036,디지털전략부,trade_doc_upload,수출계약서_2025.pdf,success,postgresql,INFO,166.81.61.204,부산지점,MSG911665,exim_u3036 performed trade_doc_upload on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0262177563881846,2025.1.2 14:50,exim-ops-16,exim_u3055,정보기술실,login_attempt,수출계약서_2025.pdf,success,powershell.exe,WARNING,203.41.234.252,부산지점,MSG994838,exim_u3055 performed login_attempt on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0178955544065479,2025.1.2 15:04,exim-ops-16,exim_u3093,정보기술실,process_start,수출계약서_2025.pdf,fail,powershell.exe,ERROR,119.242.81.176,부산지점,MSG938085,exim_u3093 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0046028772455442,2025.1.2 16:06,exim-db-21,exim_u3047,자금운용부,process_start,수출계약서_2025.pdf,success,keximdoc,WARNING,102.122.36.33,서울본점,MSG957761,exim_u3047 performed process_start on 수출계약서_2025.pdf at 서울본점 - result=success,수출입은행
+1,0.0214318752760727,2025.1.2 16:12,exim-ops-16,exim_u3017,정보기술실,trade_doc_upload,수출계약서_2025.pdf,success,postgresql,INFO,82.218.109.14,런던지점,MSG901620,exim_u3017 performed trade_doc_upload on 수출계약서_2025.pdf at 런던지점 - result=success,수출입은행
+1,0.0318578307461476,2025.1.2 16:17,exim-core-30,exim_u3083,자금운용부,trade_doc_upload,db_dump.sql,fail,powershell.exe,WARNING,36.171.98.171,부산지점,MSG975582,exim_u3083 performed trade_doc_upload on db_dump.sql at 부산지점 - result=fail,수출입은행
+1,0.0198683087591766,2025.1.2 16:42,exim-ops-16,exim_u3009,자금운용부,process_start,db_dump.sql,fail,keximdoc,ERROR,213.38.113.81,수출입보증센터,MSG907152,exim_u3009 performed process_start on db_dump.sql at 수출입보증센터 - result=fail,수출입은행
+1,0.0061505776607243,2025.1.2 16:44,exim-core-30,exim_u3022,자금운용부,login_attempt,수출계약서_2025.pdf,success,keximdoc,INFO,118.85.109.207,서울본점,MSG984331,exim_u3022 performed login_attempt on 수출계약서_2025.pdf at 서울본점 - result=success,수출입은행
+1,0.0017685828688092,2025.1.2 16:57,exim-db-21,exim_u3038,위험관리부,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,91.108.27.181,부산지점,MSG906599,exim_u3038 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0289996638210702,2025.1.2 17:01,exim-core-30,exim_u3089,자금운용부,trade_doc_upload,수출계약서_2025.pdf,fail,postgresql,INFO,155.144.242.233,런던지점,MSG984320,exim_u3089 performed trade_doc_upload on 수출계약서_2025.pdf at 런던지점 - result=fail,수출입은행
+1,0.0096945914814995,2025.1.2 17:15,exim-ops-16,exim_u3073,자금운용부,trade_doc_upload,db_dump.sql,success,postgresql,WARNING,123.75.190.145,런던지점,MSG965191,exim_u3073 performed trade_doc_upload on db_dump.sql at 런던지점 - result=success,수출입은행
+1,0.0641713996529238,2025.1.2 17:31,exim-core-30,exim_u3052,자금운용부,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,76.240.211.110,런던지점,MSG966628,exim_u3052 performed process_start on 수출계약서_2025.pdf at 런던지점 - result=fail,수출입은행
+1,0.0186187859667011,2025.1.2 17:35,exim-core-30,exim_u3040,자금운용부,trade_doc_upload,수출계약서_2025.pdf,success,keximdoc,INFO,107.28.231.245,부산지점,MSG988011,exim_u3040 performed trade_doc_upload on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0098475743694664,2025.1.2 17:46,exim-ops-16,exim_u3081,정보기술실,process_start,powershell.exe,fail,keximdoc,INFO,201.56.219.234,부산지점,MSG962014,exim_u3081 performed process_start on powershell.exe at 부산지점 - result=fail,수출입은행
+1,0.0052383474025706,2025.1.2 18:08,exim-db-21,exim_u3025,정보기술실,process_start,수출계약서_2025.pdf,fail,postgresql,ERROR,180.207.190.48,부산지점,MSG921516,exim_u3025 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0214222257377264,2025.1.2 18:24,exim-core-30,exim_u3021,정보기술실,trade_doc_upload,powershell.exe,fail,postgresql,WARNING,57.80.227.174,런던지점,MSG924979,exim_u3021 performed trade_doc_upload on powershell.exe at 런던지점 - result=fail,수출입은행
+1,0.0492612034883552,2025.1.2 18:25,exim-db-21,exim_u3084,자금운용부,login_attempt,db_dump.sql,fail,powershell.exe,INFO,28.255.86.33,런던지점,MSG993950,exim_u3084 performed login_attempt on db_dump.sql at 런던지점 - result=fail,수출입은행
+1,0.028263307879951,2025.1.2 18:50,exim-db-21,exim_u3037,위험관리부,process_start,powershell.exe,fail,keximdoc,ERROR,215.36.18.89,부산지점,MSG966628,exim_u3037 performed process_start on powershell.exe at 부산지점 - result=fail,수출입은행
+1,0.0001483897192828,2025.1.2 18:53,exim-db-21,exim_u3061,자금운용부,login_attempt,수출계약서_2025.pdf,fail,powershell.exe,INFO,91.34.70.192,부산지점,MSG975832,exim_u3061 performed login_attempt on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0046526928919026,2025.1.2 18:57,exim-db-21,exim_u3038,자금운용부,process_start,수출계약서_2025.pdf,success,postgresql,INFO,6.25.174.148,런던지점,MSG913573,exim_u3038 performed process_start on 수출계약서_2025.pdf at 런던지점 - result=success,수출입은행
+1,0.0015679558697891,2025.1.2 19:52,exim-core-30,exim_u3002,자금운용부,trade_doc_upload,수출계약서_2025.pdf,success,powershell.exe,WARNING,20.5.180.180,부산지점,MSG973699,exim_u3002 performed trade_doc_upload on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0132993727662412,2025.1.2 19:55,exim-db-21,exim_u3064,정보기술실,login_attempt,수출계약서_2025.pdf,success,postgresql,INFO,179.146.241.216,부산지점,MSG974794,exim_u3064 performed login_attempt on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0413521642600989,2025.1.2 20:16,exim-db-21,exim_u3093,자금운용부,process_start,수출계약서_2025.pdf,fail,powershell.exe,ERROR,146.6.40.224,부산지점,MSG921094,exim_u3093 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0006362722043721,2025.1.2 20:42,exim-core-30,exim_u3012,디지털전략부,process_start,powershell.exe,success,authd,INFO,24.228.26.130,부산지점,MSG991242,exim_u3012 performed process_start on powershell.exe at 부산지점 - result=success,수출입은행
+1,0.0253319980185253,2025.1.2 21:13,exim-ops-16,exim_u3078,자금운용부,process_start,powershell.exe,success,authd,WARNING,132.10.84.248,수출입보증센터,MSG925362,exim_u3078 performed process_start on powershell.exe at 수출입보증센터 - result=success,수출입은행
+1,0.0339152910129771,2025.1.2 21:32,exim-db-21,exim_u3074,자금운용부,login_attempt,powershell.exe,fail,keximdoc,WARNING,34.158.225.31,서울본점,MSG976544,exim_u3074 performed login_attempt on powershell.exe at 서울본점 - result=fail,수출입은행
+1,0.0368443505440655,2025.1.2 22:07,exim-db-21,exim_u3056,정보기술실,process_start,db_dump.sql,success,powershell.exe,INFO,158.42.11.113,런던지점,MSG945796,exim_u3056 performed process_start on db_dump.sql at 런던지점 - result=success,수출입은행
+1,0.028170680651369,2025.1.2 22:25,exim-core-30,exim_u3026,자금운용부,login_attempt,수출계약서_2025.pdf,fail,postgresql,INFO,114.40.130.8,부산지점,MSG987679,exim_u3026 performed login_attempt on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0258193424773304,2025.1.2 22:34,exim-ops-16,exim_u3058,자금운용부,login_attempt,powershell.exe,fail,powershell.exe,ERROR,208.239.194.0,수출입보증센터,MSG989463,exim_u3058 performed login_attempt on powershell.exe at 수출입보증센터 - result=fail,수출입은행
+1,0.0007666272837427,2025.1.2 22:43,exim-core-30,exim_u3082,자금운용부,trade_doc_upload,수출계약서_2025.pdf,success,keximdoc,INFO,171.198.123.210,부산지점,MSG903238,exim_u3082 performed trade_doc_upload on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0279555362668975,2025.1.2 23:28,exim-db-21,exim_u3061,디지털전략부,login_attempt,powershell.exe,fail,powershell.exe,WARNING,221.217.213.23,부산지점,MSG907113,exim_u3061 performed login_attempt on powershell.exe at 부산지점 - result=fail,수출입은행
+1,0.0251239554345871,2025.1.2 23:47,exim-db-21,exim_u3081,위험관리부,trade_doc_upload,수출계약서_2025.pdf,fail,postgresql,INFO,149.40.93.21,부산지점,MSG970101,exim_u3081 performed trade_doc_upload on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0307531061679403,2025.1.2 23:50,exim-db-21,exim_u3012,자금운용부,trade_doc_upload,db_dump.sql,fail,postgresql,WARNING,128.198.102.44,수출입보증센터,MSG994409,exim_u3012 performed trade_doc_upload on db_dump.sql at 수출입보증센터 - result=fail,수출입은행
+1,0.0586274255875365,2025.1.3 00:07,exim-ops-16,exim_u3025,정보기술실,login_attempt,db_dump.sql,fail,powershell.exe,INFO,123.126.90.222,부산지점,MSG936899,exim_u3025 performed login_attempt on db_dump.sql at 부산지점 - result=fail,수출입은행
+1,0.0256168579841068,2025.1.3 00:55,exim-core-30,exim_u3058,자금운용부,login_attempt,수출계약서_2025.pdf,success,postgresql,INFO,196.232.173.206,부산지점,MSG928939,exim_u3058 performed login_attempt on 수출계약서_2025.pdf at 부산지점 - result=success,수출입은행
+1,0.0337331012449029,2025.1.3 00:59,exim-db-21,exim_u3023,자금운용부,process_start,수출계약서_2025.pdf,fail,postgresql,INFO,223.238.93.248,부산지점,MSG915023,exim_u3023 performed process_start on 수출계약서_2025.pdf at 부산지점 - result=fail,수출입은행
+1,0.0047079848517403,2025.1.3 01:08,exim-ops-16,exim_u3022,위험관리부,process_start,powershell.exe,success,powershell.exe,WARNING,219.74.160.101,부산지점,MSG972045,exim_u3022 performed process_start on powershell.exe at 부산지점 - result=success,수출입은행
+1,0.0090571254339149,2025.1.3 01:29,exim-ops-16,exim_u3096,자금운용부,login_attempt,powershell.exe,success,authd,INFO,9.156.106.95,수출입보증센터,MSG925362,exim_u3096 performed login_attempt on powershell.exe at 수출입보증센터 - result=success,수출입은행

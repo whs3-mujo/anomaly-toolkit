@@ -309,7 +309,9 @@
       fetch(`/api/anomaly/search/?username=${encodeURIComponent(username)}`)
         .then(response => {
           if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            return response.json().then(errorData => {
+              throw new Error(errorData.error || `HTTP ${response.status}`);
+            });
           }
           return response.json();
         })
@@ -341,7 +343,7 @@
           }
         })
         .catch(error => {
-          document.getElementById('username-search-result').innerHTML = `<span class="error">검색 실패: ${error.message}</span>`;
+          document.getElementById('username-search-result').innerHTML = `<span class="error">${error.message}</span>`;
         });
     });
 
