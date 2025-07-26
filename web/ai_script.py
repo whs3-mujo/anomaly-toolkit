@@ -4,7 +4,10 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from pycaret.anomaly import setup, create_model, assign_model
 import category_encoders as ce
-import chardet ###수정하면서 추가한 부분
+try:
+    import chardet ###수정하면서 추가한 부분
+except ImportError:
+    chardet = None
 import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer ###수정하면서 추가한 부분
 import numpy as np
@@ -133,10 +136,13 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     1) 전처리 → 2) PyCaret 이상 탐지 → 3) HTML 테이블 형태 결과 반환 """
 
     # 인코딩 자동 감지
-    with open(file_path, 'rb') as f:
-        raw_data = f.read(10000)  # 앞부분만 샘플로 추출
-        result = chardet.detect(raw_data)
-        detected_encoding = result['encoding']
+    if chardet:
+        with open(file_path, 'rb') as f:
+            raw_data = f.read(10000)  # 앞부분만 샘플로 추출
+            result = chardet.detect(raw_data)
+            detected_encoding = result['encoding'] if result['encoding'] else 'utf-8'
+    else:
+        detected_encoding = 'utf-8'
 
     # 1. 데이터 불러오기, 결측치 제거
     data = pd.read_csv(file_path, encoding=detected_encoding)

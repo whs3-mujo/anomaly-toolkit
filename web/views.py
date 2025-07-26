@@ -343,6 +343,7 @@ def get_shap_plot(request, session_id, row_index):
         original_df = pd.read_csv(session.file_path)
         original_columns = set(original_df.columns)
     except (FileNotFoundError, pd.errors.EmptyDataError, pd.errors.ParserError):
+        original_df = None
         original_columns = set()
     
     # 데이터 불러오기
@@ -384,12 +385,23 @@ def get_shap_plot(request, session_id, row_index):
     for source_col, related_tfidf in tfidf_mappings.items():
         tfidf_rows = shap_df[shap_df['feature'].isin(related_tfidf)]
         total_shap = tfidf_rows['shap_value'].sum()
-        # 여러 TF-IDF 피처의 data(스케일링 값) 중 가장 크게 벗어난 값 사용
-        if not tfidf_rows.empty:
-            # Weighted average of 'data' values using absolute SHAP values as weights
-            data_value = np.average(tfidf_rows['data'], weights=tfidf_rows['abs_val'])
+        
+        # 원본 텍스트 칼럼이 있는 경우, 해당 칼럼의 고유값 개수나 길이로 다양성 측정
+        if original_df is not None and source_col in original_df.columns:
+            original_value = str(original_df[source_col].iloc[int(row_index)])
+            # 텍스트 길이나 고유성을 기반으로 한 메트릭 사용
+            unique_values = original_df[source_col].nunique()
+            current_frequency = (original_df[source_col] == original_value).sum()
+            # 희귀도 계산: 전체 개수 대비 현재 값의 빈도
+            data_value = 1 - (current_frequency / len(original_df))
         else:
-            data_value = 0
+            # 여러 TF-IDF 피처의 data(스케일링 값) 중 가장 크게 벗어난 값 사용
+            if not tfidf_rows.empty:
+                # Weighted average of 'data' values using absolute SHAP values as weights
+                data_value = np.average(tfidf_rows['data'], weights=tfidf_rows['abs_val'])
+            else:
+                data_value = 0
+        
         merged_shap_df.append({
             'feature': f"{source_col}",  # tf-idf 피처를 원본 텍스트 칼럼으로 표시
             'shap_value': total_shap,
@@ -403,11 +415,26 @@ def get_shap_plot(request, session_id, row_index):
     non_tfidf_features = [f for f in feature_cols if f not in all_tfidf_features]
     for feature in non_tfidf_features:
         idx = feature_cols.index(feature)
+        
+        # 원본 데이터에서 해당 특성의 값 가져오기 (가능한 경우)
+        if original_df is not None and feature in original_df.columns:
+            original_value = original_df[feature].iloc[int(row_index)]
+            # 숫자형 데이터의 경우 평균과의 차이 계산
+            if pd.api.types.is_numeric_dtype(original_df[feature]):
+                mean_value = original_df[feature].mean()
+                data_value = abs(original_value - mean_value)
+            else:
+                # 범주형 데이터의 경우 스케일링된 값 사용
+                data_value = abs(X[feature].iloc[int(row_index)])
+        else:
+            # 원본 데이터에 없는 경우 스케일링된 값 사용
+            data_value = abs(X[feature].iloc[int(row_index)])
+        
         merged_shap_df.append({
             'feature': feature,
             'shap_value': row[idx],
             'abs_val': abs(row[idx]),
-            'data': X[feature].iloc[int(row_index)]
+            'data': data_value
         })
 
     # DataFrame으로 변환
@@ -491,27 +518,54 @@ def generate_shap_explanation(shap_row_df):
         if not feature:  # feature가 비어 있는 경우 (빈 bar용) 설명 제외
             continue
 
-        value = row['data']
-        # 만약 value가 Series나 배열이면 float로 변환 (대표값 사용)
-        if isinstance(value, (np.ndarray, pd.Series)):
-            magnitude = float(np.abs(value).max())
+        # SHAP 값의 절댓값을 기준으로 영향도 판단
+        shap_magnitude = abs(row['shap_value'])
+        data_value = row['data']
+        
+        # 만약 data_value가 Series나 배열이면 float로 변환 (대표값 사용)
+        if isinstance(data_value, (np.ndarray, pd.Series)):
+            data_magnitude = float(np.abs(data_value).max())
         else:
-            magnitude = abs(value)
+            data_magnitude = abs(float(data_value)) if data_value is not None else 0.0
 
-        if magnitude > 2:
-            level = "<span style='color: #B22222'>매우 크게</span>"  # 빨간색
-        elif magnitude > 1:
-            level = "<span style='color: #e67e22'>크게</span>"  # 주황색
-        elif magnitude > 0.5:
+        # SHAP 값의 크기에 따른 영향도 레벨 결정
+        if shap_magnitude > 0.1:
+            level = "<span style='color: #B22222'>크게</span>"  # 빨간색
+        elif shap_magnitude > 0.05:
+            level = "<span style='color: #e67e22'>중간 정도</span>"  # 주황색
+        elif shap_magnitude > 0.01:
             level = "<span style='color: #f1c40f'>약간</span>"  # 노란색
         else:
-            level = ""
+            level = "거의"
 
-        explanations.append(
-            f"{feature} 값은 평균치보다 {magnitude:.2f}만큼 {level} 벗어났습니다"
-        )
+        # 설명 텍스트 생성 - SHAP 기여도를 중심으로
+        if shap_magnitude < 0.01:
+            explanations.append(
+                f"{feature}: 이상 탐지에 거의 영향 없음 (기여도: {shap_magnitude:.3f})"
+            )
+        else:
+            # 데이터 차이와 영향도의 관계 설명
+            if data_magnitude < 0.01 and shap_magnitude > 0.05:
+                # 값 차이는 작지만 영향이 큰 경우
+                explanation_reason = "※ 이 특성은 희귀하거나 모델이 중요하게 학습한 패턴입니다"
+                data_text = "값의 차이는 미미하지만"
+            elif data_magnitude < 0.01:
+                data_text = "값의 차이는 미미하며"
+                explanation_reason = ""
+            elif data_magnitude < 1.0:
+                data_text = f"평균 대비 {data_magnitude:.2f} 차이로"
+                explanation_reason = ""
+            else:
+                data_text = f"평균 대비 {data_magnitude:.2f} 만큼 크게 차이나며"
+                explanation_reason = ""
+            
+            base_explanation = f"{feature}: {data_text} 이상 탐지에 {level} 영향 (기여도: {shap_magnitude:.3f})"
+            if explanation_reason:
+                explanations.append(f"{base_explanation}<br><small style='color: #666; font-style: italic;'>{explanation_reason}</small>")
+            else:
+                explanations.append(base_explanation)
 
-    explanations.append("<span style='color: #555; font-size: 0.95em;'>평균과 많이 달라도 탐지 결과에는 영향이 적을 수 있고, 조금 달라도 비교적 큰 영향을 줄 수 있습니다.</span>")
+    explanations.append("<span style='color: #555; font-size: 0.95em;'>💡 <strong>참고:</strong> 값의 차이가 작아도 영향이 클 수 있습니다. 이는 해당 특성이 희귀하거나, 모델이 이상 탐지의 중요한 패턴으로 학습했기 때문입니다.</span>")
 
     return explanations
 
