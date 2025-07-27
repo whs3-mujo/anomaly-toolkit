@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>이상로그 사용자 검색</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+  <style>
+    body {
+      background: #f5f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .wrapper {
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .graph-section {
+      background: #fff;
+      border-radius: 12px;
+      border: 1.5px solid #e9ecef;
+      padding: 1.5rem;
+      box-shadow: 0 2px 12px rgba(23, 58, 125, 0.06);
+      margin-bottom: 2rem;
+    }
+
+    .graph-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    .graph-container {
+      width: 100%;
+      height: 500px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      overflow: visible; 
+      position: relative; 
+    }
+
+    .graph-container .plotly-graph-div {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 500px !important;
+    }
+
+    .graph-container > div {
+      width: 100%;
+      height: 100%;
+    }
+
+    .content-section {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .left-panel {
+      flex: 1 1 400px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+      padding: 2rem;
+    }
+
+    .right-panel {
+      flex: 1 1 400px;
+      background: #fefefe;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+      padding: 2rem;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+      color: #333;
+    }
+
+    .form-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-group input,
+    .form-group button {
+      padding: 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #dee2e6;
+    }
+
+    .form-group button {
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+
+    .form-group button.green {
+      background: #28a745;
+    }
+
+    .result-box {
+      margin-top: 1rem;
+    }
+
+    .description-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    .description-content {
+      line-height: 1.6;
+      color: #555;
+    }
+
+    .error {
+      color: #dc3545;
+    }
+
+    .success {
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    .loading {
+      color: #007bff;
+      font-style: italic;
+    }
+
+    .dashboard-button {
+      background-color: rgb(225, 222, 222);
+      color: black;
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    .dashboard-button:hover {
+      background-color: gray;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- 상단 그래프 -->
+    <div class="graph-section">
+      <div class="graph-title-bar" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="graph-title">사용자별 이상 로그 그래프</div>
+        <a href="{% url 'web:dashboard' %}" class="dashboard-button">대시보드</a>
+      </div>
+      <div id="graph-container" class="graph-container">
+        <div class="loading">그래프를 로딩하는 중...</div>
+      </div>
+    </div>
+
+    <!-- 검색 + 설명 영역 -->
+    <div class="content-section">
+      <!-- 좌측 검색/필터 -->
+      <div class="left-panel">
+        <h2>Filter</h2>
+
+        <form id="username-search-form" class="form-group">
+          <input type="text" id="username-input" placeholder="사용자명을 입력하세요" style="flex: 1;">
+          <button type="submit">검색</button>
+        </form>
+        <div id="username-search-result" class="result-box"></div>
+
+        <form id="top-users-form" class="form-group" style="margin-top: 2rem;">
+          <input type="number" id="top-n-input" min="1" style="width: 100px;" placeholder="상위 N명">
+          <button type="submit" class="green">조회</button>
+        </form>
+        <div id="top-users-result" class="result-box"></div>
+      </div>
+
+      <!-- 우측 설명 -->
+      <div class="right-panel">
+        <div class="description-title"><h3 style="color:red;">📍설명</h3></div>
+        <div class="description-content" id="description-content">
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function loadTotalAnomalyCount() {
+      fetch('/api/anomaly/total/')
+          .then(response => response.json())
+          .then(data => {
+              const descDiv = document.getElementById('description-content');
+              descDiv.innerHTML = `전체 이상 로그 건수: <b>${data.total_count}건</b><br>
+                                  필터 기능을 사용하여 특정 사용자나 상위 사용자들의 로그를 조회할 수 있습니다.`;
+          })
+          .catch(error => {
+              document.getElementById('description-content').innerHTML = 
+                  '전체 로그 건수를 불러오는 중 오류가 발생했습니다.';
+          });
+    }
+
+    window.onload = function () {
+      
+      // URL 파라미터에서 session_id 읽기
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session_id');
+      
+      // API URL 생성
+      let apiUrl = '/api/get_user_graph/';
+      if (sessionId) {
+        apiUrl += `?session_id=${sessionId}`;
+      } 
+            
+      const container = document.getElementById('graph-container');
+      container.innerHTML = '<div class="loading">그래프를 로딩하는 중...</div>';
+      
+      fetch(apiUrl)
+        .then(response => {
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          return response.text();
+        })
+        .then(html => {       
+          container.innerHTML = html;
+          
+          setTimeout(() => {
+            const plotlyDiv = container.querySelector('.plotly-graph-div');
+            const scripts = container.querySelectorAll('script');
+            
+            scripts.forEach((script, index) => {
+              if (script.innerHTML.includes('Plotly.newPlot')) {
+                try {
+                  const newScript = document.createElement('script');
+                  newScript.innerHTML = script.innerHTML;
+                  script.parentNode.replaceChild(newScript, script);
+                } catch (e) {
+                }
+              }
+            });
+            
+            if (plotlyDiv && window.Plotly) {
+              try {
+                window.Plotly.Plots.resize(plotlyDiv);
+              } catch (e) {
+              }
+            }
+            
+            setTimeout(() => {
+              const finalPlotlyDiv = container.querySelector('.plotly-graph-div');
+              if (finalPlotlyDiv) {
+                const rect = finalPlotlyDiv.getBoundingClientRect();
+                
+                if (window.Plotly && finalPlotlyDiv.id) {
+                  window.Plotly.redraw(finalPlotlyDiv.id);
+                }
+              }
+            }, 1000);
+            
+          }, 100);
+        })
+        .catch(error => {
+          container.innerHTML = `
+            <div style="color: #dc3545; text-align: center; padding: 2rem;">
+              <h4>그래프 로딩 실패</h4>
+              <p>오류: ${error.message}</p>
+              <small>브라우저 콘솔을 확인하거나 페이지를 새로고침해보세요.</small>
+              <br><br>
+              <button onclick="window.location.reload()" style="padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                페이지 새로고침
+              </button>
+            </div>
+          `;
+        });
+      
+      loadTotalAnomalyCount();
+    };
+
+    // 사용자명 검색 
+    document.getElementById('username-search-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const username = document.getElementById('username-input').value.trim();
+      
+      if (!username) {
+        document.getElementById('username-search-result').innerHTML = '<span class="error">사용자명을 입력해주세요</span>';
+        return;
+      }
+
+      document.getElementById('username-search-result').innerHTML = '<span class="loading">검색 중...</span>';
+      
+      fetch(`/api/anomaly/search/?username=${encodeURIComponent(username)}`)
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(errorData => {
+              throw new Error(errorData.error || `HTTP ${response.status}`);
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+          const resultDiv = document.getElementById('username-search-result');
+          const descDiv = document.getElementById('description-content');
+          
+          if (data.anomaly_count !== undefined) {
+            resultDiv.innerHTML = `<b><span style="color:green;">${data.username}</b></span>의 이상 로그: <b><span style="color:green;">${data.anomaly_count}건</b>`;
+            
+            // 전체 로그 수 가져와서 비율 계산
+            fetch('/api/anomaly/total/')
+              .then(r => r.json())
+              .then(totalData => {
+                const percentage = data.anomaly_count > 0 ? 
+                  ((data.anomaly_count / totalData.total_count) * 100).toFixed(2) : '0.00';
+                descDiv.innerHTML = `<b><span style="color:green;">${data.username}</span></b> 사용자의 이상 로그 분석 결과:<br>
+                    • 개별 로그 수: <b><span style="color:green;">${data.anomaly_count}건</span></b><br>
+                    • 전체 대비 비율: <b><span style="color:green;">${percentage}%</span></b><br>
+                    • 전체 로그 수: <b><span style="color:green;">${totalData.total_count}건</span></b>
+                `;;
+              })
+              .catch(() => {
+                descDiv.innerHTML = `<b>${data.username}</b> 사용자의 이상 로그: <b>${data.anomaly_count}건</b>`;
+              });
+          } else {
+            resultDiv.innerHTML = '<span class="error">결과 없음</span>';
+            descDiv.innerHTML = '검색 결과가 없습니다.';
+          }
+        })
+        .catch(error => {
+          document.getElementById('username-search-result').innerHTML = `<span class="error">${error.message}</span>`;
+        });
+    });
+
+    // 상위 사용자 조회
+    document.getElementById('top-users-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const n = parseInt(document.getElementById('top-n-input').value);
+      
+      if (!n || n < 1) {
+        document.getElementById('top-users-result').innerHTML = '<span class="error">1 이상의 숫자를 입력해주세요</span>';
+        return;
+      }
+
+      document.getElementById('top-users-result').innerHTML = '<span class="loading">조회 중...</span>';
+      
+      fetch(`/api/anomaly/top/${n}/`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          const resultDiv = document.getElementById('top-users-result');
+          const descDiv = document.getElementById('description-content');
+          
+          if (data.top_users && data.top_users.length > 0) {
+            resultDiv.innerHTML = '<h4><b><span style="color:red;">상위 ' + n + '명 사용자</span></h4></b>' +
+              data.top_users.map((u, index) => `${index + 1}. ${u.username}: ${u.anomaly_count}건`).join('<br>');
+            
+            const topTotal = data.top_users.reduce((sum, u) => sum + u.anomaly_count, 0);
+            
+            // 전체 로그 수 가져와서 비율 계산
+            fetch('/api/anomaly/total/')
+              .then(r => r.json())
+              .then(totalData => {
+                const percentage = topTotal > 0 ? 
+                  ((topTotal / totalData.total_count) * 100).toFixed(2) : '0.00';
+                descDiv.innerHTML = `<b><span style="color:green;">상위 ${n}명</span></b> 사용자 이상 로그 분석 결과:<br>
+                    • 상위 ${n}명 총 로그 수: <b><span style="color:green;">${topTotal}건</span></b><br>
+                    • 전체 대비 비율: <b><span style="color:green;">${percentage}%</span></b><br>
+                    • 전체 로그 수: <b><span style="color:green;">${totalData.total_count}건</span></b><br>
+                    • 평균 개별 로그 수: <b><span style="color:green;">${Math.round(topTotal/n)}건</span></b>
+                `;
+              })
+              .catch(() => {
+                descDiv.innerHTML = `상위 <b>${n}명</b> 사용자의 이상 로그: <b>${topTotal}건</b>`;
+              });
+          } else {
+            resultDiv.innerHTML = '<span class="error">조회 결과 없음</span>';
+            descDiv.innerHTML = '조회 결과가 없습니다.';
+          }
+        })
+        .catch(error => {
+          document.getElementById('top-users-result').innerHTML = `<span class="error">조회 실패: ${error.message}</span>`;
+        });
+    });
+
+
+  </script>
+</body>
+</html>

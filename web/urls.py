@@ -27,5 +27,13 @@ urlpatterns = [
     path("api/analysis/download/<str:session_id>/", views.download_analysis_csv, name="download_analysis_csv"),
     path("api/analysis/explain/<str:session_id>/<int:row_index>/", views.get_shap_plot, name="shap_explain"),
     path("api/analysis/delete_all/", views.delete_all_analysis_sessions, name="delete_all_analysis_sessions"),
-]
 
+    path("api/anomaly/user/<str:username>/", views.user_anomaly_count, name="user_anomaly_count"),
+    path("api/anomaly/top/<int:top_n>/", views.top_anomaly_users, name="top_anomaly_users"),
+    path("api/anomaly/search/", views.search_anomaly_logs, name="search_anomaly_logs"),
+    path("anomaly-search/", views.anomaly_search_view, name="anomaly_search"),
+
+    path("api/get_user_graph/", views.get_user_graph, name="get_user_graph"),
+    path("api/anomaly/total/", views.total_anomaly_count, name="total_anomaly_count"),
+
+]

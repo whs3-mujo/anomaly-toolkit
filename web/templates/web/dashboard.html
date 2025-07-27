@@ -532,7 +532,6 @@ function loadAnalysisHistory() {
       }
     })
     .catch(error => {
-      console.error('Error:', error);
       showError('네트워크 오류가 발생했습니다.');
     })
     .finally(() => {
@@ -670,7 +669,6 @@ function loadAnalysisDetail(sessionId) {
       }
     })
     .catch(error => {
-      console.error('Error:', error);
       showError('네트워크 오류가 발생했습니다.');
     });
 }
@@ -715,6 +713,7 @@ function renderAnalysisResult(session) {
       <div class="result-content">
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <h3 style="margin-bottom: 1rem; color: #495057;">분석 결과</h3>
+          
           ${summaryText}
         </div>
         <div style="background: white; padding: 1.5rem; border-radius: 4px; border-left: 4px solid #28a745;">
@@ -763,7 +762,15 @@ function formatAnalysisResult(result, session) {
     <div class="dashboard-flex-main" style="display: flex; gap: 1.2rem; align-items: flex-start;">
       <!-- 좌측: 그래프 3개 + 표 -->
       <div class="dashboard-flex-left" style="flex: 2 1 0; min-width: 0;">
-        <div class="dashboard-graphs-card">
+       <!-- ...생략... -->
+<div class="dashboard-graphs-card">
+  <div style="margin-left: 43%; margin-bottom: 0.5rem;">
+    <a href="#" onclick="goToViewAll(); return false;" style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none; cursor: pointer;"> 
+      View All
+    </a>
+  </div>
+  
+          
           <div class="dashboard-graphs-row">
             <div class="dashboard-graph-box">
               <div class="dashboard-graph-inner">
@@ -869,7 +876,6 @@ function renameAnalysis() {
       }
     })
     .catch(error => {
-      console.error('Error:', error);
       alert('네트워크 오류가 발생했습니다.');
     });
   }
@@ -903,7 +909,6 @@ function deleteAnalysis() {
     }
   })
   .catch(error => {
-    console.error('Error:', error);
     alert('네트워크 오류가 발생했습니다.');
   });
 }
@@ -979,11 +984,9 @@ function downloadCSV(sessionId, filename, type) {
 
 function attachShapClickHandlers() {
   const rows = document.querySelectorAll("table tbody tr");
-  console.log("[SHAP DEBUG] 행 개수:", rows.length);
 
   rows.forEach((row, index) => {
     row.addEventListener("click", () => {
-      console.log(`[SHAP DEBUG] ${index}번 행 클릭 → SHAP 요청`);
 
       // 이전 선택된 행에서 강조 스타일 제거
       document.querySelectorAll("table tbody tr").forEach(r => {
@@ -1062,8 +1065,16 @@ miniSidebarBtn.onclick = function() {
   toggleBtn.style.display = 'inline-block';
   miniSidebarBtn.style.display = 'none';
 };
+
+function goToViewAll() {
+  if (currentSessionId) {
+    const url = `/anomaly-search/?session_id=${currentSessionId}`;
+    window.location.href = url;
+  } else {
+    window.location.href = '/anomaly-search/';
+  }
+}
 </script>
 
 </body>
 </html>
-
