@@ -764,13 +764,20 @@ function formatAnalysisResult(result, session) {
       <div class="dashboard-flex-left" style="flex: 2 1 0; min-width: 0;">
        <!-- ...생략... -->
 <div class="dashboard-graphs-card">
-  <div style="margin-left: 43%; margin-bottom: 0.5rem;">
-    <a href="#" onclick="goToViewAll(); return false;" style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none; cursor: pointer;"> 
-      View All
-    </a>
-  </div>
-  
-          
+
+            <div style="display: flex; margin-bottom: 0.5rem;">
+              <a href="#" onclick="goToViewAll(); return false;" 
+                style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none;">
+                View All
+              </a>
+              <a href="#" onclick="goToHourViewAll(); return false;" 
+                style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none; margin-left: auto;">
+                View All
+              </a>
+            </div>
+
+
+
           <div class="dashboard-graphs-row">
             <div class="dashboard-graph-box">
               <div class="dashboard-graph-inner">
@@ -1074,6 +1081,16 @@ function goToViewAll() {
     window.location.href = '/anomaly-search/';
   }
 }
+
+function goToHourViewAll() {
+  if (currentSessionId) {
+    const url = `/anomaly_by_hour/?session_id=${currentSessionId}`;
+    window.location.href = url;
+  } else {
+    window.location.href = '/anomaly_by_hour/';
+  }
+}
+
 </script>
 
 </body>

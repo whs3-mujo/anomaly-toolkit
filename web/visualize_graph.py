@@ -242,10 +242,19 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     colors = ['#4da6ff', '#ff6666', '#80cc28', '#cc66ff', '#ffaa00']
     fig = go.Figure()
 
+    # 전체 이상치 개수 계산 (Anomaly == 1 인 것만)
+    anomaly_df = df[df['Anomaly'] == 1] if 'Anomaly' in df.columns else df
+    total_anomalies = len(anomaly_df)
+
     for i, user in enumerate(top_users):
-        # 사용자 이름을 5글자로 제한
-        display_name = user[:5] + "..." if len(user) > 5 else user
+        user_anomaly_count = len(anomaly_df[anomaly_df[actual_user_col] == user])
         
+        if top_n == 10:
+            percent = (user_anomaly_count / total_anomalies) * 100 if total_anomalies > 0 else 0
+            display_name = f"{user} ({user_anomaly_count}건, {percent:.1f}%)"
+        else:
+            display_name = user[:5] + "..." if len(user) > 5 else user
+
         fig.add_trace(go.Scatter(
             x=hourly_counts.index,
             y=hourly_counts[user],
@@ -255,9 +264,11 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
             fill='tozeroy',
             fillcolor=hex_to_rgba(colors[i % len(colors)], alpha=0.2),
             hovertemplate='<b>%s</b><br>' % user +
-                         'Hour: %{x}<br>' +
-                         'Anomaly Count: %{y}<extra></extra>'
+                        'Hour: %{x}<br>' +
+                        'Anomaly Count: %{y}<extra></extra>',
+            visible='legendonly' if top_n == 10 else True
         ))
+
 
     fig.update_layout(
         title='Anomaly By Hour',

@@ -35,5 +35,7 @@ urlpatterns = [
 
     path("api/get_user_graph/", views.get_user_graph, name="get_user_graph"),
     path("api/anomaly/total/", views.total_anomaly_count, name="total_anomaly_count"),
+    
+    path('anomaly_by_hour/', views.anomaly_by_hour_viewall, name='anomaly_by_hour_viewall'),
 
 ]
