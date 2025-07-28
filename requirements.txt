@@ -13,3 +13,4 @@ pycaret==3.3.2
 shap
 
 chardet
+plotly
