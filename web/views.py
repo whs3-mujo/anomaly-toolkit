@@ -64,7 +64,7 @@ def get_analysis_detail(request, session_id):
                 'created_at': session.created_at.strftime('%Y-%m-%dT%H:%M:%SZ'),
                 'analysis_result': session.analysis_result,
                 'user_graph_html': getattr(session, 'user_graph_html', None),
-                'hour_graph_html': getattr(session, 'hour_graph_html', None),
+                'hour_graph_html': getattr(session, 'hour_graph_html_top3', None),
                 'score_graph_html': getattr(session, 'score_graph_html', None),
             }
         })
@@ -163,21 +163,120 @@ def preview_columns(request):
     if request.method == "POST" and request.FILES.get("file"):
         file = request.FILES["file"]
         try:
+            df = None
+            
+            # 파일 크기 체크 (100MB 제한)
+            if file.size > 100 * 1024 * 1024:  # 100MB
+                return JsonResponse({
+                    "error": "파일이 너무 큽니다. 100MB 이하의 파일만 업로드 가능합니다."
+                }, status=400)
+            
             # 여러 인코딩 시도
             for enc in ["utf-8", "cp949", "euc-kr", "latin1"]:
                 try:
-                    df = pd.read_csv(file, nrows=2, encoding=enc)
+                    file.seek(0)  # 파일 포인터 리셋
+                    # 처음 몇 줄만 읽어서 미리보기 생성
+                    df = pd.read_csv(file, nrows=5, encoding=enc)
                     break
                 except UnicodeDecodeError:
-                    file.seek(0)  # 파일 포인터 리셋
+                    continue
+                except Exception as e:
+                    print(f"인코딩 {enc} 시도 중 오류: {e}")
+                    continue
             else:
-                return JsonResponse({"error": "지원하지 않는 파일 인코딩입니다."}, status=400)
-            columns = list(df.columns)
-            preview = df.head(2).to_dict(orient="records")
-            return JsonResponse({"columns": columns, "preview": preview})
+                return JsonResponse({
+                    "error": "지원하지 않는 파일 인코딩입니다. UTF-8, CP949, EUC-KR, Latin1 인코딩을 지원합니다."
+                }, status=400)
+            
+            if df is None or df.empty:
+                return JsonResponse({
+                    "error": "파일이 비어있거나 읽을 수 있는 데이터가 없습니다."
+                }, status=400)
+            
+            # 컬럼 수 제한 (성능상 이유)
+            if len(df.columns) > 100:
+                return JsonResponse({
+                    "error": f"컬럼이 너무 많습니다 ({len(df.columns)}개). 최대 100개 컬럼까지 지원합니다."
+                }, status=400)
+            
+            # 컬럼명 정제 (공백 제거, 특수문자 처리)
+            original_columns = list(df.columns)
+            cleaned_columns = []
+            
+            for col in original_columns:
+                # 컬럼명이 비어있으면 기본값 설정
+                if pd.isna(col) or str(col).strip() == '':
+                    cleaned_columns.append(f"Column_{len(cleaned_columns)}")
+                else:
+                    # 컬럼명 정제
+                    clean_col = str(col).strip()
+                    cleaned_columns.append(clean_col)
+            
+            df.columns = cleaned_columns
+            
+            # 데이터 품질 체크
+            total_cells = df.shape[0] * df.shape[1]
+            null_cells = df.isnull().sum().sum()
+            null_ratio = null_cells / total_cells if total_cells > 0 else 0
+            
+            # 결측치가 너무 많으면 경고
+            quality_warnings = []
+            if null_ratio > 0.8:
+                quality_warnings.append(f"데이터의 {null_ratio:.1%}가 결측치입니다.")
+            
+            # 모든 컬럼이 결측치인 경우 체크
+            empty_columns = [col for col in df.columns if df[col].isnull().all()]
+            if empty_columns:
+                quality_warnings.append(f"빈 컬럼이 {len(empty_columns)}개 있습니다: {', '.join(empty_columns[:5])}")
+            
+            # 미리보기 데이터 생성 (최대 2행)
+            preview_df = df.head(2)
+            
+            # NaN 값을 빈 문자열로 표시
+            preview_dict = []
+            for _, row in preview_df.iterrows():
+                row_dict = {}
+                for col in df.columns:
+                    value = row[col]
+                    if pd.isna(value):
+                        row_dict[col] = ""  # 빈 문자열로 변경
+                    else:
+                        # 문자열이 너무 길면 자르기
+                        str_value = str(value)
+                        if len(str_value) > 50:
+                            row_dict[col] = str_value[:47] + "..."
+                        else:
+                            row_dict[col] = str_value
+                preview_dict.append(row_dict)
+            
+            response_data = {
+                "columns": cleaned_columns, 
+                "preview": preview_dict,
+                "total_columns": len(cleaned_columns),
+                "sample_rows": len(preview_df)
+            }
+            
+            # 품질 경고가 있으면 추가
+            if quality_warnings:
+                response_data["warnings"] = quality_warnings
+            
+            return JsonResponse(response_data)
+            
+        except pd.errors.EmptyDataError:
+            return JsonResponse({
+                "error": "파일이 비어있습니다. 데이터가 포함된 CSV 파일을 업로드해주세요."
+            }, status=400)
+        except pd.errors.ParserError as e:
+            return JsonResponse({
+                "error": f"CSV 파일 형식이 올바르지 않습니다: {str(e)}"
+            }, status=400)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "No file uploaded"}, status=400)
+            print(f"파일 미리보기 중 예상치 못한 오류: {e}")
+            return JsonResponse({
+                "error": f"파일 처리 중 오류가 발생했습니다: {str(e)}"
+            }, status=400)
+    
+    return JsonResponse({"error": "파일이 업로드되지 않았습니다."}, status=400)
 
 def detect_anomalies_view(request):
     try:
@@ -227,7 +326,7 @@ def detect_anomalies_view(request):
 
             # === 그래프 HTML 생성 및 저장 ===
             user_graph_html = plot_anomaly_by_user(df_result, user_col) if user_col and user_col in df_result.columns else None
-            hour_graph_html = plot_anomaly_by_hour(df_result, user_col, time_col) if user_col and time_col and user_col in df_result.columns and time_col in df_result.columns else None
+            hour_graph_html_top3 = plot_anomaly_by_hour(df_result, user_col, time_col) if user_col and time_col and user_col in df_result.columns and time_col in df_result.columns else None
             score_graph_html = plot_anomaly_score_distribution(df_result)
 
             AnalysisSession.objects.create(
@@ -239,7 +338,7 @@ def detect_anomalies_view(request):
                 user_col=user_col,
                 time_col=time_col,
                 user_graph_html=user_graph_html,
-                hour_graph_html=hour_graph_html,
+                hour_graph_html_top3=hour_graph_html_top3,
                 score_graph_html=score_graph_html,
             )
             return JsonResponse(result)

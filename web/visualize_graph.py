@@ -22,6 +22,21 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     print("  - 사용자 컬럼:", user_col)
     print("  - 시간 컬럼:", time_col)
     
+    # 시간 컬럼이 None이거나 존재하지 않는 경우 자동 감지
+    if time_col is None or time_col not in df.columns:
+        # 시간 관련 컬럼명 후보들
+        time_candidates = [col for col in df.columns 
+                          if any(keyword in col.lower() for keyword in 
+                                ['time', 'timestamp', 'date', 'datetime', '시간', '날짜'])]
+        
+        if time_candidates:
+            time_col = time_candidates[0]
+            print(f"✅ 자동 감지된 시간 컬럼: '{time_col}'")
+        else:
+            print("⚠️ 시간 컬럼을 찾을 수 없습니다. 시간대별 분석이 불가능합니다.")
+            print("사용 가능한 컬럼:", df.columns.tolist())
+            return None
+    
     # 원본 사용자 컬럼명 처리 (.1이 붙은 컬럼이 있으면 그것을 사용)
     actual_user_col = user_col
     if f"{user_col}.1" in df.columns:
