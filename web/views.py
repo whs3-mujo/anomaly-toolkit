@@ -64,7 +64,7 @@ def get_analysis_detail(request, session_id):
                 'created_at': session.created_at.strftime('%Y-%m-%dT%H:%M:%SZ'),
                 'analysis_result': session.analysis_result,
                 'user_graph_html': getattr(session, 'user_graph_html', None),
-                'hour_graph_html': getattr(session, 'hour_graph_html', None),
+                'hour_graph_html': getattr(session, 'hour_graph_html_top3', None),
                 'score_graph_html': getattr(session, 'score_graph_html', None),
             }
         })
@@ -223,8 +223,13 @@ def detect_anomalies_view(request):
 
             # === 그래프 HTML 생성 및 저장 ===
             user_graph_html = plot_anomaly_by_user(df_result, user_col) if user_col and user_col in df_result.columns else None
-            hour_graph_html = plot_anomaly_by_hour(df_result, user_col, time_col) if user_col and time_col and user_col in df_result.columns and time_col in df_result.columns else None
             score_graph_html = plot_anomaly_score_distribution(df_result)
+            if user_col and time_col and user_col in df_result.columns and time_col in df_result.columns:
+                hour_graph_html_top3 = plot_anomaly_by_hour(df_result, user_col, time_col, top_n=3)
+                hour_graph_html_top10 = plot_anomaly_by_hour(df_result, user_col, time_col, top_n=10)
+            else:
+                hour_graph_html_top3 = None
+                hour_graph_html_top10 = None
 
             AnalysisSession.objects.create(
                 session_id=str(uuid.uuid4()),
@@ -235,7 +240,8 @@ def detect_anomalies_view(request):
                 user_col=user_col,
                 time_col=time_col,
                 user_graph_html=user_graph_html,
-                hour_graph_html=hour_graph_html,
+                hour_graph_html_top3=hour_graph_html_top3,
+                hour_graph_html_top10=hour_graph_html_top10,
                 score_graph_html=score_graph_html,
             )
             return JsonResponse(result)
@@ -714,14 +720,14 @@ def anomaly_by_hour_viewall(request):
     가장 최근 분석의 anomaly_by_hour 그래프 전체 화면 뷰어
     """
     try:
-        latest_session = AnalysisSession.objects.filter(hour_graph_html__isnull=False).order_by('-created_at').first()
+        latest_session = AnalysisSession.objects.filter(hour_graph_html_top10__isnull=False).order_by('-created_at').first()
         if latest_session is None:
             return render(request, 'web/anomaly_by_hour.html', {
                 'hour_graph_html': "<p>시간별 이상 탐지 그래프가 없습니다.</p>"
             })
         
         return render(request, 'web/anomaly_by_hour.html', {
-            'hour_graph_html': latest_session.hour_graph_html
+            'hour_graph_html': latest_session.hour_graph_html_top10
         })
     except Exception as e:
         return render(request, 'web/anomaly_by_hour.html', {
