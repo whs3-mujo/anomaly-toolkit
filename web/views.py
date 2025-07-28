@@ -187,6 +187,10 @@ def detect_anomalies_view(request):
             exclude_columns = [col.strip() for col in exclude_columns.split(",") if col.strip()]
             user_col = request.POST.get("user_col")
             time_col = request.POST.get("time_col")
+            
+            # 빈 문자열을 None으로 변환
+            user_col = user_col if user_col else None
+            time_col = time_col if time_col else None
             file_path = save_uploaded_file(file)
             result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col)
             result_csv_path = result.get("result_csv_path")

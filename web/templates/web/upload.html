@@ -474,11 +474,11 @@
       <div id="col-select-area" class="col-select-area" style="display:none;">
         <div class="col-select-row">
           <label for="user_col">사용자 칼럼:</label>
-          <select name="user_col" id="user_col" required></select>
+          <select name="user_col" id="user_col"></select>
         </div>
         <div class="col-select-row">
           <label for="time_col">&nbsp;&nbsp;시간 칼럼:&nbsp;</label>
-          <select name="time_col" id="time_col" required></select>
+          <select name="time_col" id="time_col"></select>
         </div>
       </div>
       <button type="submit" class="upload-btn" style="display:none;">Upload & Analyze</button>
@@ -570,6 +570,11 @@
             let timeSel = document.getElementById('time_col');
             userSel.innerHTML = "";
             timeSel.innerHTML = "";
+            
+            // "없음" 옵션 추가
+            userSel.innerHTML += `<option value="">없음</option>`;
+            timeSel.innerHTML += `<option value="">없음</option>`;
+            
             data.columns.forEach(col => {
               userSel.innerHTML += `<option value="${col}">${col}</option>`;
               timeSel.innerHTML += `<option value="${col}">${col}</option>`;
