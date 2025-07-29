@@ -150,10 +150,22 @@ def detect_text_columns(df, min_avg_length=20):
 # 전처리 함수
 def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_max_features=100):
     encoder = None  #추가
+    
+    # 빈 값이 많은 컬럼도 유지하되, 적절히 처리
+    df = df.copy()
+    
+    # 숫자형 컬럼의 빈 값을 0으로 채우기
     numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
+    for col in numeric_cols:
+        df[col] = df[col].fillna(0)
+    
     text_cols = detect_text_columns(df)
     categorical_cols = df.select_dtypes(include=['object', 'category', 'bool']).columns
     categorical_cols = [col for col in categorical_cols if col not in text_cols]
+    
+    # 범주형 컬럼의 빈 값을 "Unknown"으로 채우기
+    for col in categorical_cols:
+        df[col] = df[col].fillna("Unknown")
 
     # 범주형 변수 인코딩 (CountEncoder 사용)
     if categorical_cols:
@@ -166,17 +178,21 @@ def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_m
         encoded = pd.DataFrame(index=df.index)
     
     # 텍스트 데이터 TF-IDF 처리
-    tfidf_vectorizer = TfidfVectorizer(max_features=tfidf_max_features)
     tfidf_df_list = []
     for col in text_cols:
-        tfidf_matrix = tfidf_vectorizer.fit_transform(df[col].astype(str).fillna(''))
-        # 칼럼명에 원본 칼럼명을 명확히 포함
-        column_prefix = col.replace(' ', '_').lower()
-        tfidf_df = pd.DataFrame(
-            tfidf_matrix.toarray(), 
-            columns=[f"{column_prefix}_tfidf_{i}" for i in range(tfidf_matrix.shape[1])]
-        )
-        tfidf_df_list.append(tfidf_df)
+        try:
+            tfidf_vectorizer = TfidfVectorizer(max_features=min(tfidf_max_features, len(df)//2))
+            tfidf_matrix = tfidf_vectorizer.fit_transform(df[col].astype(str).fillna(''))
+            # 칼럼명에 원본 칼럼명을 명확히 포함
+            column_prefix = col.replace(' ', '_').lower()
+            tfidf_df = pd.DataFrame(
+                tfidf_matrix.toarray(), 
+                columns=[f"{column_prefix}_tfidf_{i}" for i in range(tfidf_matrix.shape[1])]
+            )
+            tfidf_df_list.append(tfidf_df)
+        except Exception as e:
+            print(f"⚠️ TF-IDF 처리 중 오류 (컬럼 {col}): {e}")
+            continue
     tfidf_combined = pd.concat(tfidf_df_list, axis=1) if tfidf_df_list else pd.DataFrame(index=df.index)
 
     # 숫자형, 인코딩된 범주형, TF-IDF 특성 결합
@@ -208,9 +224,10 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     else:
         detected_encoding = 'utf-8'
 
-    # 1. 데이터 불러오기, 결측치 제거
+    # 1. 데이터 불러오기 (컬럼 삭제하지 않고 원본 유지)
     data = pd.read_csv(file_path, encoding=detected_encoding)
-    data = data.dropna(axis=1, thresh=int(len(data)*0.7))  # 70% 이상 값 없는 열 제거
+    # 빈 값이 많은 컬럼도 원본 데이터 구조 유지를 위해 삭제하지 않음
+    # data = data.dropna(axis=1, thresh=int(len(data)*0.7))  # 컬럼 삭제 제거
 
     # 제외할 칼럼이 있으면 제거
     if exclude_columns:
@@ -341,9 +358,29 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     preview_records = preview_top100.to_dict(orient="records")
     preview_table_html = preview_top100.to_html(index=False, classes="table table-sm") if len(preview_top100) > 0 else "<p>이상치가 없습니다.</p>"
 
+    # JSON 호환 가능하도록 데이터 정리하는 함수
+    def clean_for_json(obj):
+        """numpy 타입과 NaN 값을 JSON 호환 타입으로 변환"""
+        if isinstance(obj, dict):
+            return {k: clean_for_json(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [clean_for_json(v) for v in obj]
+        elif pd.isna(obj):
+            return None
+        elif isinstance(obj, (np.integer, np.int64, np.int32)):
+            return int(obj)
+        elif isinstance(obj, (np.floating, np.float64, np.float32)):
+            return float(obj)
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return obj
+
     # 전체/이상치 records (다운로드용)
-    anomaly_records = detected_for_table.to_dict(orient="records")
-    all_records = df_full.drop(columns=tfidf_cols).to_dict(orient="records")
+    anomaly_records = clean_for_json(detected_for_table.head(100).to_dict(orient="records"))
+    all_records = clean_for_json(df_full.drop(columns=tfidf_cols).head(100).to_dict(orient="records"))
 
     # Description HTML 생성
     text_html = generate_description(detected, user_col=user_col, time_col=time_col)
@@ -351,14 +388,14 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     # 9. 결과를 HTML 테이블 + 요약 문자열로 반환
     result = {
         "summary": f"이상치 {count_anomaly:,}건 / 전체 {total:,}건",
-        "anomaly_count": count_anomaly,
-        "total": total,
+        "anomaly_count": int(count_anomaly),  # numpy int를 Python int로 변환
+        "total": int(total),  # numpy int를 Python int로 변환
         "table_html": preview_table_html,  # ← TF-IDF 컬럼이 빠진 표(대시보드용)
         "records": anomaly_records,   # 이상치 결과 (여긴 TF-IDF 제외)
         "all_records": all_records,   # 전체 결과
         "user_col": user_col,
         "time_col": time_col,
-        "columns": list(df_full.columns),
+        "columns": [str(col) for col in df_full.columns],  # 컬럼명도 문자열로 변환
         "result_csv_path": output_path,  # ← 동적 경로 사용
         "text_html": text_html,
     }

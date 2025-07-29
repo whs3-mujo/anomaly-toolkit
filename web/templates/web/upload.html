@@ -537,9 +537,33 @@
           body: formData,
           headers: { 'X-CSRFToken': csrftoken }
         })
-          .then(r => r.json())
+          .then(r => {
+            if (!r.ok) {
+              throw new Error(`서버 오류: ${r.status}`);
+            }
+            return r.json();
+          })
           .then(data => {
+            if (data.error) {
+              throw new Error(data.error);
+            }
+
             allColumns = data.columns; // 컬럼 목록 저장
+
+            // 품질 경고가 있으면 사용자에게 알림
+            if (data.warnings && data.warnings.length > 0) {
+              const warningMsg = "데이터 품질 경고:\n" + data.warnings.join("\n") + "\n\n계속 진행하시겠습니까?";
+              if (!confirm(warningMsg)) {
+                // 사용자가 취소를 선택하면 파일 선택 취소
+                document.getElementById('datafile').value = '';
+                label.textContent = "Choose a file";
+                label.title = "";
+                return;
+              }
+            }
+
+            // 컬럼 정보 표시
+            console.log(`파일 정보: ${data.total_columns}개 컬럼, ${data.sample_rows}개 샘플 행`);
 
             // 미리보기 테이블 생성
             let table = "<table><tr>";
@@ -547,7 +571,7 @@
             table += "</tr>";
             data.preview.forEach(row => {
               table += "<tr>";
-              data.columns.forEach(col => table += `<td>${row[col]}</td>`);
+              data.columns.forEach(col => table += `<td>${row[col] || ''}</td>`);
               table += "</tr>";
             });
             table += "</table>";
@@ -587,7 +611,18 @@
           })
           .catch(error => {
             console.error('Error:', error);
-            alert('파일 미리보기를 불러오는 중 오류가 발생했습니다.');
+            let errorMessage = '파일 미리보기를 불러오는 중 오류가 발생했습니다.';
+            
+            if (error.message) {
+              errorMessage = error.message;
+            }
+            
+            alert(errorMessage);
+            
+            // 오류 발생 시 파일 선택 취소
+            document.getElementById('datafile').value = '';
+            label.textContent = "Choose a file";
+            label.title = "";
           });
       } else {
         label.textContent = "Choose a file";
@@ -707,7 +742,9 @@
       })
         .then(response => {
           if (!response.ok) {
-            throw new Error('서버 오류가 발생했습니다.');
+            return response.json().then(errorData => {
+              throw new Error(errorData.error || '서버 오류가 발생했습니다.');
+            });
           }
           return response.json();
         })
@@ -716,8 +753,12 @@
           clearInterval(timer);
           loadingOverlay.style.display = 'none';
 
-          alert("분석 완료! 대시보드에서 결과를 확인하세요.");
-          window.location.href = "{% url 'web:dashboard' %}";
+          if (data.error) {
+            alert(`분석 중 오류가 발생했습니다: ${data.error}`);
+          } else {
+            alert("분석 완료! 대시보드에서 결과를 확인하세요.");
+            window.location.href = "{% url 'web:dashboard' %}";
+          }
         })
         .catch(error => {
           // 타이머 중지 및 로딩 오버레이 숨김
@@ -725,7 +766,13 @@
           loadingOverlay.style.display = 'none';
 
           console.error('Error:', error);
-          alert('오류가 발생했습니다: ' + error.message);
+          let errorMessage = '분석 중 오류가 발생했습니다.';
+          
+          if (error.message) {
+            errorMessage = error.message;
+          }
+          
+          alert(errorMessage);
         });
     };
   </script>
