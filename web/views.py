@@ -725,7 +725,35 @@ from django.shortcuts import render
 
 
 def anomaly_search_view(request):
-    return render(request, 'web/viewall.html')
+    """
+    사용자별 이상 로그 View All 페이지
+    session_id가 제공되면 해당 세션의 데이터를 사용하고, 없으면 최신 세션 사용
+    """
+    session_id = request.GET.get('session_id')
+    
+    try:
+        if session_id:
+            # 특정 세션 조회
+            session = AnalysisSession.objects.filter(session_id=session_id).first()
+        else:
+            # 최신 세션 조회
+            session = AnalysisSession.objects.filter(
+                user_graph_html__isnull=False
+            ).order_by('-created_at').first()
+        
+        if not session:
+            return render(request, 'web/viewall.html', {
+                'error': '표시할 분석 결과가 없습니다.'
+            })
+        
+        return render(request, 'web/viewall.html', {
+            'session': session
+        })
+        
+    except Exception as e:
+        return render(request, 'web/viewall.html', {
+            'error': f'데이터를 불러오는 중 오류가 발생했습니다: {str(e)}'
+        })
 
 
 
@@ -733,14 +761,25 @@ def anomaly_search_view(request):
 def get_user_graph(request):
     """
     사용자별 이상 로그 그래프를 반환하는 뷰 (viewall.html용)
+    session_id가 제공되면 해당 세션의 데이터를 사용하고, 없으면 최신 세션 사용
     """
+    session_id = request.GET.get('session_id')
+    
     try:
-        latest_session = AnalysisSession.objects.filter(
-            user_graph_html__isnull=False
-        ).order_by('-created_at').first()
+        if session_id:
+            # 특정 세션 조회
+            session = AnalysisSession.objects.filter(
+                session_id=session_id,
+                user_graph_html__isnull=False
+            ).first()
+        else:
+            # 최신 세션 조회
+            session = AnalysisSession.objects.filter(
+                user_graph_html__isnull=False
+            ).order_by('-created_at').first()
         
-        if latest_session and latest_session.user_graph_html:
-            user_graph_html = latest_session.user_graph_html
+        if session and session.user_graph_html:
+            user_graph_html = session.user_graph_html
 
             # 그래프 시각 요소 조정 스크립트
             size_adjustment_script = """
@@ -813,18 +852,34 @@ from .visualize_graph import plot_anomaly_by_hour
 @require_http_methods(["GET"])
 def anomaly_by_hour_viewall(request):
     """
-    가장 최근 분석의 anomaly_by_hour 그래프 전체 화면 뷰어
+    시간대별 이상 로그 View All 페이지
+    session_id가 제공되면 해당 세션의 데이터를 사용하고, 없으면 최신 세션 사용
     """
+    session_id = request.GET.get('session_id')
+    
     try:
-        latest_session = AnalysisSession.objects.filter(hour_graph_html_top10__isnull=False).order_by('-created_at').first()
-        if latest_session is None:
+        if session_id:
+            # 특정 세션 조회
+            session = AnalysisSession.objects.filter(session_id=session_id).first()
+        else:
+            # 최신 세션 조회
+            session = AnalysisSession.objects.filter(
+                hour_graph_html_top10__isnull=False
+            ).order_by('-created_at').first()
+        
+        if not session:
             return render(request, 'web/anomaly_by_hour.html', {
                 'hour_graph_html': "<p>시간별 이상 탐지 그래프가 없습니다.</p>"
             })
         
+        # top10 버전이 있으면 사용하고, 없으면 top3 버전 사용
+        hour_graph_html = session.hour_graph_html_top10 or session.hour_graph_html_top3
+        
         return render(request, 'web/anomaly_by_hour.html', {
-            'hour_graph_html': latest_session.hour_graph_html_top10
+            'hour_graph_html': hour_graph_html,
+            'session': session
         })
+        
     except Exception as e:
         return render(request, 'web/anomaly_by_hour.html', {
             'hour_graph_html': f"<p>그래프 로딩 중 오류 발생: {str(e)}</p>"
