@@ -22,8 +22,75 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     print("  - 사용자 컬럼:", user_col)
     print("  - 시간 컬럼:", time_col)
     
+    # 사용자 칼럼이 'user'이고 모든 값이 'all'인 경우 처리
+    if user_col == 'user' and df[user_col].nunique() == 1 and df[user_col].iloc[0] == 'all':
+        print("✅ 사용자 칼럼이 'all'로 설정됨 - 전체 사용자 통합 시간대 분석")
+        
+        # 시간 컬럼이 None이거나 존재하지 않는 경우 처리
+        if time_col is None or time_col not in df.columns:
+            print("ℹ️ 시간 컬럼이 없어서 시간대별 분석을 생략합니다.")
+            return None
+        
+        # 시간 데이터 처리
+        try:
+            if pd.api.types.is_datetime64_any_dtype(df[time_col]):
+                df['hour'] = df[time_col].dt.hour
+            else:
+                df['datetime_parsed'] = pd.to_datetime(df[time_col], errors='coerce')
+                df['hour'] = df['datetime_parsed'].dt.hour
+            
+            # 2시간 단위로 그룹핑 (기존 스타일과 동일)
+            df['hour_bin'] = (df['hour'] // 2) * 2
+            hour_bins = list(range(0, 24, 2))
+            
+            # hour_bin별 이상 로그 수 계산
+            hourly_counts = df.groupby('hour_bin').size().reindex(hour_bins, fill_value=0)
+            
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=hourly_counts.index,
+                y=hourly_counts.values,
+                mode='lines+markers',
+                name='All Users',
+                line=dict(shape='linear', width=3, color='#4da6ff'),
+                fill='tozeroy',
+                fillcolor=hex_to_rgba('#4da6ff', alpha=0.2),
+                hovertemplate='<b>All Users</b><br>' +
+                            'Hour: %{x}<br>' +
+                            'Anomaly Count: %{y}<extra></extra>'
+            ))
+            
+            fig.update_layout(
+                title='Anomaly By Hour',
+                xaxis_title='Hour',
+                yaxis_title='Anomaly Count',
+                xaxis=dict(
+                    tickmode='array',
+                    tickvals=hour_bins,
+                    ticktext=[str(h) for h in hour_bins],
+                    tickangle=0
+                ),
+                plot_bgcolor='white',
+                font=dict(size=12),
+                margin=dict(l=40, r=40, t=60, b=40),
+                autosize=True,
+            )
+            
+            print(f"✅ 전체 사용자 시간대별 그래프 생성 완료")
+            return fig.to_html(full_html=False, include_plotlyjs='cdn', 
+                             default_width='100%', default_height='100%',
+                             config={'responsive': True})
+            
+        except Exception as e:
+            print(f"⚠️ 전체 사용자 시간 처리 중 오류: {e}")
+            return None
+    
     # 시간 컬럼이 None이거나 존재하지 않는 경우 자동 감지
     if time_col is None or time_col not in df.columns:
+        if time_col is None:
+            print("ℹ️ 시간 컬럼이 지정되지 않아 시간대별 분석을 생략합니다.")
+            return None
+        
         # 시간 관련 컬럼명 후보들
         time_candidates = [col for col in df.columns 
                           if any(keyword in col.lower() for keyword in 
@@ -243,6 +310,48 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
 def plot_anomaly_by_user(df, user_col, top_n=5):
     print("📊 사용자별 이상탐지 그래프 생성 중...")
     start_time = time.time()
+    
+    # 사용자 칼럼이 'user'이고 모든 값이 'all'인 경우 처리
+    if user_col == 'user' and df[user_col].nunique() == 1 and df[user_col].iloc[0] == 'all':
+        print("✅ 사용자 칼럼이 'all'로 설정됨 - 전체 사용자 통합 분석")
+        
+        # 이상 로그만 필터링 (안전장치)
+        if 'Anomaly' in df.columns:
+            anomaly_df = df[df['Anomaly'] == 1]
+            total_anomalies = len(anomaly_df)
+        else:
+            total_anomalies = len(df)
+        
+        fig = go.Figure([go.Bar(
+            x=['All Users'],
+            y=[total_anomalies],
+            marker=dict(color=['#ff4d4d']),  # 기존 스타일과 동일한 색상
+            hovertemplate='<b>All Users</b><br>' +
+                         'Anomaly Count: %{y}<br>' +
+                         'Total Ratio: 100.0%<extra></extra>'
+        )])
+        
+        fig.update_layout(
+            title='Anomalies by User',
+            xaxis_title='User',
+            yaxis_title='Anomaly Count',
+            xaxis=dict(showticklabels=False),  # X축 사용자 이름 숨기기 (기존 스타일)
+            plot_bgcolor='white',
+            font=dict(size=12),
+            margin=dict(l=40, r=40, t=60, b=40),
+            autosize=True,
+        )
+        
+        fig_html = fig.to_html(
+            full_html=False,
+            include_plotlyjs='cdn',
+            default_width='100%',
+            default_height='100%',
+            config={'responsive': True}
+        )
+        
+        print(f"✅ 전체 사용자 그래프 생성 완료 (총 {total_anomalies}건)")
+        return fig_html
     
     # 원본 사용자 컬럼명 처리 (.1이 붙은 컬럼이 있으면 그것을 사용)
     actual_user_col = user_col

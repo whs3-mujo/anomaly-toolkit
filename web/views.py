@@ -291,10 +291,7 @@ def detect_anomalies_view(request):
             user_col = user_col if user_col else None
             time_col = time_col if time_col else None
             file_path = save_uploaded_file(file)
-            result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col)
-            result_csv_path = result.get("result_csv_path")
-            df_result = pd.read_csv(result_csv_path)
-
+            
             # 타임아웃 설정 (10분)
             timeout = 600  # 초 단위
             
@@ -318,21 +315,17 @@ def detect_anomalies_view(request):
             analysis_thread.join(timeout)
             
             # 타임아웃 발생 시
-            if analysis_thread.is_alive() or analysis_error:
+            if analysis_thread.is_alive() or analysis_error or result is None:
                 return JsonResponse({
                     'success': False, 
-                    'error': '처리할 수 없는 데이터셋입니다. 10분 이상 소요되었습니다.'
+                    'error': '처리할 수 없는 데이터셋입니다. 10분 이상 소요되었거나 분석 중 오류가 발생했습니다.'
                 }, status=408)  # 408 Request Timeout
 
-            # === 그래프 HTML 생성 및 저장 ===
-            user_graph_html = plot_anomaly_by_user(df_result, user_col) if user_col and user_col in df_result.columns else None
-            score_graph_html = plot_anomaly_score_distribution(df_result)
-            if user_col and time_col and user_col in df_result.columns and time_col in df_result.columns:
-                hour_graph_html_top3 = plot_anomaly_by_hour(df_result, user_col, time_col, top_n=3)
-                hour_graph_html_top10 = plot_anomaly_by_hour(df_result, user_col, time_col, top_n=10)
-            else:
-                hour_graph_html_top3 = None
-                hour_graph_html_top10 = None
+            # === 그래프 HTML 사용 (이미 result에 포함됨) ===
+            user_graph_html = result.get('user_graph_html')
+            score_graph_html = result.get('score_distribution_html')
+            hour_graph_html_top3 = result.get('hour_graph_html')
+            hour_graph_html_top10 = result.get('hour_graph_html')  # 동일한 그래프 사용
 
             AnalysisSession.objects.create(
                 session_id=str(uuid.uuid4()),

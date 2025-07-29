@@ -22,9 +22,64 @@ def generate_description(df, user_col, time_col):
     import pandas as pd
     from collections import Counter
 
+    # 사용자 칼럼이 'all'인 경우 (모든 데이터가 하나의 사용자로 처리됨)
+    if user_col == 'user' and df[user_col].nunique() == 1 and df[user_col].iloc[0] == 'all':
+        total = len(df)
+        
+        # 시간 컬럼이 있는 경우 시간대별 분석
+        if time_col and time_col in df.columns:
+            try:
+                def time_to_period(hour):
+                    if 0 <= hour < 6:
+                        return "새벽시간(00-05시)"
+                    elif 6 <= hour < 12:
+                        return "오전시간(06-11시)"
+                    elif 12 <= hour < 18:
+                        return "오후시간(12-17시)"
+                    else:
+                        return "저녁시간(18-23시)"
+
+                df_copy = df.copy()
+                df_copy["hour"] = pd.to_datetime(df_copy[time_col]).dt.hour
+                df_copy["period"] = df_copy["hour"].apply(time_to_period)
+                period_counts = df_copy["period"].value_counts().to_dict()
+                
+                period_summary = "<br>".join([f"{period}: <b><span style='color:red;'>{count}건</span></b> ({count/total:.1%})" 
+                                             for period, count in period_counts.items()])
+                
+                html = f"""
+                <div style='background:#e3f2fd; border-left:4px solid #2196f3; padding:1rem; margin-top:2rem;'>
+                <h3 style='margin-top:0;'>종합 평가</h3>
+                <div>
+                    <b>&lt;전체 사용자 이상 로그 분석&gt;</b><br>
+                    전체 이상 로그: <b><span style='color:red;'>{total}건</span></b><br><br>
+                    <b>&lt;시간대별 이상 로그 분포&gt;</b><br>
+                    {period_summary}
+                </div>
+                </div>
+                """
+                return html
+            except Exception as e:
+                print(f"⚠️ 시간 데이터 처리 중 오류: {e}")
+        
+        # 시간 분석이 없거나 실패한 경우
+        html = f"""
+        <div style='background:#e3f2fd; border-left:4px solid #2196f3; padding:1rem; margin-top:2rem;'>
+        <h3 style='margin-top:0;'>종합 평가</h3>
+        <div>
+            <b>&lt;전체 사용자 이상 로그 분석&gt;</b><br>
+            전체 이상 로그: <b><span style='color:red;'>{total}건</span></b>
+        </div>
+        </div>
+        """
+        return html
+
     # 시간 컬럼 존재 여부 확인
-    if time_col not in df.columns:
-        print(f"⚠️ 시간 컬럼 '{time_col}'이 데이터에 없습니다. 사용 가능한 컬럼: {df.columns.tolist()}")
+    if time_col is None or time_col not in df.columns:
+        if time_col is not None:
+            print(f"⚠️ 시간 컬럼 '{time_col}'이 데이터에 없습니다. 사용 가능한 컬럼: {df.columns.tolist()}")
+        else:
+            print("ℹ️ 시간 컬럼이 지정되지 않아 시간 분석을 생략합니다.")
         # 시간 분석 없이 사용자별 분석만 수행
         user_counts = Counter(df[user_col]) if user_col in df.columns else {}
         total = len(df)
@@ -226,6 +281,15 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
 
     # 1. 데이터 불러오기 (컬럼 삭제하지 않고 원본 유지)
     data = pd.read_csv(file_path, encoding=detected_encoding)
+    
+    # 사용자 칼럼이 None이거나 빈 값일 때 "all"로 설정
+    if user_col is None or user_col == "":
+        data['user'] = 'all'
+        user_col = 'user'
+    
+    # 시간 칼럼이 None이거나 빈 값일 때 None으로 설정 (그래프에서 처리)
+    if time_col is None or time_col == "":
+        time_col = None
     # 빈 값이 많은 컬럼도 원본 데이터 구조 유지를 위해 삭제하지 않음
     # data = data.dropna(axis=1, thresh=int(len(data)*0.7))  # 컬럼 삭제 제거
 
@@ -331,10 +395,19 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
             df_full.rename(columns={col: orig_col}, inplace=True)
 
     # 그래프 시각화 (이상치만)
+    score_distribution_html = None
+    user_graph_html = None
+    hour_graph_html = None
+    
     try:
-        plot_anomaly_score_distribution(df_full, threshold=-0.20, score_col='Anomaly_Score')
-        plot_anomaly_by_user(df_full[df_full['Anomaly'] == 1], user_col=user_col)
-        plot_anomaly_by_hour(df_full[df_full['Anomaly'] == 1], user_col=user_col, time_col=time_col)
+        score_distribution_html = plot_anomaly_score_distribution(df_full, threshold=-0.20, score_col='Anomaly_Score')
+        user_graph_html = plot_anomaly_by_user(df_full[df_full['Anomaly'] == 1], user_col=user_col)
+        # 시간 칼럼이 있는 경우에만 시간 그래프 생성
+        if time_col is not None:
+            hour_graph_html = plot_anomaly_by_hour(df_full[df_full['Anomaly'] == 1], user_col=user_col, time_col=time_col)
+        else:
+            hour_graph_html = None
+            print("ℹ️ 시간 칼럼이 없어 시간대별 그래프를 생략합니다.")
     except Exception as e:
         print("그래프 시각화 중 오류:", e)
 
@@ -398,6 +471,10 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         "columns": [str(col) for col in df_full.columns],  # 컬럼명도 문자열로 변환
         "result_csv_path": output_path,  # ← 동적 경로 사용
         "text_html": text_html,
+        # 그래프 HTML 추가
+        "score_distribution_html": score_distribution_html,
+        "user_graph_html": user_graph_html, 
+        "hour_graph_html": hour_graph_html,
     }
 
     # 10. SHAP 그래프를 그리기 위한 파일 생성(2)
