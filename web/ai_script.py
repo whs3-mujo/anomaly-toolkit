@@ -249,6 +249,13 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     model = create_model('iforest')
     results = assign_model(model, score=True)
 
+    # Anomaly_Score 기준 내림차순 정렬
+    sorted_results = results.sort_values(by='Anomaly_Score', ascending=False).reset_index(drop=True)
+
+    # SHAP 입력값으로 사용할 DataFrame 생성
+    forshap_input = sorted_results.drop(columns=['Anomaly', 'Anomaly_Score'], errors='ignore')
+
+
     # 4. 결과 출력
     count_anomaly = results['Anomaly'].sum()
     total = len(results)
@@ -261,8 +268,8 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
      # 5. SHAP 그래프를 그리기 위한 파일 생성(1)
     model_path = file_path.replace('.csv', '_model.pkl')    # SHAP값 계산을 위해 모델을 pkl파일로 추출
     joblib.dump(model, model_path)
-    shap_input_path = file_path.replace('.csv', '_X_for_shap.csv')  # SHAP값 계산을 위해 실제 탐지 모델에 입력값으로 넣었던 data_scaled를 _X_for_shap.csv파일로 저장
-    processed_data.to_csv(shap_input_path, index=False)  #data_scaled를 processed_data로 바꿈.
+    shap_input_path = file_path.replace('.csv', '_X_for_shap.csv')
+    forshap_input.to_csv(shap_input_path, index=False)  #forshap_input을 _X_for_shap.csv 라는 이름으로 저장
 
     # 이상치 점수 컬럼명 통일
     if 'Anomaly_Score' not in results.columns and 'Anomaly_Score' in results.columns:
@@ -327,9 +334,12 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     tfidf_cols = [col for col in detected.columns if '_tfidf_' in col]
     detected_for_table = detected.drop(columns=tfidf_cols)
 
-    # 표 미리보기(이상치 100개만)
-    preview_records = detected_for_table.head(100).to_dict(orient="records")
-    preview_table_html = detected_for_table.head(100).to_html(index=False, classes="table table-sm") if len(detected_for_table) > 0 else "<p>이상치가 없습니다.</p>"
+    # Anomaly_Score 기준 내림차순 정렬 후 상위 100개 추출
+    preview_top100 = detected_for_table.sort_values(by="Anomaly_Score", ascending=False).head(100)
+
+    # 표 미리보기(상위 100개만)
+    preview_records = preview_top100.to_dict(orient="records")
+    preview_table_html = preview_top100.to_html(index=False, classes="table table-sm") if len(preview_top100) > 0 else "<p>이상치가 없습니다.</p>"
 
     # 전체/이상치 records (다운로드용)
     anomaly_records = detected_for_table.to_dict(orient="records")
@@ -354,7 +364,7 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     }
 
     # 10. SHAP 그래프를 그리기 위한 파일 생성(2)
-    shap_values = shap.TreeExplainer(model).shap_values(processed_data)
+    shap_values = shap.TreeExplainer(model).shap_values(forshap_input)
     np.save(file_path.replace(".csv", "_shap_values.npy"), shap_values)
     
     return result
