@@ -25,6 +25,8 @@ $ docker compose version
 $ docker login
 #4. 이미지 다운로드
 $ docker pull ynjii/anomaly-toolkit:latest
+	#오프라인 환경 실행 버전(테스트 중 - plotly 그래프 미출력 오류)
+	$ docker pull ynjii/anomlay-toolkit:offline (docker-compose.yml 내용 다름)
 #5. 실행 폴더 생성
 $ mkdir 폴더명
 $ cd 폴더명
@@ -61,7 +63,21 @@ $ docker compose up -d
 docker compose ps         # 실행 상태 확인
 docker compose logs -f    # 로그 보기
 docker compose down       # 종료
-```   
+```
+### Docker로 실행하기2(오프라인)
+본 프로젝트는 온프레미스 환경에서도 실행할 수 있도록 Docker 이미지 파일(anomaly-toolkit.tar)을 제공합니다.
+
+아래 링크에서 Docker 이미지 파일을 다운로드 받아주세요:
+https://drive.google.com/file/d/1CMcF2asI6EpmtODclgStrVim1-mA2Trs/view?usp=drive_link
+
+터미널에서 다음 명령어 2줄만 실행하면 웹 애플리케이션이 바로 실행됩니다:
+```bash
+docker load -i anomaly-toolkit.tar
+docker run -d -p 8000:8000 --name anomaly-detector anomaly-detection:latest
+```
+실행 후, 웹 브라우저에서 http://localhost:8000 로 접속하시면 됩니다. 
+(업로드: http://localhost:8000/upload, 대시보드: http://localhost:8000/dashboard)
+
 ---
 ### 실행 및 사용(보안 담당자)
 
