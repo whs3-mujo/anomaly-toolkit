@@ -83,7 +83,6 @@ docker compose down       # 종료
 
 ##
 ### Docker 실행 (오프라인)
----
 본 프로젝트는 온프레미스 환경에서도 실행할 수 있도록 Docker 이미지 파일(anomaly-toolkit.tar)을 제공합니다.
 <br />
 
