@@ -14,7 +14,7 @@
 
 ## 사용법
 
-### Docker로 실행하기 (간단 실행용)
+### Docker 실행 (간소화 버전)
 1. Docker Desktop 설치
 https://www.docker.com/products/docker-desktop
 ```bash
@@ -31,6 +31,7 @@ $ docker pull ynjii/anomaly-toolkit:latest
 $ mkdir 폴더명
 $ cd 폴더명
 ```
+
 6. docker-compose.yml 작성
 해당 폴더 안에 아래 내용으로 docker-compose.yml 파일 생성
 ```bash
@@ -44,27 +45,32 @@ services:
     env_file:
       - .env
 ```
-7. .env 파일 작성
+
+7. '.env' 파일 작성
 같은 폴더에 .env 파일을 만들고 아래 내용 입력
 ```bash
 SECRET_KEY="이 부분에 시크릿키값 입력"
 ```
-※ 아래 명령어로 새 SECRET_KEY를 발급해 사용할 수 있습니다:
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+※ 아래 명령어로 새 SECRET_KEY를 발급해 사용할 수 있습니다.
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())
+
 출력 예시)django-insecure-abc123456789
+```
 
 8. 실행
 ```bash
 $ docker compose up -d
 #업로드: http://localhost:8000/upload/ 대시보드: http://localhost:8000/dashboard/
 ```
+
 9. 상태 확인
 ```bash
 docker compose ps         # 실행 상태 확인
 docker compose logs -f    # 로그 보기
 docker compose down       # 종료
 ```
-### Docker로 실행하기2(오프라인)
+### Docker 실행 (오프라인)
 본 프로젝트는 온프레미스 환경에서도 실행할 수 있도록 Docker 이미지 파일(anomaly-toolkit.tar)을 제공합니다.
 
 아래 링크에서 Docker 이미지 파일을 다운로드 받아주세요:
@@ -75,11 +81,13 @@ https://drive.google.com/file/d/1CMcF2asI6EpmtODclgStrVim1-mA2Trs/view?usp=drive
 docker load -i anomaly-toolkit.tar
 docker run -d -p 8000:8000 --name anomaly-detector anomaly-detection:latest
 ```
-실행 후, 웹 브라우저에서 http://localhost:8000 로 접속하시면 됩니다. 
-(업로드: http://localhost:8000/upload, 대시보드: http://localhost:8000/dashboard)
+실행 후 웹 브라우저에서 http://localhost:8000 로 접속하시면 됩니다. 
+
+(업로드: http://localhost:8000/upload, 
+ 대시보드: http://localhost:8000/dashboard)
 
 ---
-### 실행 및 사용(보안 담당자)
+### 실행 및 사용 (보안 담당자)
 
 - 이미지 빌드, 컨테이너 실행
 ```bash
@@ -95,10 +103,10 @@ SECRET_KEY=123
 $ docker-compose up -d
 ```
 - 사용 Flow
-  1. 브라우저 - `http://127.0.0.1:8000/` 접근 확인
-  2. 'http://127.0.0.1:8000/upload/` 접근
-  3. 로그 업로드(example.csv 제공)
-  4. 대시보드에서 결과 확인
+1. 브라우저 - `http://127.0.0.1:8000/` 접근 확인
+2. 'http://127.0.0.1:8000/upload/` 접근
+3. 로그 업로드(example.csv 제공)
+4. 대시보드에서 결과 확인
 
 - 컨테이너 종료
 ```bash
@@ -106,37 +114,42 @@ $ docker-compose up -d
 $ docker-compose down
 ```
 
-### 초기 개발 환경 세팅(개발자)
-
-
+### 초기 개발 환경 세팅 (개발자)
 ```bash
 # 1. 가상환경 세팅
 (맥 OS 환경) 
 $ virtualenv --python=3.11 .venv
 $ . .venv/bin/activate
+
 (윈도우 환경 - powershell) 
 $ python -m venv venv
 $ .\venv\Scripts\Activate.ps1
+
 # 2. 의존성 파이썬 라이브러리 설치
 (.venv) $ pip install -r requirements.txt
+
 # 3. 장고 - 모델의 변경사항 확인 후 마이그레이션 파일로 기록
 (.venv) $ python manage.py makemigrations
+
 # 4. 장고 - 생성된 마이그레이션 파일을 읽어 DB에 실제 적용
 (.venv) $ python manage.py migrate
-	## 4.1. 장고 - DB적용 오류 발생 시 (1)~(3) 입력 후 재실행(히스토리 조회 불가, 대시보드 조회 불가 등)
-		(1) python manage.py makemigrations web
-		(2) python manage.py migrate web 
-		(3) python manage.py runserver  
+# 4.1. 장고 - DB적용 오류 발생 시 (1)~(3) 입력 후 재실행(히스토리 조회 불가, 대시보드 조회 불가 등)
+(1) python manage.py makemigrations web
+(2) python manage.py migrate web 
+(3) python manage.py runserver  
 
 # 5. 장고 - admin 계정 생성(email 생략 가능)
 (.venv) $ python manage.py createsuperuser
+
 # 6. 장고 - 암호화 서명에 사용되는 비밀키 환경변수 지정
 (.venv) $ export SECRET_KEY=[비밀키 지정]
+
 # 7. 장고 - 서버 실행
 (.venv) $ python manage.py runserver 0.0.0.0:8000
-	## 7.1. 서버 실행 오류 발생 시 
-	(.venv) $ python manage.py runserver
+# 7.1. 서버 실행 오류 발생 시 
+(.venv) $ python manage.py runserver
 ```
-### 운영체제별(WINDOWS, MAC) 가이드북
+---
+## 운영체제별(WINDOWS, MAC) 가이드북
 - Windows:
 - Mac: https://www.notion.so/2420363bd07c807191bde6b6acfee091?source=copy_link
