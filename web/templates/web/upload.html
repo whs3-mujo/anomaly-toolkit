@@ -513,25 +513,25 @@
       return cookieValue;
     }
     const csrftoken = getCookie('csrftoken');
-    let allColumns = []; // 모든 컬럼 저장용 변수
+    let allColumns = []; /* 모든 컬럼 저장용 변수 */
 
     function triggerFileInput() {
       document.getElementById('datafile').click();
     }
 
-    // 파일 선택 시 이벤트
+    /* 파일 선택 시 이벤트 */
     document.getElementById('datafile').onchange = function () {
       const label = document.getElementById('fileLabel');
       if (this.files.length > 0) {
-        // 파일명을 표시하되 길면 ellipsis로 처리(CSS에서)
+        /* 파일명을 표시하되 길면 ellipsis로 처리(CSS에서) */
         label.textContent = this.files[0].name;
-        label.title = this.files[0].name; // 툴팁으로 전체 파일명 볼 수 있게
+        label.title = this.files[0].name; /* 툴팁으로 전체 파일명 볼 수 있게 */
 
         const file = this.files[0];
         const formData = new FormData();
         formData.append("file", file);
 
-        // 서버에서 미리보기 데이터 받아오기
+        /* 서버에서 미리보기 데이터 받아오기 */
         fetch("{% url 'web:preview_columns' %}", {
           method: "POST",
           body: formData,
@@ -548,13 +548,13 @@
               throw new Error(data.error);
             }
 
-            allColumns = data.columns; // 컬럼 목록 저장
+            allColumns = data.columns; /* 컬럼 목록 저장 */
 
-            // 품질 경고가 있으면 사용자에게 알림
+            /* 품질 경고가 있으면 사용자에게 알림 */
             if (data.warnings && data.warnings.length > 0) {
               const warningMsg = "데이터 품질 경고:\n" + data.warnings.join("\n") + "\n\n계속 진행하시겠습니까?";
               if (!confirm(warningMsg)) {
-                // 사용자가 취소를 선택하면 파일 선택 취소
+                /* 사용자가 취소를 선택하면 파일 선택 취소 */
                 document.getElementById('datafile').value = '';
                 label.textContent = "Choose a file";
                 label.title = "";
@@ -562,10 +562,10 @@
               }
             }
 
-            // 컬럼 정보 표시
+            /* 컬럼 정보 표시 */
             console.log(`파일 정보: ${data.total_columns}개 컬럼, ${data.sample_rows}개 샘플 행`);
 
-            // 미리보기 테이블 생성
+            /* 미리보기 테이블 생성 */
             let table = "<table><tr>";
             data.columns.forEach(col => table += `<th>${col}</th>`);
             table += "</tr>";
@@ -578,7 +578,7 @@
             document.getElementById('preview').innerHTML = table;
             document.getElementById('preview').style.display = "block";
 
-            // 드롭다운 옵션 추가
+            /* 드롭다운 옵션 추가 */
             let optionsHtml = "";
             data.columns.forEach(col => {
               optionsHtml += `
@@ -589,13 +589,13 @@
             });
             document.getElementById('columnOptions').innerHTML = optionsHtml;
 
-            // 사용자/시간 칼럼 드롭다운
+            /* 사용자/시간 칼럼 드롭다운 */
             let userSel = document.getElementById('user_col');
             let timeSel = document.getElementById('time_col');
             userSel.innerHTML = "";
             timeSel.innerHTML = "";
-            
-            // "없음" 옵션 추가
+
+            /* "없음" 옵션 추가 */
             userSel.innerHTML += `<option value="">없음</option>`;
             timeSel.innerHTML += `<option value="">없음</option>`;
             
@@ -604,7 +604,7 @@
               timeSel.innerHTML += `<option value="${col}">${col}</option>`;
             });
 
-            // UI 요소들 표시
+            /* UI 요소들 표시 */
             document.getElementById('column-selection-area').style.display = "block";
             document.getElementById('col-select-area').style.display = "block";
             document.querySelector('.upload-btn').style.display = "block";
@@ -618,8 +618,8 @@
             }
             
             alert(errorMessage);
-            
-            // 오류 발생 시 파일 선택 취소
+
+            /* 오류 발생 시 파일 선택 취소 */
             document.getElementById('datafile').value = '';
             label.textContent = "Choose a file";
             label.title = "";
@@ -635,7 +635,7 @@
       }
     };
 
-    // 드롭다운 패널 토글
+    /* 드롭다운 패널 토글 */
     document.addEventListener('DOMContentLoaded', function () {
       const selectField = document.querySelector('.select-field');
       const dropdownPanel = document.querySelector('.dropdown-panel');
@@ -647,7 +647,7 @@
         arrowIcon.style.transform = isOpen ? '' : 'rotate(180deg)';
       });
 
-      // 외부 클릭 시 드롭다운 닫기
+      /* 외부 클릭 시 드롭다운 닫기 */
       document.addEventListener('click', function (e) {
         if (!selectField.contains(e.target) && !dropdownPanel.contains(e.target)) {
           dropdownPanel.style.display = 'none';
@@ -655,7 +655,7 @@
         }
       });
 
-      // 검색 기능
+      /* 검색 기능 */
       const searchInput = document.getElementById('columnSearch');
       searchInput.addEventListener('input', function () {
         const searchTerm = this.value.toLowerCase();
@@ -665,7 +665,7 @@
         });
       });
 
-      // 전체 선택/해제
+      /* 전체 선택/해제 */
       const selectAllCheckbox = document.getElementById('selectAllColumns');
       selectAllCheckbox.addEventListener('change', function () {
         const isChecked = this.checked;
@@ -675,7 +675,7 @@
         updateSelectedText();
       });
 
-      // 개별 체크박스 변경 시 선택 텍스트 업데이트
+      /* 개별 체크박스 변경 시 선택 텍스트 업데이트 */
       document.addEventListener('change', function (e) {
         if (e.target && e.target.name === 'exclude') {
           updateSelectedText();
@@ -683,7 +683,7 @@
       });
     });
 
-    // 선택된 항목 텍스트 업데이트
+    /* 선택된 항목 텍스트 업데이트 */
     function updateSelectedText() {
       const selectedCheckboxes = document.querySelectorAll('input[name="exclude"]:checked');
       const selectText = document.querySelector('.select-text');
@@ -697,7 +697,7 @@
       }
     }
 
-    // 업로드 폼 제출 및 로딩 관련 코드
+    /* 업로드 폼 제출 및 로딩 관련 코드 */
     document.getElementById('uploadForm').onsubmit = function (e) {
       e.preventDefault();
       const file = document.getElementById('datafile').files[0];
@@ -706,18 +706,18 @@
         return;
       }
 
-      // 로딩 오버레이 표시
+      /* 로딩 오버레이 표시 */
       const loadingOverlay = document.getElementById('loadingOverlay');
       loadingOverlay.style.display = 'flex';
 
-      // 타이머 시작
+      /* 타이머 시작 */
       let seconds = 0;
       const timerElement = document.getElementById('loadingTimer');
       const timer = setInterval(() => {
         seconds++;
         timerElement.textContent = seconds;
 
-        // 10분(600초) 타임아웃
+        /* 10분(600초) 타임아웃 */
         if (seconds >= 600) {
           clearInterval(timer);
           loadingOverlay.style.display = 'none';
@@ -749,7 +749,7 @@
           return response.json();
         })
         .then(data => {
-          // 타이머 중지 및 로딩 오버레이 숨김
+          /* 타이머 중지 및 로딩 오버레이 숨김 */
           clearInterval(timer);
           loadingOverlay.style.display = 'none';
 
@@ -761,7 +761,7 @@
           }
         })
         .catch(error => {
-          // 타이머 중지 및 로딩 오버레이 숨김
+          /* 타이머 중지 및 로딩 오버레이 숨김 */
           clearInterval(timer);
           loadingOverlay.style.display = 'none';
 

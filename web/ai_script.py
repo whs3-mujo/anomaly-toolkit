@@ -1,5 +1,4 @@
 # ai_script.py
-#tfidf 어케 할건지.. 해결하자
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from pycaret.anomaly import setup, create_model, assign_model
@@ -22,7 +21,7 @@ def generate_description(df, user_col, time_col):
     import pandas as pd
     from collections import Counter
 
-    # 사용자 칼럼이 'all'인 경우 (모든 데이터가 하나의 사용자로 처리됨)
+    # 사용자 칼럼이 'all'인 경우 (모든 데이터가 하나의 사용자로 처리)
     if user_col == 'user' and df[user_col].nunique() == 1 and df[user_col].iloc[0] == 'all':
         total = len(df)
         
@@ -204,7 +203,7 @@ def detect_text_columns(df, min_avg_length=20):
 
 # 전처리 함수
 def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_max_features=100):
-    encoder = None  #추가
+    encoder = None 
     
     # 빈 값이 많은 컬럼도 유지하되, 적절히 처리
     df = df.copy()
@@ -320,7 +319,7 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     # 복원용 원본 정보 백업 (예: user_id, timestamp 등)
     original_info = data.reset_index(drop=True)  # 모든 원본 칼럼 포함
 
-    # user_col, time_col 복원 보완(채윤)
+    # user_col, time_col 복원 보완
     if user_col and user_col in data.columns and user_col not in original_info.columns:
         original_info[user_col] = data[user_col].reset_index(drop=True)
 
@@ -463,13 +462,13 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         "summary": f"이상치 {count_anomaly:,}건 / 전체 {total:,}건",
         "anomaly_count": int(count_anomaly),  # numpy int를 Python int로 변환
         "total": int(total),  # numpy int를 Python int로 변환
-        "table_html": preview_table_html,  # ← TF-IDF 컬럼이 빠진 표(대시보드용)
+        "table_html": preview_table_html,  # TF-IDF 컬럼이 빠진 표(대시보드용)
         "records": anomaly_records,   # 이상치 결과 (여긴 TF-IDF 제외)
         "all_records": all_records,   # 전체 결과
         "user_col": user_col,
         "time_col": time_col,
         "columns": [str(col) for col in df_full.columns],  # 컬럼명도 문자열로 변환
-        "result_csv_path": output_path,  # ← 동적 경로 사용
+        "result_csv_path": output_path,  # 동적 경로 사용
         "text_html": text_html,
         # 그래프 HTML 추가
         "score_distribution_html": score_distribution_html,

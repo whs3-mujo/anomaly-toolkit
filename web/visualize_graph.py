@@ -2,17 +2,13 @@ import pandas as pd
 import plotly.graph_objects as go
 import time
 
-# -------------------------------------
-# 🎨 HEX → RGBA 변환 함수
-# -------------------------------------
+# === HEX → RGBA 변환 함수 ===
 def hex_to_rgba(hex_color, alpha=0.2):
     hex_color = hex_color.lstrip('#')
     r, g, b = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
     return f'rgba({r}, {g}, {b}, {alpha})'
 
-# -------------------------------------
-# 📊 시간대별 이상탐지 시각화
-# -------------------------------------
+# === 시간대별 이상탐지 시각화 ===
 def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     print("📊 시간대별 이상탐지 그래프 생성 중...")
     start_time = time.time()
@@ -112,7 +108,7 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     
     df[actual_user_col] = df[actual_user_col].astype(str)
     
-    # 시간 칼럼에서 hour 추출 (더 견고한 방식)
+    # 시간 칼럼에서 hour 추출
     print("  - 시간 데이터 처리 중...")
     print("    시간 컬럼 샘플:", df[time_col].head())
     print("    시간 컬럼 데이터 타입:", df[time_col].dtype)
@@ -304,9 +300,7 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     print(f"✅ 시간대별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
     return fig_html
 
-# -------------------------------------
-# 📊 사용자별 이상탐지 시각화
-# -------------------------------------
+# === 사용자별 이상탐지 시각화 ===
 def plot_anomaly_by_user(df, user_col, top_n=5):
     print("📊 사용자별 이상탐지 그래프 생성 중...")
     start_time = time.time()
@@ -411,9 +405,9 @@ def plot_anomaly_by_user(df, user_col, top_n=5):
         yaxis_title='Anomaly Count',
         xaxis=dict(showticklabels=False),  # X축 사용자 이름 숨기기
         plot_bgcolor='white',
-        font=dict(size=12),  # 글자 크기를 16에서 12로 줄임
+        font=dict(size=12),  # 글자 크기
         margin=dict(l=40, r=40, t=60, b=40),
-        autosize=True,  # ★ 추가
+        autosize=True, 
     )
     fig_html = fig.to_html(
         full_html=False,
@@ -427,9 +421,7 @@ def plot_anomaly_by_user(df, user_col, top_n=5):
     print(f"✅ 사용자별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
     return fig_html
 
-# -------------------------------------
-# 📊 이상치 점수 분포 시각화
-# -------------------------------------
+# === 이상치 점수 분포 시각화 ===
 def plot_anomaly_score_distribution(df, threshold=-0.2, score_col=None):
     print("📊 이상치 점수 분포 그래프 생성 중...")
     start_time = time.time()

@@ -414,7 +414,7 @@ def visualize_graph_view(request):
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 
-#get_shap_plot 함수를 선언하여 SHAP그래프를 생성 및 이미지 파일 만듦. 그래프 모양, 크기를 여기서 바꿀 수 있음
+# get_shap_plot 함수를 선언하여 SHAP그래프를 생성 및 이미지 파일 만듦 / 그래프 모양, 크기를 여기서 바꿀 수 있음
 import pandas as pd
 import numpy as np
 import shap
@@ -612,7 +612,7 @@ def get_shap_plot(request, session_id, row_index):
 })
 
 
-#SHAP 그래프에 대한 줄글 설명 출력 코드
+# SHAP 그래프에 대한 줄글 설명 출력 코드
 def generate_shap_explanation(shap_row_df):
     explanations = []
     for _, row in shap_row_df.iterrows():

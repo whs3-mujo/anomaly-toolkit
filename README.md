@@ -18,19 +18,19 @@
 1. Docker Desktop 설치
 https://www.docker.com/products/docker-desktop
 ```bash
-#2. 터미널에서 설치 확인
+2. 터미널에서 설치 확인
 $ docker --version
 $ docker compose version
 
-#3. Docker Hub 로그인(최초 1회)
+3. Docker Hub 로그인(최초 1회)
 $ docker login
 
-#4. 이미지 다운로드
+4. 이미지 다운로드
 $ docker pull ynjii/anomaly-toolkit:latest
 	#오프라인 환경 실행 버전(테스트 중 - plotly 그래프 미출력 오류)
 	$ docker pull ynjii/anomlay-toolkit:offline (docker-compose.yml 내용 다름)
 
-#5. 실행 폴더 생성
+5. 실행 폴더 생성
 $ mkdir 폴더명
 $ cd 폴더명
 ```
@@ -80,19 +80,19 @@ docker compose logs -f    # 로그 보기
 docker compose down       # 종료
 ```
 ### Docker 실행 (오프라인)
-본 프로젝트는 온프레미스 환경에서도 실행할 수 있도록 Docker 이미지 파일(anomaly-toolkit.tar)을 제공합니다.
+1. 본 프로젝트는 온프레미스 환경에서도 실행할 수 있도록 Docker 이미지 파일(anomaly-toolkit.tar)을 제공합니다.
 <br />
 
-아래 링크에서 Docker 이미지 파일을 다운로드 받아주세요:
+2. 아래 링크에서 Docker 이미지 파일을 다운로드 받아주세요:
 https://drive.google.com/file/d/1CMcF2asI6EpmtODclgStrVim1-mA2Trs/view?usp=drive_link
 <br />
 
-터미널에서 다음 명령어 2줄만 실행하면 웹 애플리케이션이 바로 실행됩니다:
+3. 터미널에서 다음 명령어 2줄만 실행하면 웹 애플리케이션이 바로 실행됩니다:
 ```bash
 docker load -i anomalytoolkit.tar
 docker run -d -p 8000:8000 --name anomaly-detector anomaly-detection:offline
 ```
-실행 후 웹 브라우저에서 http://localhost:8000 로 접속하시면 됩니다. 
+4. 실행 후 웹 브라우저에서 http://localhost:8000 로 접속하시면 됩니다. 
 
 (업로드: http://localhost:8000/upload, 
  대시보드: http://localhost:8000/dashboard)
@@ -101,15 +101,15 @@ docker run -d -p 8000:8000 --name anomaly-detector anomaly-detection:offline
 ### 실행 및 사용 (보안 담당자)
 - 이미지 빌드, 컨테이너 실행
 ```bash
-# 1. 빌드하여 도커 이미지 생성
+1. 빌드하여 도커 이미지 생성
 $ docker-compose build --no-cache
 
-# 2. 환경변수 파일 생성
-# 'manage.py'가 있는 경로에 '.env' 파일 만들기
-# 파일 내용은 다음과 같이 작성하고 저장(예시이며 비밀키로 사용할 문자열 직접 입력)
+2. 환경변수 파일 생성
+'manage.py'가 있는 경로에 '.env' 파일 만들기
+파일 내용은 다음과 같이 작성하고 저장(예시이며 비밀키로 사용할 문자열 직접 입력)
 SECRET_KEY=123
 
-# 3. 생성된 도커 이미지를 컨테이너로 실행(백그라운드 옵션)
+3. 생성된 도커 이미지를 컨테이너로 실행(백그라운드 옵션)
 $ docker-compose up -d
 ```
 - 사용 Flow
@@ -121,12 +121,11 @@ $ docker-compose up -d
 
 - 컨테이너 종료
 ```bash
-# 컨테이너 종료
 $ docker-compose down
 ```
 ### 초기 개발 환경 세팅 (개발자)
 ```bash
-# 1. 가상환경 세팅
+1. 가상환경 세팅
 (맥 OS 환경) 
 $ virtualenv --python=3.11 .venv
 $ . .venv/bin/activate
@@ -135,28 +134,28 @@ $ . .venv/bin/activate
 $ python -m venv venv
 $ .\venv\Scripts\Activate.ps1
 
-# 2. 의존성 파이썬 라이브러리 설치
+2. 의존성 파이썬 라이브러리 설치
 (.venv) $ pip install -r requirements.txt
 
-# 3. 장고 - 모델의 변경사항 확인 후 마이그레이션 파일로 기록
+3. 장고 - 모델의 변경사항 확인 후 마이그레이션 파일로 기록
 (.venv) $ python manage.py makemigrations
 
-# 4. 장고 - 생성된 마이그레이션 파일을 읽어 DB에 실제 적용
+4. 장고 - 생성된 마이그레이션 파일을 읽어 DB에 실제 적용
 (.venv) $ python manage.py migrate
-# 4.1. 장고 - DB적용 오류 발생 시 (1)~(3) 입력 후 재실행(히스토리 조회 불가, 대시보드 조회 불가 등)
+4.1. 장고 - DB적용 오류 발생 시 (1)~(3) 입력 후 재실행(히스토리 조회 불가, 대시보드 조회 불가 등)
 (1) python manage.py makemigrations web
 (2) python manage.py migrate web 
 (3) python manage.py runserver  
 
-# 5. 장고 - admin 계정 생성(email 생략 가능)
+5. 장고 - admin 계정 생성(email 생략 가능)
 (.venv) $ python manage.py createsuperuser
 
-# 6. 장고 - 암호화 서명에 사용되는 비밀키 환경변수 지정
+6. 장고 - 암호화 서명에 사용되는 비밀키 환경변수 지정
 (.venv) $ export SECRET_KEY=[비밀키 지정]
 
-# 7. 장고 - 서버 실행
+7. 장고 - 서버 실행
 (.venv) $ python manage.py runserver 0.0.0.0:8000
-# 7.1. 서버 실행 오류 발생 시 
+7.1. 서버 실행 오류 발생 시 
 (.venv) $ python manage.py runserver
 ```
 ---

@@ -217,12 +217,12 @@
     }
 
     window.onload = function () {
-      
-      // URL 파라미터에서 session_id 읽기
+
+      /* URL 파라미터에서 session_id 읽기 */
       const urlParams = new URLSearchParams(window.location.search);
       const sessionId = urlParams.get('session_id');
-      
-      // API URL 생성
+
+      /* API URL 생성 */
       let apiUrl = '/api/get_user_graph/';
       if (sessionId) {
         apiUrl += `?session_id=${sessionId}`;
@@ -294,7 +294,7 @@
       loadTotalAnomalyCount();
     };
 
-    // 사용자명 검색 
+    /* 사용자명 검색 */
     document.getElementById('username-search-form').addEventListener('submit', function (e) {
       e.preventDefault();
       const username = document.getElementById('username-input').value.trim();
@@ -322,7 +322,7 @@
           if (data.anomaly_count !== undefined) {
             resultDiv.innerHTML = `<b><span style="color:green;">${data.username}</b></span>의 이상 로그: <b><span style="color:green;">${data.anomaly_count}건</b>`;
             
-            // 전체 로그 수 가져와서 비율 계산
+            /* 전체 로그 수 가져와서 비율 계산 */
             fetch('/api/anomaly/total/')
               .then(r => r.json())
               .then(totalData => {
@@ -347,7 +347,7 @@
         });
     });
 
-    // 상위 사용자 조회
+    /* 상위 사용자 조회 */
     document.getElementById('top-users-form').addEventListener('submit', function (e) {
       e.preventDefault();
       const n = parseInt(document.getElementById('top-n-input').value);
@@ -375,8 +375,8 @@
               data.top_users.map((u, index) => `${index + 1}. ${u.username}: ${u.anomaly_count}건`).join('<br>');
             
             const topTotal = data.top_users.reduce((sum, u) => sum + u.anomaly_count, 0);
-            
-            // 전체 로그 수 가져와서 비율 계산
+
+            /* 전체 로그 수 가져와서 비율 계산 */
             fetch('/api/anomaly/total/')
               .then(r => r.json())
               .then(totalData => {
