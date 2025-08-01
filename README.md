@@ -81,6 +81,7 @@ docker compose down       # 종료
 ```
 <br />
 
+##
 ### Docker 실행 (오프라인)
 ---
 본 프로젝트는 온프레미스 환경에서도 실행할 수 있도록 Docker 이미지 파일(anomaly-toolkit.tar)을 제공합니다.
@@ -129,8 +130,8 @@ $ docker-compose up -d
 $ docker-compose down
 ```
 <br />
----
 
+---
 ### 초기 개발 환경 세팅 (개발자)
 ```bash
 # 1. 가상환경 세팅
