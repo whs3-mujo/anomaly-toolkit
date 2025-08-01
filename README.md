@@ -124,8 +124,6 @@ $ docker-compose up -d
 # 컨테이너 종료
 $ docker-compose down
 ```
-<br />
-
 ### 초기 개발 환경 세팅 (개발자)
 ```bash
 # 1. 가상환경 세팅
