@@ -89,8 +89,8 @@ https://drive.google.com/file/d/1CMcF2asI6EpmtODclgStrVim1-mA2Trs/view?usp=drive
 
 터미널에서 다음 명령어 2줄만 실행하면 웹 애플리케이션이 바로 실행됩니다:
 ```bash
-docker load -i anomaly-toolkit.tar
-docker run -d -p 8000:8000 --name anomaly-detector anomaly-detection:latest
+docker load -i anomalytoolkit.tar
+docker run -d -p 8000:8000 --name anomaly-detector anomaly-detection:offline
 ```
 실행 후 웹 브라우저에서 http://localhost:8000 로 접속하시면 됩니다. 
 
