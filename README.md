@@ -2,18 +2,18 @@
 
 ## 개요
 본 도구는 화이트햇스쿨 프로젝트로 개발한 AI 기반 로그 이상 탐지 도움 툴킷입니다.
+<br />
 
 ## 요구사항
-
 ### 실행 환경(보안 담당자)
 - docker, docker-compose 필요
 
 ### 개발 환경(개발자)
 - python 3.10, or 3.11 필요 (pycaret의 경우 3.12 이상 현재 미지원)
 - virtualenv 필요 (`pip install virtualenv`)
+<br />
 
 ## 사용법
-
 ### Docker 실행 (간소화 버전)
 1. Docker Desktop 설치
 https://www.docker.com/products/docker-desktop
@@ -21,16 +21,20 @@ https://www.docker.com/products/docker-desktop
 #2. 터미널에서 설치 확인
 $ docker --version
 $ docker compose version
+
 #3. Docker Hub 로그인(최초 1회)
 $ docker login
+
 #4. 이미지 다운로드
 $ docker pull ynjii/anomaly-toolkit:latest
 	#오프라인 환경 실행 버전(테스트 중 - plotly 그래프 미출력 오류)
 	$ docker pull ynjii/anomlay-toolkit:offline (docker-compose.yml 내용 다름)
+
 #5. 실행 폴더 생성
 $ mkdir 폴더명
 $ cd 폴더명
 ```
+<br />
 
 6. docker-compose.yml 작성
 해당 폴더 안에 아래 내용으로 docker-compose.yml 파일 생성
@@ -45,24 +49,29 @@ services:
     env_file:
       - .env
 ```
+<br />
 
 7. '.env' 파일 작성
 같은 폴더에 .env 파일을 만들고 아래 내용 입력
 ```bash
 SECRET_KEY="이 부분에 시크릿키값 입력"
 ```
+<br />
+
 ※ 아래 명령어로 새 SECRET_KEY를 발급해 사용할 수 있습니다.
 ```bash
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())
 
 출력 예시)django-insecure-abc123456789
 ```
+<br />
 
 8. 실행
 ```bash
 $ docker compose up -d
 #업로드: http://localhost:8000/upload/ 대시보드: http://localhost:8000/dashboard/
 ```
+<br />
 
 9. 상태 확인
 ```bash
@@ -70,11 +79,15 @@ docker compose ps         # 실행 상태 확인
 docker compose logs -f    # 로그 보기
 docker compose down       # 종료
 ```
+<br />
+
 ### Docker 실행 (오프라인)
 본 프로젝트는 온프레미스 환경에서도 실행할 수 있도록 Docker 이미지 파일(anomaly-toolkit.tar)을 제공합니다.
+<br />
 
 아래 링크에서 Docker 이미지 파일을 다운로드 받아주세요:
 https://drive.google.com/file/d/1CMcF2asI6EpmtODclgStrVim1-mA2Trs/view?usp=drive_link
+<br />
 
 터미널에서 다음 명령어 2줄만 실행하면 웹 애플리케이션이 바로 실행됩니다:
 ```bash
@@ -107,12 +120,14 @@ $ docker-compose up -d
 2. 'http://127.0.0.1:8000/upload/` 접근
 3. 로그 업로드(example.csv 제공)
 4. 대시보드에서 결과 확인
+<br />
 
 - 컨테이너 종료
 ```bash
 # 컨테이너 종료
 $ docker-compose down
 ```
+<br />
 
 ### 초기 개발 환경 세팅 (개발자)
 ```bash
