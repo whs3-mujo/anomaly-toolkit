@@ -79,9 +79,6 @@ docker compose ps         # 실행 상태 확인
 docker compose logs -f    # 로그 보기
 docker compose down       # 종료
 ```
-<br />
-
-##
 ### Docker 실행 (오프라인)
 본 프로젝트는 온프레미스 환경에서도 실행할 수 있도록 Docker 이미지 파일(anomaly-toolkit.tar)을 제공합니다.
 <br />
@@ -99,10 +96,9 @@ docker run -d -p 8000:8000 --name anomaly-detector anomaly-detection:latest
 
 (업로드: http://localhost:8000/upload, 
  대시보드: http://localhost:8000/dashboard)
+<br />
 
----
 ### 실행 및 사용 (보안 담당자)
-
 - 이미지 빌드, 컨테이너 실행
 ```bash
 # 1. 빌드하여 도커 이미지 생성
@@ -130,7 +126,6 @@ $ docker-compose down
 ```
 <br />
 
----
 ### 초기 개발 환경 세팅 (개발자)
 ```bash
 # 1. 가상환경 세팅
