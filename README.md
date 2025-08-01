@@ -161,5 +161,5 @@ $ .\venv\Scripts\Activate.ps1
 ```
 ---
 ## 운영체제별(WINDOWS, MAC) 가이드북
-- Windows:https://www.notion.so/2383978ee48d80159b27e24594bdae5d?source=copy_link
+- Windows:https://www.notion.so/2425227467f780bb8b9cc9c0c159a368?source=copy_link
 - Mac: https://www.notion.so/2420363bd07c807191bde6b6acfee091?source=copy_link
