@@ -137,3 +137,6 @@ $ .\venv\Scripts\Activate.ps1
 	## 7.1. 서버 실행 오류 발생 시 
 	(.venv) $ python manage.py runserver
 ```
+### 운영체제별(WINDOWS, MAC) 가이드북
+- Windows:
+- Mac: https://www.notion.so/2420363bd07c807191bde6b6acfee091?source=copy_link
