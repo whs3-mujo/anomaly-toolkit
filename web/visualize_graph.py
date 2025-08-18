@@ -10,7 +10,7 @@ def hex_to_rgba(hex_color, alpha=0.2):
 
 # === 시간대별 이상탐지 시각화 ===
 def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
-    print("📊 시간대별 이상탐지 그래프 생성 중...")
+    print("시간대별 이상탐지 그래프 생성 중...")
     start_time = time.time()
     
     df.columns = df.columns.str.strip()  # 칼럼명 공백 제거
@@ -20,11 +20,11 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     
     # 사용자 칼럼이 'user'이고 모든 값이 'all'인 경우 처리
     if user_col == 'user' and df[user_col].nunique() == 1 and df[user_col].iloc[0] == 'all':
-        print("✅ 사용자 칼럼이 'all'로 설정됨 - 전체 사용자 통합 시간대 분석")
+        print("사용자 칼럼이 'all'로 설정됨 - 전체 사용자 통합 시간대 분석")
         
         # 시간 컬럼이 None이거나 존재하지 않는 경우 처리
         if time_col is None or time_col not in df.columns:
-            print("ℹ️ 시간 컬럼이 없어서 시간대별 분석을 생략합니다.")
+            print("시간 컬럼이 없어서 시간대별 분석을 생략합니다.")
             return None
         
         # 시간 데이터 처리
@@ -72,19 +72,19 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
                 autosize=True,
             )
             
-            print(f"✅ 전체 사용자 시간대별 그래프 생성 완료")
+            print(f"전체 사용자 시간대별 그래프 생성 완료")
             return fig.to_html(full_html=False, include_plotlyjs='cdn', 
                              default_width='100%', default_height='100%',
                              config={'responsive': True})
             
         except Exception as e:
-            print(f"⚠️ 전체 사용자 시간 처리 중 오류: {e}")
+            print(f"전체 사용자 시간 처리 중 오류: {e}")
             return None
     
     # 시간 컬럼이 None이거나 존재하지 않는 경우 자동 감지
     if time_col is None or time_col not in df.columns:
         if time_col is None:
-            print("ℹ️ 시간 컬럼이 지정되지 않아 시간대별 분석을 생략합니다.")
+            print("시간 컬럼이 지정되지 않아 시간대별 분석을 생략합니다.")
             return None
         
         # 시간 관련 컬럼명 후보들
@@ -94,9 +94,9 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
         
         if time_candidates:
             time_col = time_candidates[0]
-            print(f"✅ 자동 감지된 시간 컬럼: '{time_col}'")
+            print(f"자동 감지된 시간 컬럼: '{time_col}'")
         else:
-            print("⚠️ 시간 컬럼을 찾을 수 없습니다. 시간대별 분석이 불가능합니다.")
+            print("시간 컬럼을 찾을 수 없습니다. 시간대별 분석이 불가능합니다.")
             print("사용 가능한 컬럼:", df.columns.tolist())
             return None
     
@@ -104,7 +104,7 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     actual_user_col = user_col
     if f"{user_col}.1" in df.columns:
         actual_user_col = f"{user_col}.1"
-        print(f"✅ 원본 사용자 컬럼 '{actual_user_col}' 사용")
+        print(f"원본 사용자 컬럼 '{actual_user_col}' 사용")
     
     df[actual_user_col] = df[actual_user_col].astype(str)
     
@@ -116,7 +116,7 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     # 이미 datetime 타입인지 확인
     if pd.api.types.is_datetime64_any_dtype(df[time_col]):
         df['hour'] = df[time_col].dt.hour
-        print("✅ 이미 datetime 타입이므로 바로 hour 추출")
+        print("이미 datetime 타입이므로 바로 hour 추출")
     else:
         # 시간 정보가 포함된 포맷만 시도 (날짜만 있는 포맷 제외)
         time_formats_to_try = [
@@ -159,7 +159,7 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
                 parsed_datetime = pd.to_datetime(df[time_col], format=fmt, errors='coerce')
                 if not parsed_datetime.isna().all():
                     df['hour'] = parsed_datetime.dt.hour
-                    print(f"✅ 포맷 '{fmt}'로 hour 추출 성공")
+                    print(f"포맷 '{fmt}'로 hour 추출 성공")
                     success = True
                     break
             except:
@@ -176,17 +176,17 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
                     
                     if has_time_info:
                         df['hour'] = parsed_datetime.dt.hour
-                        print("✅ 자동 파싱으로 hour 추출 성공 (시간 정보 확인됨)")
+                        print("자동 파싱으로 hour 추출 성공 (시간 정보 확인됨)")
                         success = True
                     else:
-                        print("⚠️ 날짜만 있고 시간 정보가 없는 데이터입니다. 시간대별 분석이 불가능합니다.")
+                        print("날짜만 있고 시간 정보가 없는 데이터입니다. 시간대별 분석이 불가능합니다.")
                         return None
             except Exception as e:
-                print(f"❌ 자동 파싱 실패: {e}")
+                print(f"자동 파싱 실패: {e}")
     
     # 시간 정보가 제대로 추출되었는지 확인
     if not success or df['hour'].isna().all():
-        print(f"⚠️ '{time_col}'에서 시간 정보 추출 실패! 시간대별 분석이 불가능합니다.")
+        print(f"'{time_col}'에서 시간 정보 추출 실패! 시간대별 분석이 불가능합니다.")
         print("시간 칼럼 샘플 데이터:")
         print(df[time_col].head(10))
         return None
@@ -195,7 +195,7 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     print("hour NaN 개수:", df['hour'].isna().sum())
     
     if df['hour'].isna().all():
-        print(f"⚠️ '{time_col}'에서 hour 추출 실패! 날짜/시간 형식 확인 필요.")
+        print(f"'{time_col}'에서 hour 추출 실패! 날짜/시간 형식 확인 필요.")
         print("시간 칼럼 샘플 데이터:")
         print(df[time_col].head(10))
         return None
@@ -203,7 +203,7 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     df['hour_bin'] = (df['hour'] // 2) * 2  # 2시간 단위
     
     # 디버깅: 실제 hour와 hour_bin 매핑 확인
-    print("🔍 시간 그룹핑 예시:")
+    print("시간 그룹핑 예시:")
     hour_mapping = df[['hour', 'hour_bin']].drop_duplicates().sort_values('hour')
     for _, row in hour_mapping.head(10).iterrows():
         print(f"   {int(row['hour']):02d}시 → {int(row['hour_bin']):02d}시 그룹")
@@ -212,10 +212,10 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     if 'Anomaly' in df.columns:
         anomaly_df = df[df['Anomaly'] == 1]
         top_users = anomaly_df[actual_user_col].value_counts().nlargest(top_n).index.tolist()
-        print(f"✅ 이상 로그 {len(anomaly_df)}건에서 상위 {top_n}명 사용자 추출")
+        print(f"이상 로그 {len(anomaly_df)}건에서 상위 {top_n}명 사용자 추출")
     else:
         top_users = df[actual_user_col].value_counts().nlargest(top_n).index.tolist()
-        print(f"✅ 전체 데이터 {len(df)}건에서 상위 {top_n}명 사용자 추출 (이미 필터링된 것으로 간주)")
+        print(f"전체 데이터 {len(df)}건에서 상위 {top_n}명 사용자 추출 (이미 필터링된 것으로 간주)")
     
     for i, user in enumerate(top_users):
         if 'Anomaly' in df.columns:
@@ -297,17 +297,17 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     )
 
     elapsed_time = time.time() - start_time
-    print(f"✅ 시간대별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
+    print(f"시간대별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
     return fig_html
 
 # === 사용자별 이상탐지 시각화 ===
 def plot_anomaly_by_user(df, user_col, top_n=5):
-    print("📊 사용자별 이상탐지 그래프 생성 중...")
+    print("사용자별 이상탐지 그래프 생성 중...")
     start_time = time.time()
     
     # 사용자 칼럼이 'user'이고 모든 값이 'all'인 경우 처리
     if user_col == 'user' and df[user_col].nunique() == 1 and df[user_col].iloc[0] == 'all':
-        print("✅ 사용자 칼럼이 'all'로 설정됨 - 전체 사용자 통합 분석")
+        print("사용자 칼럼이 'all'로 설정됨 - 전체 사용자 통합 분석")
         
         # 이상 로그만 필터링 (안전장치)
         if 'Anomaly' in df.columns:
@@ -344,25 +344,25 @@ def plot_anomaly_by_user(df, user_col, top_n=5):
             config={'responsive': True}
         )
         
-        print(f"✅ 전체 사용자 그래프 생성 완료 (총 {total_anomalies}건)")
+        print(f"전체 사용자 그래프 생성 완료 (총 {total_anomalies}건)")
         return fig_html
     
     # 원본 사용자 컬럼명 처리 (.1이 붙은 컬럼이 있으면 그것을 사용)
     actual_user_col = user_col
     if f"{user_col}.1" in df.columns:
         actual_user_col = f"{user_col}.1"
-        print(f"✅ 원본 사용자 컬럼 '{actual_user_col}' 사용")
+        print(f"원본 사용자 컬럼 '{actual_user_col}' 사용")
     
     df[actual_user_col] = df[actual_user_col].astype(str)
     
     # 이상 로그만 필터링 (안전장치)
     if 'Anomaly' in df.columns:
         anomaly_df = df[df['Anomaly'] == 1]
-        print(f"✅ 전체 로그 {len(df)}건 중 이상 로그 {len(anomaly_df)}건으로 필터링")
+        print(f"전체 로그 {len(df)}건 중 이상 로그 {len(anomaly_df)}건으로 필터링")
         
         # 이상 로그가 없는 경우 처리
         if len(anomaly_df) == 0:
-            print("⚠️ 이상 로그가 없습니다. 빈 그래프를 반환합니다.")
+            print("이상 로그가 없습니다. 빈 그래프를 반환합니다.")
             fig = go.Figure()
             fig.update_layout(
                 title='Anomalies by User (No Anomalies Found)',
@@ -376,14 +376,14 @@ def plot_anomaly_by_user(df, user_col, top_n=5):
         
         # 사용자별 이상 로그 카운트 (원본 컬럼 사용)
         user_counts = anomaly_df[actual_user_col].value_counts().nlargest(top_n)
-        print(f"✅ 상위 {top_n}명 사용자별 이상 로그 수:")
+        print(f"상위 {top_n}명 사용자별 이상 로그 수:")
         for user, count in user_counts.items():
             print(f"   - {user}: {count}건")
     else:
         # Anomaly 컬럼이 없으면 전체 데이터 사용 (이미 필터링된 것으로 간주)
-        print(f"⚠️ 'Anomaly' 컬럼이 없어 전체 데이터 {len(df)}건을 사용합니다.")
+        print(f"'Anomaly' 컬럼이 없어 전체 데이터 {len(df)}건을 사용합니다.")
         user_counts = df[actual_user_col].value_counts().nlargest(top_n)
-        print(f"✅ 상위 {top_n}명 사용자별 로그 수:")
+        print(f"상위 {top_n}명 사용자별 로그 수:")
         for user, count in user_counts.items():
             print(f"   - {user}: {count}건")
 
@@ -418,12 +418,12 @@ def plot_anomaly_by_user(df, user_col, top_n=5):
     )
 
     elapsed_time = time.time() - start_time
-    print(f"✅ 사용자별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
+    print(f"사용자별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
     return fig_html
 
 # === 이상치 점수 분포 시각화 ===
 def plot_anomaly_score_distribution(df, threshold=-0.2, score_col=None):
-    print("📊 이상치 점수 분포 그래프 생성 중...")
+    print("이상치 점수 분포 그래프 생성 중...")
     start_time = time.time()
     
     import plotly.graph_objects as go
@@ -443,17 +443,17 @@ def plot_anomaly_score_distribution(df, threshold=-0.2, score_col=None):
                 if pd.api.types.is_numeric_dtype(df[col])
             ]
             if not score_candidates:
-                print("⚠️ DataFrame에 'anomaly_score' 스타일의 수치형 컬럼이 없습니다.")
+                print("DataFrame에 'anomaly_score' 스타일의 수치형 컬럼이 없습니다.")
                 return
             score_col = score_candidates[0]
-        print(f"✅ 자동 감지된 anomaly score 컬럼: '{score_col}'")
+        print(f"자동 감지된 anomaly score 컬럼: '{score_col}'")
     else:
         if score_col not in df.columns:
-            print(f"❌ '{score_col}' 컬럼이 DataFrame에 없습니다.")
+            print(f"'{score_col}' 컬럼이 DataFrame에 없습니다.")
             return
 
     if 'Anomaly' not in df.columns:
-        print("⚠️ 'Anomaly' 컬럼이 없어 이상치 분리 시각화는 불가능합니다.")
+        print("'Anomaly' 컬럼이 없어 이상치 분리 시각화는 불가능합니다.")
         return
 
     df_normal = df[df['Anomaly'] == 0]
@@ -509,5 +509,5 @@ def plot_anomaly_score_distribution(df, threshold=-0.2, score_col=None):
     )
 
     elapsed_time = time.time() - start_time
-    print(f"✅ 이상치 점수 분포 그래프 생성 완료 ({elapsed_time:.2f}초)")
+    print(f"이상치 점수 분포 그래프 생성 완료 ({elapsed_time:.2f}초)")
     return fig_html
