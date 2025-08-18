@@ -30,5 +30,5 @@ def restore_and_save_readable_anomalies(anomaly_csv_path, encoder_mapping_dict, 
 
     # 저장
     df_restored.to_csv(output_path, index=False)
-    print(f"📄 사람이 읽을 수 있는 이상치 결과 {len(df_restored)}건이 '{output_path}'에 저장되었습니다.")
+    print(f"사람이 읽을 수 있는 이상치 결과 {len(df_restored)}건이 '{output_path}'에 저장되었습니다.")
     return df_restored
