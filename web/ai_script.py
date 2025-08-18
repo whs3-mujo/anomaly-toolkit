@@ -59,7 +59,7 @@ def generate_description(df, user_col, time_col):
                 """
                 return html
             except Exception as e:
-                print(f"⚠️ 시간 데이터 처리 중 오류: {e}")
+                print(f"시간 데이터 처리 중 오류: {e}")
         
         # 시간 분석이 없거나 실패한 경우
         html = f"""
@@ -76,9 +76,9 @@ def generate_description(df, user_col, time_col):
     # 시간 컬럼 존재 여부 확인
     if time_col is None or time_col not in df.columns:
         if time_col is not None:
-            print(f"⚠️ 시간 컬럼 '{time_col}'이 데이터에 없습니다. 사용 가능한 컬럼: {df.columns.tolist()}")
+            print(f"시간 컬럼 '{time_col}'이 데이터에 없습니다. 사용 가능한 컬럼: {df.columns.tolist()}")
         else:
-            print("ℹ️ 시간 컬럼이 지정되지 않아 시간 분석을 생략합니다.")
+            print("시간 컬럼이 지정되지 않아 시간 분석을 생략합니다.")
         # 시간 분석 없이 사용자별 분석만 수행
         user_counts = Counter(df[user_col]) if user_col in df.columns else {}
         total = len(df)
@@ -126,7 +126,7 @@ def generate_description(df, user_col, time_col):
         df["period"] = df["hour"].apply(time_to_period)
         period_counts = df["period"].value_counts().to_dict()
     except Exception as e:
-        print(f"⚠️ 시간 데이터 처리 중 오류: {e}")
+        print(f"시간 데이터 처리 중 오류: {e}")
         # 시간 분석 실패 시 사용자별 분석만 수행
         user_counts = Counter(df[user_col]) if user_col in df.columns else {}
         total = len(df)
@@ -245,7 +245,7 @@ def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_m
             )
             tfidf_df_list.append(tfidf_df)
         except Exception as e:
-            print(f"⚠️ TF-IDF 처리 중 오류 (컬럼 {col}): {e}")
+            print(f"TF-IDF 처리 중 오류 (컬럼 {col}): {e}")
             continue
     tfidf_combined = pd.concat(tfidf_df_list, axis=1) if tfidf_df_list else pd.DataFrame(index=df.index)
 
@@ -406,7 +406,7 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
             hour_graph_html = plot_anomaly_by_hour(df_full[df_full['Anomaly'] == 1], user_col=user_col, time_col=time_col)
         else:
             hour_graph_html = None
-            print("ℹ️ 시간 칼럼이 없어 시간대별 그래프를 생략합니다.")
+            print("시간 칼럼이 없어 시간대별 그래프를 생략합니다.")
     except Exception as e:
         print("그래프 시각화 중 오류:", e)
 
@@ -480,4 +480,5 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     shap_values = shap.TreeExplainer(model).shap_values(forshap_input)
     np.save(file_path.replace(".csv", "_shap_values.npy"), shap_values)
     
+
     return result
