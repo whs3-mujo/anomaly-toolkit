@@ -141,4 +141,5 @@ $ .\venv\Scripts\Activate.ps1
 ## Open Source Acknowledgement
 본 프로젝트는 다음 오픈소스를 활용하였습니다:
 - [PyCaret](https://github.com/pycaret/pycaret) (MIT License)
+- [Plotly](https://github.com/plotly/plotly.py) (MIT License)
 
