@@ -2,8 +2,7 @@
 
 ## 개요
 본 도구는 AI 기반 로그 이상 탐지 도움 툴킷입니다. <br />
-**시연 영상**: https://youtu.be/6EWizN8p7mI?feature=shared 
-<br />
+**시연 영상**: [![썸네일 이미지](https://img.youtube.com/vi/6EWizN8p7mI&list=PLJOyfcewGGvYWiry_4vStBUEzOWpJ6w07/0.jpg)](https://www.youtube.com/watch?v=6EWizN8p7mI&list=PLJOyfcewGGvYWiry_4vStBUEzOWpJ6w07)
 
 ## 요구사항
 ### 실행 환경
