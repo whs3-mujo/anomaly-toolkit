@@ -2,7 +2,7 @@
 
 ## 개요
 본 도구는 AI 기반 로그 이상 탐지 도움 툴킷입니다. <br />
-**시연 영상**: https://www.youtube.com/watch?v=6EWizN8p7mI&list=PLJOyfcewGGvYWiry_4vStBUEzOWpJ6w07
+[**시연 영상**](https://www.youtube.com/watch?v=6EWizN8p7mI&list=PLJOyfcewGGvYWiry_4vStBUEzOWpJ6w07)
 
 ## 요구사항
 ### 실행 환경
@@ -15,8 +15,7 @@
 
 ## 사용법
 ### Docker 실행 (간소화 버전)
-1. Docker Desktop 설치
-https://www.docker.com/products/docker-desktop
+1. [Docker Desktop 설치](https://www.docker.com/products/docker-desktop)
 ```bash
 2. 터미널에서 설치 확인
 $ docker --version
@@ -135,8 +134,8 @@ $ .\venv\Scripts\Activate.ps1
 ```
 ---
 ## 운영체제별(WINDOWS, MAC) 가이드북
-- Windows:https://www.notion.so/2425227467f780bb8b9cc9c0c159a368?source=copy_link
-- Mac: https://www.notion.so/2420363bd07c807191bde6b6acfee091?source=copy_link
+- [Windows](https://www.notion.so/2425227467f780bb8b9cc9c0c159a368?source=copy_link)
+- [Mac](https://www.notion.so/2420363bd07c807191bde6b6acfee091?source=copy_link)
 
 ## Open Source Acknowledgement
 본 프로젝트는 다음 오픈소스를 활용하였습니다:
