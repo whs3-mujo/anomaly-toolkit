@@ -1,14 +1,15 @@
-# Anomaly-Toolkit
+# LOGSCO: AI기반 이상로그 탐지서비스
 
 ## 개요
-본 도구는 화이트햇스쿨 프로젝트로 개발한 AI 기반 로그 이상 탐지 도움 툴킷입니다.
+본 도구는 AI 기반 로그 이상 탐지 도움 툴킷입니다. <br />
+**시연 영상**: https://youtu.be/6EWizN8p7mI?feature=shared 
 <br />
 
 ## 요구사항
-### 실행 환경(보안 담당자)
+### 실행 환경
 - docker, docker-compose 필요
 
-### 개발 환경(개발자)
+### 개발 환경
 - python 3.10, or 3.11 필요 (pycaret의 경우 3.12 이상 현재 미지원)
 - virtualenv 필요 (`pip install virtualenv`)
 <br />
@@ -84,7 +85,7 @@ docker compose down       # 종료
 <br />
 
 2. 아래 링크에서 Docker 이미지 파일을 다운로드 받아주세요:
-https://drive.google.com/file/d/1CMcF2asI6EpmtODclgStrVim1-mA2Trs/view?usp=drive_link
+https://drive.google.com/drive/folders/1nwI_TW3FTxpsm7FXuqzWbMWsnxUHTQAQ?usp=sharing
 <br />
 
 3. 터미널에서 다음 명령어 2줄만 실행하면 웹 애플리케이션이 바로 실행됩니다:
@@ -98,31 +99,6 @@ docker run -d -p 8000:8000 --name anomaly-detector anomaly-detection:offline
  대시보드: http://localhost:8000/dashboard)
 <br />
 
-### 실행 및 사용 (보안 담당자)
-- 이미지 빌드, 컨테이너 실행
-```bash
-1. 빌드하여 도커 이미지 생성
-$ docker-compose build --no-cache
-
-2. 환경변수 파일 생성
-'manage.py'가 있는 경로에 '.env' 파일 만들기
-파일 내용은 다음과 같이 작성하고 저장(예시이며 비밀키로 사용할 문자열 직접 입력)
-SECRET_KEY=123
-
-3. 생성된 도커 이미지를 컨테이너로 실행(백그라운드 옵션)
-$ docker-compose up -d
-```
-- 사용 Flow
-1. 브라우저 - `http://127.0.0.1:8000/` 접근 확인
-2. 'http://127.0.0.1:8000/upload/` 접근
-3. 로그 업로드(example.csv 제공)
-4. 대시보드에서 결과 확인
-<br />
-
-- 컨테이너 종료
-```bash
-$ docker-compose down
-```
 ### 초기 개발 환경 세팅 (개발자)
 ```bash
 1. 가상환경 세팅
