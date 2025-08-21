@@ -137,3 +137,8 @@ $ .\venv\Scripts\Activate.ps1
 ## 운영체제별(WINDOWS, MAC) 가이드북
 - Windows:https://www.notion.so/2425227467f780bb8b9cc9c0c159a368?source=copy_link
 - Mac: https://www.notion.so/2420363bd07c807191bde6b6acfee091?source=copy_link
+
+## Open Source Acknowledgement
+본 프로젝트는 다음 오픈소스를 활용하였습니다:
+- [PyCaret](https://github.com/pycaret/pycaret) (MIT License)
+
