@@ -1,5 +1,4 @@
 # ai_script.py
-#tfidf 어케 할건지.. 해결하자
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from pycaret.anomaly import setup, create_model, assign_model
@@ -14,7 +13,6 @@ import numpy as np
 import shap
 from .restore import restore_and_save_readable_anomalies
 from .visualize_graph import (
-    detect_user_and_time_columns,
     plot_anomaly_by_hour,
     plot_anomaly_by_user,
     plot_anomaly_score_distribution
@@ -22,6 +20,94 @@ from .visualize_graph import (
 def generate_description(df, user_col, time_col):
     import pandas as pd
     from collections import Counter
+
+    # 사용자 칼럼이 'all'인 경우 (모든 데이터가 하나의 사용자로 처리)
+    if user_col == 'user' and df[user_col].nunique() == 1 and df[user_col].iloc[0] == 'all':
+        total = len(df)
+        
+        # 시간 컬럼이 있는 경우 시간대별 분석
+        if time_col and time_col in df.columns:
+            try:
+                def time_to_period(hour):
+                    if 0 <= hour < 6:
+                        return "새벽시간(00-05시)"
+                    elif 6 <= hour < 12:
+                        return "오전시간(06-11시)"
+                    elif 12 <= hour < 18:
+                        return "오후시간(12-17시)"
+                    else:
+                        return "저녁시간(18-23시)"
+
+                df_copy = df.copy()
+                df_copy["hour"] = pd.to_datetime(df_copy[time_col]).dt.hour
+                df_copy["period"] = df_copy["hour"].apply(time_to_period)
+                period_counts = df_copy["period"].value_counts().to_dict()
+                
+                period_summary = "<br>".join([f"{period}: <b><span style='color:red;'>{count}건</span></b> ({count/total:.1%})" 
+                                             for period, count in period_counts.items()])
+                
+                html = f"""
+                <div style='background:#e3f2fd; border-left:4px solid #2196f3; padding:1rem; margin-top:2rem;'>
+                <h3 style='margin-top:0;'>종합 평가</h3>
+                <div>
+                    <b>&lt;전체 사용자 이상 로그 분석&gt;</b><br>
+                    전체 이상 로그: <b><span style='color:red;'>{total}건</span></b><br><br>
+                    <b>&lt;시간대별 이상 로그 분포&gt;</b><br>
+                    {period_summary}
+                </div>
+                </div>
+                """
+                return html
+            except Exception as e:
+                print(f"시간 데이터 처리 중 오류: {e}")
+        
+        # 시간 분석이 없거나 실패한 경우
+        html = f"""
+        <div style='background:#e3f2fd; border-left:4px solid #2196f3; padding:1rem; margin-top:2rem;'>
+        <h3 style='margin-top:0;'>종합 평가</h3>
+        <div>
+            <b>&lt;전체 사용자 이상 로그 분석&gt;</b><br>
+            전체 이상 로그: <b><span style='color:red;'>{total}건</span></b>
+        </div>
+        </div>
+        """
+        return html
+
+    # 시간 컬럼 존재 여부 확인
+    if time_col is None or time_col not in df.columns:
+        if time_col is not None:
+            print(f"시간 컬럼 '{time_col}'이 데이터에 없습니다. 사용 가능한 컬럼: {df.columns.tolist()}")
+        else:
+            print("시간 컬럼이 지정되지 않아 시간 분석을 생략합니다.")
+        # 시간 분석 없이 사용자별 분석만 수행
+        user_counts = Counter(df[user_col]) if user_col in df.columns else {}
+        total = len(df)
+        
+        if user_counts:
+            top_users = user_counts.most_common(5)
+            top_summary = ", ".join([f"{u}: {c}건 ({c/total:.1%})" for u, c in top_users])
+            top_total = sum([c for _, c in top_users])
+            top_ratio = f"{top_total}건({top_total/total:.1%})"
+            
+            items = [item.strip() for item in top_summary.split(',') if item.strip()]
+            formatted_top_summary = "<br>".join([
+                f"{user}: <b><span style='color:red;'>{count}</span></b>"
+                for user, count in (item.split(': ', 1) for item in items)
+            ])
+            
+            html = f"""
+            <div style='background:#e3f2fd; border-left:4px solid #2196f3; padding:1rem; margin-top:2rem;'>
+            <h3 style='margin-top:0;'>종합 평가</h3>
+            <div>
+                <b>&lt;상위 사용자 이상 로그 개수&gt;</b><br>
+                {formatted_top_summary}<br>
+                ➤ 상위 5명의 사용자가 전체 이상 로그 <b><span style='color:red;'>{total}건</span></b> 중 <b style='color:red;'>{top_ratio}</b>을 차지합니다.
+            </div>
+            </div>
+            """
+            return html
+        else:
+            return "<div>분석할 수 있는 데이터가 부족합니다.</div>"
 
     # 1. 시간대 분류
     def time_to_period(hour):
@@ -35,9 +121,41 @@ def generate_description(df, user_col, time_col):
             return "저녁시간(18-23시)"
 
     df = df.copy()
-    df["hour"] = pd.to_datetime(df[time_col]).dt.hour
-    df["period"] = df["hour"].apply(time_to_period)
-    period_counts = df["period"].value_counts().to_dict()
+    try:
+        df["hour"] = pd.to_datetime(df[time_col]).dt.hour
+        df["period"] = df["hour"].apply(time_to_period)
+        period_counts = df["period"].value_counts().to_dict()
+    except Exception as e:
+        print(f"시간 데이터 처리 중 오류: {e}")
+        # 시간 분석 실패 시 사용자별 분석만 수행
+        user_counts = Counter(df[user_col]) if user_col in df.columns else {}
+        total = len(df)
+        
+        if user_counts:
+            top_users = user_counts.most_common(5)
+            top_summary = ", ".join([f"{u}: {c}건 ({c/total:.1%})" for u, c in top_users])
+            top_total = sum([c for _, c in top_users])
+            top_ratio = f"{top_total}건({top_total/total:.1%})"
+            
+            items = [item.strip() for item in top_summary.split(',') if item.strip()]
+            formatted_top_summary = "<br>".join([
+                f"{user}: <b><span style='color:red;'>{count}</span></b>"
+                for user, count in (item.split(': ', 1) for item in items)
+            ])
+            
+            html = f"""
+            <div style='background:#e3f2fd; border-left:4px solid #2196f3; padding:1rem; margin-top:2rem;'>
+            <h3 style='margin-top:0;'>종합 평가</h3>
+            <div>
+                <b>&lt;상위 사용자 이상 로그 개수&gt;</b><br>
+                {formatted_top_summary}<br>
+                ➤ 상위 5명의 사용자가 전체 이상 로그 <b><span style='color:red;'>{total}건</span></b> 중 <b style='color:red;'>{top_ratio}</b>을 차지합니다.
+            </div>
+            </div>
+            """
+            return html
+        else:
+            return "<div>분석할 수 있는 데이터가 부족합니다.</div>"
 
     # 2. 사용자별 이상 로그 수
     user_counts = Counter(df[user_col])
@@ -85,11 +203,23 @@ def detect_text_columns(df, min_avg_length=20):
 
 # 전처리 함수
 def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_max_features=100):
-    encoder = None  #추가
+    encoder = None 
+    
+    # 빈 값이 많은 컬럼도 유지하되, 적절히 처리
+    df = df.copy()
+    
+    # 숫자형 컬럼의 빈 값을 0으로 채우기
     numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
+    for col in numeric_cols:
+        df[col] = df[col].fillna(0)
+    
     text_cols = detect_text_columns(df)
     categorical_cols = df.select_dtypes(include=['object', 'category', 'bool']).columns
     categorical_cols = [col for col in categorical_cols if col not in text_cols]
+    
+    # 범주형 컬럼의 빈 값을 "Unknown"으로 채우기
+    for col in categorical_cols:
+        df[col] = df[col].fillna("Unknown")
 
     # 범주형 변수 인코딩 (CountEncoder 사용)
     if categorical_cols:
@@ -102,17 +232,21 @@ def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_m
         encoded = pd.DataFrame(index=df.index)
     
     # 텍스트 데이터 TF-IDF 처리
-    tfidf_vectorizer = TfidfVectorizer(max_features=tfidf_max_features)
     tfidf_df_list = []
     for col in text_cols:
-        tfidf_matrix = tfidf_vectorizer.fit_transform(df[col].astype(str).fillna(''))
-        # 칼럼명에 원본 칼럼명을 명확히 포함
-        column_prefix = col.replace(' ', '_').lower()
-        tfidf_df = pd.DataFrame(
-            tfidf_matrix.toarray(), 
-            columns=[f"{column_prefix}_tfidf_{i}" for i in range(tfidf_matrix.shape[1])]
-        )
-        tfidf_df_list.append(tfidf_df)
+        try:
+            tfidf_vectorizer = TfidfVectorizer(max_features=min(tfidf_max_features, len(df)//2))
+            tfidf_matrix = tfidf_vectorizer.fit_transform(df[col].astype(str).fillna(''))
+            # 칼럼명에 원본 칼럼명을 명확히 포함
+            column_prefix = col.replace(' ', '_').lower()
+            tfidf_df = pd.DataFrame(
+                tfidf_matrix.toarray(), 
+                columns=[f"{column_prefix}_tfidf_{i}" for i in range(tfidf_matrix.shape[1])]
+            )
+            tfidf_df_list.append(tfidf_df)
+        except Exception as e:
+            print(f"TF-IDF 처리 중 오류 (컬럼 {col}): {e}")
+            continue
     tfidf_combined = pd.concat(tfidf_df_list, axis=1) if tfidf_df_list else pd.DataFrame(index=df.index)
 
     # 숫자형, 인코딩된 범주형, TF-IDF 특성 결합
@@ -144,9 +278,19 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     else:
         detected_encoding = 'utf-8'
 
-    # 1. 데이터 불러오기, 결측치 제거
+    # 1. 데이터 불러오기 (컬럼 삭제하지 않고 원본 유지)
     data = pd.read_csv(file_path, encoding=detected_encoding)
-    data = data.dropna(axis=1, thresh=int(len(data)*0.7))  # 70% 이상 값 없는 열 제거
+    
+    # 사용자 칼럼이 None이거나 빈 값일 때 "all"로 설정
+    if user_col is None or user_col == "":
+        data['user'] = 'all'
+        user_col = 'user'
+    
+    # 시간 칼럼이 None이거나 빈 값일 때 None으로 설정 (그래프에서 처리)
+    if time_col is None or time_col == "":
+        time_col = None
+    # 빈 값이 많은 컬럼도 원본 데이터 구조 유지를 위해 삭제하지 않음
+    # data = data.dropna(axis=1, thresh=int(len(data)*0.7))  # 컬럼 삭제 제거
 
     # 제외할 칼럼이 있으면 제거
     if exclude_columns:
@@ -175,7 +319,7 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     # 복원용 원본 정보 백업 (예: user_id, timestamp 등)
     original_info = data.reset_index(drop=True)  # 모든 원본 칼럼 포함
 
-    # user_col, time_col 복원 보완(채윤)
+    # user_col, time_col 복원 보완
     if user_col and user_col in data.columns and user_col not in original_info.columns:
         original_info[user_col] = data[user_col].reset_index(drop=True)
 
@@ -184,6 +328,13 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
 
     model = create_model('iforest')
     results = assign_model(model, score=True)
+
+    # Anomaly_Score 기준 내림차순 정렬
+    sorted_results = results.sort_values(by='Anomaly_Score', ascending=False).reset_index(drop=True)
+
+    # SHAP 입력값으로 사용할 DataFrame 생성
+    forshap_input = sorted_results.drop(columns=['Anomaly', 'Anomaly_Score'], errors='ignore')
+
 
     # 4. 결과 출력
     count_anomaly = results['Anomaly'].sum()
@@ -197,8 +348,8 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
      # 5. SHAP 그래프를 그리기 위한 파일 생성(1)
     model_path = file_path.replace('.csv', '_model.pkl')    # SHAP값 계산을 위해 모델을 pkl파일로 추출
     joblib.dump(model, model_path)
-    shap_input_path = file_path.replace('.csv', '_X_for_shap.csv')  # SHAP값 계산을 위해 실제 탐지 모델에 입력값으로 넣었던 data_scaled를 _X_for_shap.csv파일로 저장
-    processed_data.to_csv(shap_input_path, index=False)  #data_scaled를 processed_data로 바꿈.
+    shap_input_path = file_path.replace('.csv', '_X_for_shap.csv')
+    forshap_input.to_csv(shap_input_path, index=False)  #forshap_input을 _X_for_shap.csv 라는 이름으로 저장
 
     # 이상치 점수 컬럼명 통일
     if 'Anomaly_Score' not in results.columns and 'Anomaly_Score' in results.columns:
@@ -215,21 +366,24 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     # 6. 결과 저장
     # results_with_info = pd.concat([results_cleaned.drop(columns=tfidf_cols, errors='ignore'), original_info], axis=1)
     # results_with_info = pd.concat([results, original_info], axis=1)
-    results_with_info.to_csv("full_data_with_anomaly_info.csv", index=False)
+    base_filename = file_path.replace('.csv', '')
+    full_anomaly_path = f"{base_filename}_full_data_with_anomaly_info.csv"
+    results_with_info.to_csv(full_anomaly_path, index=False)
 
     if encoder is not None:
+        readable_anomaly_path = f"{base_filename}_full_data_with_anomaly_info_readable.csv"
         restore_and_save_readable_anomalies(
-        anomaly_csv_path="full_data_with_anomaly_info.csv",
+        anomaly_csv_path=full_anomaly_path,
         encoder_mapping_dict=encoder.mapping,
-        output_path="full_data_with_anomaly_info_readable.csv"
+        output_path=readable_anomaly_path
     )
-        output_path = "full_data_with_anomaly_info_readable.csv"
+        output_path = readable_anomaly_path
     else:
         print("Encoder가 없어서 복원 단계 스킵")
-        output_path = "full_data_with_anomaly_info.csv"
+        output_path = full_anomaly_path
 
     # 복원된 전체 데이터 로드 
-    df_full = pd.read_csv("full_data_with_anomaly_info_readable.csv")
+    df_full = pd.read_csv(output_path)
 
     # 복원된 컬럼만 남기고, .1 붙은 컬럼명을 원래대로 변경 
     for col in df_full.columns:
@@ -239,17 +393,20 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
                 df_full.drop(columns=[orig_col], inplace=True)
             df_full.rename(columns={col: orig_col}, inplace=True)
 
-    # 사용자/시간 컬럼 자동 감지 (없으면 직접 입력) 
-    if not user_col or not time_col:
-        user_col_auto, time_col_auto = detect_user_and_time_columns(df_full)
-        user_col = user_col or user_col_auto
-        time_col = time_col or time_col_auto
-
     # 그래프 시각화 (이상치만)
+    score_distribution_html = None
+    user_graph_html = None
+    hour_graph_html = None
+    
     try:
-        plot_anomaly_score_distribution(df_full, threshold=-0.20, score_col='Anomaly_Score')
-        plot_anomaly_by_user(df_full[df_full['Anomaly'] == 1], user_col=user_col)
-        plot_anomaly_by_hour(df_full[df_full['Anomaly'] == 1], user_col=user_col, time_col=time_col)
+        score_distribution_html = plot_anomaly_score_distribution(df_full, threshold=-0.20, score_col='Anomaly_Score')
+        user_graph_html = plot_anomaly_by_user(df_full[df_full['Anomaly'] == 1], user_col=user_col)
+        # 시간 칼럼이 있는 경우에만 시간 그래프 생성
+        if time_col is not None:
+            hour_graph_html = plot_anomaly_by_hour(df_full[df_full['Anomaly'] == 1], user_col=user_col, time_col=time_col)
+        else:
+            hour_graph_html = None
+            print("시간 칼럼이 없어 시간대별 그래프를 생략합니다.")
     except Exception as e:
         print("그래프 시각화 중 오류:", e)
 
@@ -259,19 +416,43 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
 
     # 8. 이상 탐지된 항목만 추출
     detected = df_full[df_full['Anomaly'] == 1]
-    detected.to_csv("pycaret_detected_anomalies.csv", index=False)
+    detected_anomalies_path = f"{base_filename}_pycaret_detected_anomalies.csv"
+    detected.to_csv(detected_anomalies_path, index=False)
 
     # TF-IDF 컬럼은 제외하고 표를 생성
     tfidf_cols = [col for col in detected.columns if '_tfidf_' in col]
     detected_for_table = detected.drop(columns=tfidf_cols)
 
-    # 표 미리보기(이상치 100개만)
-    preview_records = detected_for_table.head(100).to_dict(orient="records")
-    preview_table_html = detected_for_table.head(100).to_html(index=False, classes="table table-sm") if len(detected_for_table) > 0 else "<p>이상치가 없습니다.</p>"
+    # Anomaly_Score 기준 내림차순 정렬 후 상위 100개 추출
+    preview_top100 = detected_for_table.sort_values(by="Anomaly_Score", ascending=False).head(100)
+
+    # 표 미리보기(상위 100개만)
+    preview_records = preview_top100.to_dict(orient="records")
+    preview_table_html = preview_top100.to_html(index=False, classes="table table-sm") if len(preview_top100) > 0 else "<p>이상치가 없습니다.</p>"
+
+    # JSON 호환 가능하도록 데이터 정리하는 함수
+    def clean_for_json(obj):
+        """numpy 타입과 NaN 값을 JSON 호환 타입으로 변환"""
+        if isinstance(obj, dict):
+            return {k: clean_for_json(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [clean_for_json(v) for v in obj]
+        elif pd.isna(obj):
+            return None
+        elif isinstance(obj, (np.integer, np.int64, np.int32)):
+            return int(obj)
+        elif isinstance(obj, (np.floating, np.float64, np.float32)):
+            return float(obj)
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return obj
 
     # 전체/이상치 records (다운로드용)
-    anomaly_records = detected_for_table.to_dict(orient="records")
-    all_records = df_full.drop(columns=tfidf_cols).to_dict(orient="records")
+    anomaly_records = clean_for_json(detected_for_table.head(100).to_dict(orient="records"))
+    all_records = clean_for_json(df_full.drop(columns=tfidf_cols).head(100).to_dict(orient="records"))
 
     # Description HTML 생성
     text_html = generate_description(detected, user_col=user_col, time_col=time_col)
@@ -279,20 +460,25 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     # 9. 결과를 HTML 테이블 + 요약 문자열로 반환
     result = {
         "summary": f"이상치 {count_anomaly:,}건 / 전체 {total:,}건",
-        "anomaly_count": count_anomaly,
-        "total": total,
-        "table_html": preview_table_html,  # ← TF-IDF 컬럼이 빠진 표(대시보드용)
+        "anomaly_count": int(count_anomaly),  # numpy int를 Python int로 변환
+        "total": int(total),  # numpy int를 Python int로 변환
+        "table_html": preview_table_html,  # TF-IDF 컬럼이 빠진 표(대시보드용)
         "records": anomaly_records,   # 이상치 결과 (여긴 TF-IDF 제외)
         "all_records": all_records,   # 전체 결과
         "user_col": user_col,
         "time_col": time_col,
-        "columns": list(df_full.columns),
-        "result_csv_path": "full_data_with_anomaly_info_readable.csv",
+        "columns": [str(col) for col in df_full.columns],  # 컬럼명도 문자열로 변환
+        "result_csv_path": output_path,  # 동적 경로 사용
         "text_html": text_html,
+        # 그래프 HTML 추가
+        "score_distribution_html": score_distribution_html,
+        "user_graph_html": user_graph_html, 
+        "hour_graph_html": hour_graph_html,
     }
 
     # 10. SHAP 그래프를 그리기 위한 파일 생성(2)
-    shap_values = shap.TreeExplainer(model).shap_values(processed_data)
+    shap_values = shap.TreeExplainer(model).shap_values(forshap_input)
     np.save(file_path.replace(".csv", "_shap_values.npy"), shap_values)
     
+
     return result

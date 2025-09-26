@@ -22,13 +22,13 @@ def restore_encoded_columns(df_encoded, reverse_mappings):
 def restore_and_save_readable_anomalies(anomaly_csv_path, encoder_mapping_dict, output_path):
     df = pd.read_csv(anomaly_csv_path)
 
-    # 🔁 역매핑 생성
+    # 역매핑 생성
     reverse_mappings = generate_reverse_mappings(encoder_mapping_dict)
 
-    # ✅ 문자열 컬럼만 복원 (숫자형은 그대로 둠)
+    # 문자열 컬럼만 복원 (숫자형은 그대로 둠)
     df_restored = restore_encoded_columns(df, reverse_mappings)
 
-    # ✅ 저장
+    # 저장
     df_restored.to_csv(output_path, index=False)
-    print(f"📄 사람이 읽을 수 있는 이상치 결과 {len(df_restored)}건이 '{output_path}'에 저장되었습니다.")
+    print(f"사람이 읽을 수 있는 이상치 결과 {len(df_restored)}건이 '{output_path}'에 저장되었습니다.")
     return df_restored

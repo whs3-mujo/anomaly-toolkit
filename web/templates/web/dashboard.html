@@ -512,12 +512,12 @@
 let currentSessionId = null;
 let analysisHistory = [];
 
-// 페이지 로드 시 히스토리 불러오기
+/* 페이지 로드 시 히스토리 불러오기 */
 document.addEventListener('DOMContentLoaded', function() {
   loadAnalysisHistory();
 });
 
-// 분석 히스토리 불러오기
+/* 분석 히스토리 불러오기 */
 function loadAnalysisHistory() {
   showLoading(true);
   
@@ -541,7 +541,7 @@ function loadAnalysisHistory() {
 
 function formatLocalTime(utcString) {
   if (!utcString) return '';
-  // ISO 포맷이 아니면 'Z'를 붙여서 UTC로 인식
+  /* ISO 포맷이 아니면 'Z'를 붙여서 UTC로 인식 */
   let date = new Date(utcString.endsWith('Z') ? utcString : utcString + 'Z');
   return date.toLocaleString();
 }
@@ -585,7 +585,7 @@ function renderHistoryList(history) {
   });
 }
 
-// 이름변경/삭제 직접 함수
+/* 이름변경/삭제 직접 함수 */
 function renameAnalysisDirect(sessionId) {
   const currentItem = analysisHistory.find(item => item.session_id === sessionId);
   if (!currentItem) return;
@@ -638,7 +638,7 @@ function deleteAnalysisDirect(sessionId) {
     });
 }
 
-// 분석 결과 상세 정보 로드
+/* 분석 결과 상세 정보 로드 */
 function loadAnalysisDetail(sessionId) {
   document.querySelectorAll('.history-item').forEach(item => {
     item.classList.remove('selected');
@@ -658,7 +658,7 @@ function loadAnalysisDetail(sessionId) {
     </div>
   `;
 
-  // API 호출(분석 결과 화면 표시)
+  /* API 호출(분석 결과 화면 표시) */
   fetch(`/api/analysis/detail/${sessionId}/`)
     .then(response => response.json())
     .then(data => {
@@ -673,7 +673,7 @@ function loadAnalysisDetail(sessionId) {
     });
 }
 
-// 분석 결과 렌더링 함수
+/* 분석 결과 렌더링 함수 */
 function renderAnalysisResult(session) {
   const resultPanel = document.getElementById('analysis-result');
   if (!session) {
@@ -699,7 +699,7 @@ function renderAnalysisResult(session) {
   `;
 
   if (session.analysis_result) {
-    // 분석 결과 요약 텍스트를 상단에 표시
+    /* 분석 결과 요약 텍스트를 상단에 표시 */
     let summaryText = '';
     if (session.analysis_result.summary) {
       summaryText = `
@@ -735,8 +735,8 @@ function renderAnalysisResult(session) {
   resultPanel.innerHTML = resultHTML;
 
 
-  // === Plotly 그래프 스크립트 실행 ===
-  // 분석 결과 영역 내 모든 <script> 태그 실행
+  /* Plotly 그래프 스크립트 실행 */
+  /* 분석 결과 영역 내 모든 <script> 태그 실행 */
   resultPanel.querySelectorAll('script').forEach(oldScript => {
     const newScript = document.createElement('script');
     if (oldScript.src) {
@@ -750,7 +750,7 @@ function renderAnalysisResult(session) {
   attachShapClickHandlers();
 }
 
-// 분석 결과 표 + 다운로드 버튼
+/* 분석 결과 표 + 다운로드 버튼 */
 function formatAnalysisResult(result, session) {
   if (!result || typeof result !== 'object') {
     return '<p>분석 결과를 표시할 수 없습니다.</p>';
@@ -876,7 +876,7 @@ function renameAnalysis() {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        loadAnalysisHistory(); // 히스토리 새로고침
+        loadAnalysisHistory(); /* 히스토리 새로고침 */
         alert('이름이 변경되었습니다.');
       } else {
         alert('이름 변경 실패: ' + data.error);
@@ -888,7 +888,7 @@ function renameAnalysis() {
   }
 }
 
-// 분석 삭제
+/* 분석 삭제 */
 function deleteAnalysis() {
   const sessionId = document.getElementById('context-menu').dataset.sessionId;
   
@@ -954,7 +954,7 @@ function showError(message) {
   `;
 }
 
-// CSRF 토큰 가져오기
+/* CSRF 토큰 가져오기 */
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
@@ -995,44 +995,44 @@ function attachShapClickHandlers() {
   rows.forEach((row, index) => {
     row.addEventListener("click", () => {
 
-      // 이전 선택된 행에서 강조 스타일 제거
+      /* 이전 선택된 행에서 강조 스타일 제거 */
       document.querySelectorAll("table tbody tr").forEach(r => {
         r.classList.remove("selected-row");
       });
 
-      // 현재 클릭된 행에 강조 스타일 추가
+      /* 현재 클릭된 행에 강조 스타일 추가 */
       row.classList.add("selected-row");
 
-      // 1. SHAP 설명 그래프 요청
+      /* 1. SHAP 설명 그래프 요청 */
       fetch(`/api/analysis/explain/${currentSessionId}/${index}/`)
         .then(res => res.json())
         .then(data => {
           if (data.success) {
             document.getElementById("shap-plot").innerHTML = data.plot_html;
 
-            // 2. SHAP 설명 텍스트 생성
+            /* 2. SHAP 설명 텍스트 생성 */
             let explanationHtml = "";
             
-            // 중간 멘트 추가
+            /* 중간 멘트 추가 */
             if (data.shap_middle_html) {
               explanationHtml += data.shap_middle_html;
             }
             
-            // SHAP 설명 목록 추가
+            /* SHAP 설명 목록 추가 */
             if (data.shap_explanation && data.shap_explanation.length > 0) {
               explanationHtml += "<h4>설명:</h4><ul>";
-              // 마지막 요소(총합 설명)를 제외하고 리스트 생성
+              /* 마지막 요소(총합 설명)를 제외하고 리스트 생성 */
               const listItems = data.shap_explanation.slice(0, -1);
               explanationHtml += listItems.map(line => `<li>${line}</li>`).join("");
               explanationHtml += "</ul>";
-              
-              // 마지막 요소(총합 설명)를 별도로 표시
+
+              /* 마지막 요소(총합 설명)를 별도로 표시 */
               if (data.shap_explanation.length > 0) {
                 explanationHtml += `<div style="margin-top: 0.5rem; color: #888; font-size: 0.9em;">${data.shap_explanation[data.shap_explanation.length - 1]}</div>`;
               }
             }
 
-            // 설명 영역에 HTML 삽입
+            /* 설명 영역에 HTML 삽입 */
             document.getElementById("shap-explanation").innerHTML = explanationHtml;
 
           } else {
@@ -1045,7 +1045,7 @@ function attachShapClickHandlers() {
   });
 }
 
-// 사이드바 토글 기능
+/* 사이드바 토글 기능 */
 const sidebar = document.getElementById('history-sidebar');
 const toggleBtn = document.getElementById('toggle-sidebar-btn');
 const miniSidebarBtn = document.getElementById('mini-sidebar-btn');

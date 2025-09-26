@@ -163,21 +163,120 @@ def preview_columns(request):
     if request.method == "POST" and request.FILES.get("file"):
         file = request.FILES["file"]
         try:
+            df = None
+            
+            # 파일 크기 체크 (100MB 제한)
+            if file.size > 100 * 1024 * 1024:  # 100MB
+                return JsonResponse({
+                    "error": "파일이 너무 큽니다. 100MB 이하의 파일만 업로드 가능합니다."
+                }, status=400)
+            
             # 여러 인코딩 시도
             for enc in ["utf-8", "cp949", "euc-kr", "latin1"]:
                 try:
-                    df = pd.read_csv(file, nrows=2, encoding=enc)
+                    file.seek(0)  # 파일 포인터 리셋
+                    # 처음 몇 줄만 읽어서 미리보기 생성
+                    df = pd.read_csv(file, nrows=5, encoding=enc)
                     break
                 except UnicodeDecodeError:
-                    file.seek(0)  # 파일 포인터 리셋
+                    continue
+                except Exception as e:
+                    print(f"인코딩 {enc} 시도 중 오류: {e}")
+                    continue
             else:
-                return JsonResponse({"error": "지원하지 않는 파일 인코딩입니다."}, status=400)
-            columns = list(df.columns)
-            preview = df.head(2).to_dict(orient="records")
-            return JsonResponse({"columns": columns, "preview": preview})
+                return JsonResponse({
+                    "error": "지원하지 않는 파일 인코딩입니다. UTF-8, CP949, EUC-KR, Latin1 인코딩을 지원합니다."
+                }, status=400)
+            
+            if df is None or df.empty:
+                return JsonResponse({
+                    "error": "파일이 비어있거나 읽을 수 있는 데이터가 없습니다."
+                }, status=400)
+            
+            # 컬럼 수 제한 (성능상 이유)
+            if len(df.columns) > 100:
+                return JsonResponse({
+                    "error": f"컬럼이 너무 많습니다 ({len(df.columns)}개). 최대 100개 컬럼까지 지원합니다."
+                }, status=400)
+            
+            # 컬럼명 정제 (공백 제거, 특수문자 처리)
+            original_columns = list(df.columns)
+            cleaned_columns = []
+            
+            for col in original_columns:
+                # 컬럼명이 비어있으면 기본값 설정
+                if pd.isna(col) or str(col).strip() == '':
+                    cleaned_columns.append(f"Column_{len(cleaned_columns)}")
+                else:
+                    # 컬럼명 정제
+                    clean_col = str(col).strip()
+                    cleaned_columns.append(clean_col)
+            
+            df.columns = cleaned_columns
+            
+            # 데이터 품질 체크
+            total_cells = df.shape[0] * df.shape[1]
+            null_cells = df.isnull().sum().sum()
+            null_ratio = null_cells / total_cells if total_cells > 0 else 0
+            
+            # 결측치가 너무 많으면 경고
+            quality_warnings = []
+            if null_ratio > 0.8:
+                quality_warnings.append(f"데이터의 {null_ratio:.1%}가 결측치입니다.")
+            
+            # 모든 컬럼이 결측치인 경우 체크
+            empty_columns = [col for col in df.columns if df[col].isnull().all()]
+            if empty_columns:
+                quality_warnings.append(f"빈 컬럼이 {len(empty_columns)}개 있습니다: {', '.join(empty_columns[:5])}")
+            
+            # 미리보기 데이터 생성 (최대 2행)
+            preview_df = df.head(2)
+            
+            # NaN 값을 빈 문자열로 표시
+            preview_dict = []
+            for _, row in preview_df.iterrows():
+                row_dict = {}
+                for col in df.columns:
+                    value = row[col]
+                    if pd.isna(value):
+                        row_dict[col] = ""  # 빈 문자열로 변경
+                    else:
+                        # 문자열이 너무 길면 자르기
+                        str_value = str(value)
+                        if len(str_value) > 50:
+                            row_dict[col] = str_value[:47] + "..."
+                        else:
+                            row_dict[col] = str_value
+                preview_dict.append(row_dict)
+            
+            response_data = {
+                "columns": cleaned_columns, 
+                "preview": preview_dict,
+                "total_columns": len(cleaned_columns),
+                "sample_rows": len(preview_df)
+            }
+            
+            # 품질 경고가 있으면 추가
+            if quality_warnings:
+                response_data["warnings"] = quality_warnings
+            
+            return JsonResponse(response_data)
+            
+        except pd.errors.EmptyDataError:
+            return JsonResponse({
+                "error": "파일이 비어있습니다. 데이터가 포함된 CSV 파일을 업로드해주세요."
+            }, status=400)
+        except pd.errors.ParserError as e:
+            return JsonResponse({
+                "error": f"CSV 파일 형식이 올바르지 않습니다: {str(e)}"
+            }, status=400)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "No file uploaded"}, status=400)
+            print(f"파일 미리보기 중 예상치 못한 오류: {e}")
+            return JsonResponse({
+                "error": f"파일 처리 중 오류가 발생했습니다: {str(e)}"
+            }, status=400)
+    
+    return JsonResponse({"error": "파일이 업로드되지 않았습니다."}, status=400)
 
 def detect_anomalies_view(request):
     try:
@@ -187,11 +286,12 @@ def detect_anomalies_view(request):
             exclude_columns = [col.strip() for col in exclude_columns.split(",") if col.strip()]
             user_col = request.POST.get("user_col")
             time_col = request.POST.get("time_col")
+            
+            # 빈 문자열을 None으로 변환
+            user_col = user_col if user_col else None
+            time_col = time_col if time_col else None
             file_path = save_uploaded_file(file)
-            result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col)
-            result_csv_path = result.get("result_csv_path")
-            df_result = pd.read_csv(result_csv_path)
-
+            
             # 타임아웃 설정 (10분)
             timeout = 600  # 초 단위
             
@@ -215,15 +315,18 @@ def detect_anomalies_view(request):
             analysis_thread.join(timeout)
             
             # 타임아웃 발생 시
-            if analysis_thread.is_alive() or analysis_error:
+            if analysis_thread.is_alive() or analysis_error or result is None:
                 return JsonResponse({
                     'success': False, 
-                    'error': '처리할 수 없는 데이터셋입니다. 10분 이상 소요되었습니다.'
+                    'error': '처리할 수 없는 데이터셋입니다. 10분 이상 소요되었거나 분석 중 오류가 발생했습니다.'
                 }, status=408)  # 408 Request Timeout
 
-            # === 그래프 HTML 생성 및 저장 ===
-            user_graph_html = plot_anomaly_by_user(df_result, user_col) if user_col and user_col in df_result.columns else None
-            score_graph_html = plot_anomaly_score_distribution(df_result)
+            result_csv_path = result.get("result_csv_path")
+            df_result = pd.read_csv(result_csv_path)
+
+            # === 그래프 HTML 사용  ===
+            user_graph_html = result.get('user_graph_html')
+            score_graph_html = result.get('score_distribution_html')
             if user_col and time_col and user_col in df_result.columns and time_col in df_result.columns:
                 hour_graph_html_top3 = plot_anomaly_by_hour(df_result, user_col, time_col, top_n=3)
                 hour_graph_html_top10 = plot_anomaly_by_hour(df_result, user_col, time_col, top_n=10)
@@ -311,7 +414,7 @@ def visualize_graph_view(request):
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 
-#get_shap_plot 함수를 선언하여 SHAP그래프를 생성 및 이미지 파일 만듦. 그래프 모양, 크기를 여기서 바꿀 수 있음
+# get_shap_plot 함수를 선언하여 SHAP그래프를 생성 및 이미지 파일 만듦 / 그래프 모양, 크기를 여기서 바꿀 수 있음
 import pandas as pd
 import numpy as np
 import shap
@@ -509,7 +612,7 @@ def get_shap_plot(request, session_id, row_index):
 })
 
 
-#SHAP 그래프에 대한 줄글 설명 출력 코드
+# SHAP 그래프에 대한 줄글 설명 출력 코드
 def generate_shap_explanation(shap_row_df):
     explanations = []
     for _, row in shap_row_df.iterrows():
@@ -629,7 +732,35 @@ from django.shortcuts import render
 
 
 def anomaly_search_view(request):
-    return render(request, 'web/viewall.html')
+    """
+    사용자별 이상 로그 View All 페이지
+    session_id가 제공되면 해당 세션의 데이터를 사용하고, 없으면 최신 세션 사용
+    """
+    session_id = request.GET.get('session_id')
+    
+    try:
+        if session_id:
+            # 특정 세션 조회
+            session = AnalysisSession.objects.filter(session_id=session_id).first()
+        else:
+            # 최신 세션 조회
+            session = AnalysisSession.objects.filter(
+                user_graph_html__isnull=False
+            ).order_by('-created_at').first()
+        
+        if not session:
+            return render(request, 'web/viewall.html', {
+                'error': '표시할 분석 결과가 없습니다.'
+            })
+        
+        return render(request, 'web/viewall.html', {
+            'session': session
+        })
+        
+    except Exception as e:
+        return render(request, 'web/viewall.html', {
+            'error': f'데이터를 불러오는 중 오류가 발생했습니다: {str(e)}'
+        })
 
 
 
@@ -637,14 +768,25 @@ def anomaly_search_view(request):
 def get_user_graph(request):
     """
     사용자별 이상 로그 그래프를 반환하는 뷰 (viewall.html용)
+    session_id가 제공되면 해당 세션의 데이터를 사용하고, 없으면 최신 세션 사용
     """
+    session_id = request.GET.get('session_id')
+    
     try:
-        latest_session = AnalysisSession.objects.filter(
-            user_graph_html__isnull=False
-        ).order_by('-created_at').first()
+        if session_id:
+            # 특정 세션 조회
+            session = AnalysisSession.objects.filter(
+                session_id=session_id,
+                user_graph_html__isnull=False
+            ).first()
+        else:
+            # 최신 세션 조회
+            session = AnalysisSession.objects.filter(
+                user_graph_html__isnull=False
+            ).order_by('-created_at').first()
         
-        if latest_session and latest_session.user_graph_html:
-            user_graph_html = latest_session.user_graph_html
+        if session and session.user_graph_html:
+            user_graph_html = session.user_graph_html
 
             # 그래프 시각 요소 조정 스크립트
             size_adjustment_script = """
@@ -717,18 +859,34 @@ from .visualize_graph import plot_anomaly_by_hour
 @require_http_methods(["GET"])
 def anomaly_by_hour_viewall(request):
     """
-    가장 최근 분석의 anomaly_by_hour 그래프 전체 화면 뷰어
+    시간대별 이상 로그 View All 페이지
+    session_id가 제공되면 해당 세션의 데이터를 사용하고, 없으면 최신 세션 사용
     """
+    session_id = request.GET.get('session_id')
+    
     try:
-        latest_session = AnalysisSession.objects.filter(hour_graph_html_top10__isnull=False).order_by('-created_at').first()
-        if latest_session is None:
+        if session_id:
+            # 특정 세션 조회
+            session = AnalysisSession.objects.filter(session_id=session_id).first()
+        else:
+            # 최신 세션 조회
+            session = AnalysisSession.objects.filter(
+                hour_graph_html_top10__isnull=False
+            ).order_by('-created_at').first()
+        
+        if not session:
             return render(request, 'web/anomaly_by_hour.html', {
                 'hour_graph_html': "<p>시간별 이상 탐지 그래프가 없습니다.</p>"
             })
         
+        # top10 버전이 있으면 사용하고, 없으면 top3 버전 사용
+        hour_graph_html = session.hour_graph_html_top10 or session.hour_graph_html_top3
+        
         return render(request, 'web/anomaly_by_hour.html', {
-            'hour_graph_html': latest_session.hour_graph_html_top10
+            'hour_graph_html': hour_graph_html,
+            'session': session
         })
+        
     except Exception as e:
         return render(request, 'web/anomaly_by_hour.html', {
             'hour_graph_html': f"<p>그래프 로딩 중 오류 발생: {str(e)}</p>"

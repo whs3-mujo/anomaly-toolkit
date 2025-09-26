@@ -2,6 +2,7 @@
 
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User  # 사용자 모델 사용
 
 class AnalysisSession(models.Model):
     """분석 세션 모델 - 완료된 분석만 저장"""
@@ -20,8 +21,8 @@ class AnalysisSession(models.Model):
     # 메타데이터
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-#    analysis_type = models.CharField(max_length=50, default='default_type')
     
+    # 그래프 HTML 데이터
     user_graph_html = models.TextField(null=True, blank=True)
     hour_graph_html_top3 = models.TextField(null=True, blank=True)
     hour_graph_html_top10 = models.TextField(null=True, blank=True)
@@ -61,15 +62,15 @@ class AnalysisSession(models.Model):
     score_graph_html = models.TextField(null=True, blank=True)
     user_col = models.CharField(max_length=100, null=True, blank=True)
     time_col = models.CharField(max_length=100, null=True, blank=True)
-
+    
     class Meta:
         ordering = ['-created_at']
         verbose_name = '분석 세션'
         verbose_name_plural = '분석 세션들'
-
+    
     def __str__(self):
         return f"{self.original_filename}"
-
+    
     def get_short_filename(self, max_length=20):
         if len(self.original_filename) <= max_length:
             return self.original_filename
