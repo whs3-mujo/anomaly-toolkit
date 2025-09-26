@@ -31,6 +31,8 @@ class AnalysisSession(models.Model):
     # 컬럼 정보
     user_col = models.CharField(max_length=100, null=True, blank=True)
     time_col = models.CharField(max_length=100, null=True, blank=True)
+    threshold = models.FloatField(null=True, blank=True)
+    threshold_mode = models.CharField(max_length=20, null=True, blank=True)
     
     class Meta:
         ordering = ['-created_at']

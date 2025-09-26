@@ -713,8 +713,13 @@ function renderAnalysisResult(session) {
       <div class="result-content">
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <h3 style="margin-bottom: 1rem; color: #495057;">분석 결과</h3>
-          
-          ${summaryText}
+          <div style="display:flex; align-items:center; gap:18px;">
+            <span style="background:#f8f9fa; border:1.5px solid #e9ecef; border-radius:8px; padding:6px 18px; font-size:1.08rem; color:#d63384; font-weight:600;">
+              Threshold: ${session.threshold !== undefined ? session.threshold : '-'}
+              ${session.threshold_mode === 'auto' ? ' <span style="font-size:0.98rem; color:#888;">(자동)</span>' : ''}
+            </span>
+            ${summaryText}
+          </div>
         </div>
         <div style="background: white; padding: 1.5rem; border-radius: 4px; border-left: 4px solid #28a745;">
           ${formatAnalysisResult(session.analysis_result, session)}

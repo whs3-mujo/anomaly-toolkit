@@ -28,19 +28,21 @@ def generate_description(df, user_col, time_col):
         # 시간 분석 없이 사용자별 분석만 수행
         user_counts = Counter(df[user_col]) if user_col in df.columns else {}
         total = len(df)
-        
         if user_counts:
             top_users = user_counts.most_common(5)
-            top_summary = ", ".join([f"{u}: {c}건 ({c/total:.1%})" for u, c in top_users])
-            top_total = sum([c for _, c in top_users])
-            top_ratio = f"{top_total}건({top_total/total:.1%})"
-            
+            if total == 0:
+                top_summary = ""
+                top_total = 0
+                top_ratio = "0건(0.0%)"
+            else:
+                top_summary = ", ".join([f"{u}: {c}건 ({c/total:.1%})" for u, c in top_users])
+                top_total = sum([c for _, c in top_users])
+                top_ratio = f"{top_total}건({top_total/total:.1%})"
             items = [item.strip() for item in top_summary.split(',') if item.strip()]
             formatted_top_summary = "<br>".join([
                 f"{user}: <b><span style='color:red;'>{count}</span></b>"
                 for user, count in (item.split(': ', 1) for item in items)
             ])
-            
             html = f"""
             <div style='background:#e3f2fd; border-left:4px solid #2196f3; padding:1rem; margin-top:2rem;'>
             <h3 style='margin-top:0;'>종합 평가</h3>
@@ -108,9 +110,14 @@ def generate_description(df, user_col, time_col):
     total = len(df)
 
     top_users = user_counts.most_common(5)
-    top_summary = ", ".join([f"{u}: {c}건 ({c/total:.1%})" for u, c in top_users])
-    top_total = sum([c for _, c in top_users])
-    top_ratio = f"{top_total}건({top_total/total:.1%})"
+    if total == 0:
+        top_summary = ""
+        top_total = 0
+        top_ratio = "0건(0.0%)"
+    else:
+        top_summary = ", ".join([f"{u}: {c}건 ({c/total:.1%})" for u, c in top_users])
+        top_total = sum([c for _, c in top_users])
+        top_ratio = f"{top_total}건({top_total/total:.1%})"
 
     # 3. HTML 생성
     items = [item.strip() for item in top_summary.split(',') if item.strip()]
@@ -120,16 +127,22 @@ def generate_description(df, user_col, time_col):
         for user, count in (item.split(': ', 1) for item in items)
     ])
 
+    period_html = "<br>".join([
+        f"{k}: <b><span style='color:red;'>{v}건</span></b>"
+        for k, v in sorted(period_counts.items())
+    ])
+    if period_counts:
+        max_period = max(period_counts, key=period_counts.get)
+        max_period_text = f"➤ <b><span style='color:red;'>{max_period}</span></b>에 가장 많은 이상 로그가 집중되어 있습니다."
+    else:
+        max_period_text = "➤ 이상 로그가 없습니다."
     html = f"""
     <div style='background:#e3f2fd; border-left:4px solid #2196f3; padding:1rem; margin-top:2rem;'>
     <h3 style='margin-top:0;'>종합 평가</h3>
     <div style='margin-bottom:1rem;'>
         <b>&lt;시간대별 이상 로그 분포&gt;</b><br>
-        {"<br>".join([
-            f"{k}: <b><span style='color:red;'>{v}건</span></b>"
-            for k, v in sorted(period_counts.items())
-        ])}<br>
-        ➤ <b><span style='color:red;'>{max(period_counts, key=period_counts.get)}</b>에 가장 많은 이상 로그가 집중되어 있습니다.
+        {period_html}<br>
+        {max_period_text}
     </div>
     <div>
         <b>&lt;상위 사용자 이상 로그 개수&gt;</b><br>
@@ -210,7 +223,7 @@ def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_m
     return final_data, categorical_cols, encoder
 
 
-def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=None):
+def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=None, threshold=None, threshold_mode="manual"):
     """
     업로드된 CSV 파일 경로(file_path)와 제외할 칼럼 리스트(exclude_columns)를 받아
     1) 전처리 → 2) PyCaret 이상 탐지 → 3) HTML 테이블 형태 결과 반환 """
@@ -265,6 +278,24 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
 
     model = create_model('iforest')
     results = assign_model(model, score=True)
+
+    # 판정 방식에 따라 이상치 판정
+    if threshold_mode == "manual":
+        th = threshold if threshold is not None else -0.20
+        score_col = None
+        for col in ['Anomaly_Score', 'Anomaly Score', 'anomaly_score']:
+            if col in results.columns:
+                score_col = col
+                break
+        if score_col:
+            results['Anomaly'] = (results[score_col] < th).astype(int)
+            # 이상치가 0건이면 PyCaret 자동 판정으로 fallback
+            if results['Anomaly'].sum() == 0:
+                pycaret_results = assign_model(model, score=True)
+                results['Anomaly'] = pycaret_results['Anomaly']
+    elif threshold_mode == "auto":
+        # PyCaret 기본 판정 사용 (이미 assign_model에서 판정됨)
+        pass
 
     # 4. 결과 출력
     count_anomaly = results['Anomaly'].sum()
@@ -325,7 +356,8 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
 
     # 그래프 시각화 (이상치만)
     try:
-        plot_anomaly_score_distribution(df_full, threshold=-0.20, score_col='Anomaly_Score')
+        th = threshold if threshold is not None else -0.20
+        plot_anomaly_score_distribution(df_full, threshold=th, score_col='Anomaly_Score')
         plot_anomaly_by_user(df_full[df_full['Anomaly'] == 1], user_col=user_col)
         plot_anomaly_by_hour(df_full[df_full['Anomaly'] == 1], user_col=user_col, time_col=time_col)
     except Exception as e:
@@ -388,6 +420,8 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         "columns": [str(col) for col in df_full.columns],  # 컬럼명도 문자열로 변환
         "result_csv_path": output_path,  # ← 동적 경로 사용
         "text_html": text_html,
+        "threshold": threshold,
+        "threshold_mode": threshold_mode,
     }
 
     # 10. SHAP 그래프를 그리기 위한 파일 생성(2)

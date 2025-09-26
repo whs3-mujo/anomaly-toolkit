@@ -470,6 +470,30 @@
         </div>
       </div>
 
+      <!-- 판정 방식 선택 + threshold 슬라이더 (업로드 후 표시) -->
+      <div id="threshold-area" style="width:100%; margin-bottom:1.2rem; text-align:center; display:none;">
+        <label for="threshold_slider" class="selection-label" style="margin-bottom:0.75rem; display:block;">이상치 기준값(Threshold) 조정:</label>
+        <div id="threshold-slider-area" style="border:1.5px solid #cfd8dc; border-radius:8px; background:#f5f6fa; padding:0.8rem 1.2rem; margin-top:8px; box-sizing:border-box;">
+          <div style="display:flex; align-items:center; justify-content:center; margin-bottom:8px; gap:22px;">
+            <label style="margin-right:12px; font-size:1.05rem; font-weight:400; color:#1976d2;">
+              <input type="radio" name="threshold_mode" value="manual" checked onclick="toggleThresholdSlider(true)"> 직접 기준값 지정
+            </label>
+            <label style="font-size:1.05rem; font-weight:400; color:#1976d2;">
+              <input type="radio" name="threshold_mode" value="auto" onclick="toggleThresholdSlider(false)"> PyCaret 자동 판정
+            </label>
+          </div>
+          <input type="range" id="threshold_slider" name="threshold" min="-1" max="1" step="0.01" value="-0.2" style="width:70%;">
+          <div style="margin-top:0.5rem; font-size:1.05rem; color:#1976d2;">
+            현재 값: <span id="threshold_value">-0.2</span>
+          </div>
+          <div style="margin-top:0.5rem; font-size:0.98rem; color:#888;">
+            <span style="font-size:1.05rem; font-weight:500; color:#888;">추천값:</span>
+            <span class="threshold-recommend" style="cursor:pointer; color:#888; margin:0 8px;" onclick="setThreshold(-0.5)">-0.5(엄격)</span>
+            <span class="threshold-recommend" style="cursor:pointer; color:#888; margin:0 8px;" onclick="setThreshold(-0.2)">-0.2(보통)</span>
+            <span class="threshold-recommend" style="cursor:pointer; color:#888; margin:0 8px;" onclick="setThreshold(0)">0(느슨)</span>
+          </div>
+        </div>
+      </div>
       <!-- 사용자/시간 칼럼 선택 영역 -->
       <div id="col-select-area" class="col-select-area" style="display:none;">
         <div class="col-select-row">
@@ -498,6 +522,26 @@
   </div>
 
   <script>
+    // 슬라이더 활성/비활성 및 색상 변경 함수
+    function toggleThresholdSlider(enable) {
+      const slider = document.getElementById('threshold_slider');
+      const valueText = document.querySelector('#threshold_value').parentElement;
+      if (enable) {
+        slider.disabled = false;
+        slider.style.background = '#1976d2';
+        slider.style.cursor = 'pointer';
+        valueText.style.color = '#1976d2';
+      } else {
+        slider.disabled = true;
+        slider.style.background = '#d1d5db';
+        slider.style.cursor = 'not-allowed';
+        valueText.style.color = '#888';
+      }
+    }
+    // 초기 상태: 직접 기준값 지정이 선택되어 있으므로 활성화
+    document.addEventListener('DOMContentLoaded', function() {
+      toggleThresholdSlider(true);
+    });
     function getCookie(name) {
       let cookieValue = null;
       if (document.cookie && document.cookie !== '') {
@@ -607,7 +651,18 @@
             // UI 요소들 표시
             document.getElementById('column-selection-area').style.display = "block";
             document.getElementById('col-select-area').style.display = "block";
+            document.getElementById('threshold-area').style.display = "block";
             document.querySelector('.upload-btn').style.display = "block";
+            // 슬라이더 이벤트 바인딩 (업로드 후 항상)
+            const slider = document.getElementById('threshold_slider');
+            const valueSpan = document.getElementById('threshold_value');
+            if (slider && valueSpan) {
+              slider.addEventListener('input', function () {
+                valueSpan.textContent = slider.value;
+              });
+              // 초기값 반영
+              valueSpan.textContent = slider.value;
+            }
           })
           .catch(error => {
             console.error('Error:', error);
@@ -728,12 +783,35 @@
 
       const formData = new FormData();
       formData.append("file", file);
-      const exclude = [...document.querySelectorAll('input[name="exclude"]:checked')].map(cb => cb.value);
-      formData.append("exclude_columns", exclude.join(","));
-      const userCol = document.getElementById('user_col').value;
-      const timeCol = document.getElementById('time_col').value;
-      formData.append("user_col", userCol);
-      formData.append("time_col", timeCol);
+  const exclude = [...document.querySelectorAll('input[name="exclude"]:checked')].map(cb => cb.value);
+  formData.append("exclude_columns", exclude.join(","));
+  const userCol = document.getElementById('user_col').value;
+  const timeCol = document.getElementById('time_col').value;
+  formData.append("user_col", userCol);
+  formData.append("time_col", timeCol);
+  // 판정 방식 및 threshold 값 추가
+  const thresholdMode = document.querySelector('input[name="threshold_mode"]:checked').value;
+  formData.append("threshold_mode", thresholdMode);
+  const threshold = document.getElementById('threshold_slider').value;
+  formData.append("threshold", threshold);
+    // 판정 방식에 따라 슬라이더 활성/비활성
+    function toggleThresholdSlider(show) {
+      const area = document.getElementById('threshold-slider-area');
+      if (area) {
+        area.style.display = show ? 'block' : 'none';
+      }
+    }
+    // threshold 슬라이더 UI 동작 및 추천값 클릭 이벤트
+    // threshold 슬라이더 UI 동작 및 추천값 클릭 이벤트
+    function setThreshold(val) {
+      const slider = document.getElementById('threshold_slider');
+      const valueSpan = document.getElementById('threshold_value');
+      if (slider && valueSpan) {
+        slider.value = val;
+        valueSpan.textContent = val;
+      }
+    }
+    // DOMContentLoaded에서 슬라이더 이벤트 바인딩 제거 (업로드 후에만 바인딩)
 
       fetch("{% url 'web:detect_anomalies' %}", {
         method: "POST",

@@ -66,6 +66,8 @@ def get_analysis_detail(request, session_id):
                 'user_graph_html': getattr(session, 'user_graph_html', None),
                 'hour_graph_html': getattr(session, 'hour_graph_html_top3', None),
                 'score_graph_html': getattr(session, 'score_graph_html', None),
+                'threshold': session.threshold,
+                'threshold_mode': session.threshold_mode
             }
         })
     except Exception as e:
@@ -286,12 +288,18 @@ def detect_anomalies_view(request):
             exclude_columns = [col.strip() for col in exclude_columns.split(",") if col.strip()]
             user_col = request.POST.get("user_col")
             time_col = request.POST.get("time_col")
-            
+            threshold = request.POST.get("threshold")
+            threshold_mode = request.POST.get("threshold_mode", "manual")
             # 빈 문자열을 None으로 변환
             user_col = user_col if user_col else None
             time_col = time_col if time_col else None
+            # threshold 값 float 변환, 없으면 None
+            try:
+                threshold = float(threshold)
+            except (TypeError, ValueError):
+                threshold = None
             file_path = save_uploaded_file(file)
-            result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col)
+            result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col, threshold=threshold, threshold_mode=threshold_mode)
             result_csv_path = result.get("result_csv_path")
             df_result = pd.read_csv(result_csv_path)
 
@@ -305,7 +313,7 @@ def detect_anomalies_view(request):
             def run_analysis():
                 nonlocal result, analysis_error
                 try:
-                    result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col)
+                    result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col, threshold=threshold, threshold_mode=threshold_mode)
                 except Exception as e:
                     analysis_error = True
                     print(f"분석 중 오류 발생: {e}")
@@ -340,6 +348,8 @@ def detect_anomalies_view(request):
                 user_graph_html=user_graph_html,
                 hour_graph_html_top3=hour_graph_html_top3,
                 score_graph_html=score_graph_html,
+                threshold=threshold,
+                threshold_mode=threshold_mode
             )
             return JsonResponse(result)
         
