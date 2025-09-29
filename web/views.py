@@ -17,6 +17,8 @@ from django.db.models import Count, Q
 from django.contrib.auth.models import User
 import time
 import threading
+from .visualize_graph import plot_anomaly_by_user, plot_anomaly_by_hour, plot_anomaly_score_distribution
+
 
 def redirect_dashboard(request):
     return redirect('web:dashboard')
@@ -54,6 +56,10 @@ def get_analysis_detail(request, session_id):
     """특정 분석 결과 상세 정보 반환"""
     try:
         session = get_object_or_404(AnalysisSession, session_id=session_id)
+        
+        analysis_result = session.analysis_result.copy() if session.analysis_result else {}
+        analysis_result['text_html'] = generate_interactive_summary_html(session)
+        
         return JsonResponse({
             'success': True,
             'session': {
@@ -62,7 +68,7 @@ def get_analysis_detail(request, session_id):
                 'filename': session.original_filename,
                 'file_type': session.file_type,
                 'created_at': session.created_at.strftime('%Y-%m-%dT%H:%M:%SZ'),
-                'analysis_result': session.analysis_result,
+                'analysis_result': analysis_result,
                 'user_graph_html': getattr(session, 'user_graph_html', None),
                 'hour_graph_html': getattr(session, 'hour_graph_html_top3', None),
                 'score_graph_html': getattr(session, 'score_graph_html', None),
@@ -456,7 +462,7 @@ def get_shap_plot(request, session_id, row_index):
     # TF-IDF 칼럼 식별
     tfidf_cols = [col for col in feature_cols if '_tfidf_' in col]
     
-    # TF-IDF 피처 원본 칼럼 찾기 - 원본 데이터셋 참고
+    # TF-IDF 피처 원본 칼럼 찾기 - 원본 데이터셋 참고 
     tfidf_mappings = {}
     lower_original_columns = {col.lower() for col in original_columns}
     for col in tfidf_cols:
@@ -550,51 +556,60 @@ def get_shap_plot(request, session_id, row_index):
     })
     max_len = 6  
 
-
     y_pos = np.arange(max_len)
-    fig, ax = plt.subplots(figsize=(6, max(8, max_len * 1.5)))
-
-
-    # SHAP 값을 절댓값으로 바꿔 오른쪽으로 표시
+    
+    fig, ax = plt.subplots(figsize=(10, 8))  
     flipped_values = -negative_df['shap_value']  
-    ax.set_xlim(0, flipped_values.max() * 1.2)
+    max_value = flipped_values.max()
+    if max_value > 0:
+        ax.set_xlim(0, max_value * 1.2)
+    else:
+        ax.set_xlim(0, 1)
 
-    ax.barh(y_pos, flipped_values, color='salmon', label='이상치 기여도', align='center', height = 0.5)
+    ax.barh(y_pos, flipped_values, color='salmon', label='이상치 기여도', align='center', height=0.6)  # height를 0.4로 더 축소
     ax.axvline(x=0, color='black', linewidth=1)
 
-    ax.grid(axis='y', visible=False)  # 가로줄 제거
-    ax.grid(axis='x', visible=True, linestyle='--', alpha=0.8)  # 세로줄은 표시 (옵션)
-
+    ax.grid(axis='y', visible=False)  
+    ax.grid(axis='x', visible=True, linestyle='--', alpha=0.7)  # 세로줄은 표시
 
     ax.set_yticks(y_pos)
     ax.set_yticklabels([''] * max_len)
     ax.invert_yaxis()
 
-    for i, label in enumerate(negative_df['feature']):
-        if label:
-            ax.text(flipped_values[i] + flipped_values.max() * 0.02, i, label, ha='left', va='center', fontsize=10, fontweight='bold')
+    for i, (label, value) in enumerate(zip(negative_df['feature'], flipped_values)):
+        if label and value > 0:
+            text_x = value + (max_value * 0.01) if max_value > 0 else 0.01
+            if text_x > max_value * 1.15:
+                text_x = max_value * 1.15
+                ha = 'right'
+            else:
+                ha = 'left'
+            
+            ax.text(text_x, i, label, ha=ha, va='center', 
+                   fontsize=9, fontweight='bold',   
+                   bbox=dict(boxstyle="round,pad=0.2", facecolor='white', alpha=0.8))  
 
-    ax.set_title(f"{row_index}번 ROW\n", fontweight='bold')
-    ax.set_xlabel("영향도 크기 (SHAP)")
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), frameon=False)
+    ax.set_title(f"{row_index+1}번 ROW", fontweight='bold', fontsize=11, pad=10) 
+    ax.set_xlabel("영향도 크기 (SHAP)", fontsize=10) 
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), frameon=False, fontsize=9)  
 
     plt.tight_layout()
-    plt.subplots_adjust(bottom=0.15)
+    plt.subplots_adjust(left=0.02, right=0.98, top=0.85, bottom=0.20)  
 
-    # base64 인코딩
     buffer = BytesIO()
-    fig.savefig(buffer, format="png")
+    fig.savefig(buffer, format="png", dpi=100, bbox_inches='tight') 
     buffer.seek(0)
     image_png = buffer.getvalue()
     buffer.close()
+    plt.close(fig) 
+    
     encoded = base64.b64encode(image_png).decode('utf-8')
-    img_html = f'<img src="data:image/png;base64,{encoded}" style="width:100%;">'
+    img_html = f'<img src="data:image/png;base64,{encoded}" style="width:100%; max-width:100%; height:auto;">'
 
-    explanation_text = generate_shap_explanation(negative_df)  #SHAP 줄글 설명용
+    explanation_html = generate_shap_table(negative_df)    
 
-    # 그래프 아래 설명용 문단
     middle_html = """
-    <div style='margin: 1rem 0; color: #666; font-size: 0.95em;'>
+    <div style='margin: 1rem 0; color: #666; font-size: 1.05rem; line-height: 1.5;'>
         이 그래프는 AI가 해당 로그를 이상으로 판단하는 데 영향을 준 항목들을 기여도 순으로 보여줍니다.
     </div>
     """
@@ -606,70 +621,72 @@ def get_shap_plot(request, session_id, row_index):
         'success': True,
         'plot_html': img_html,
         'shap_middle_html': middle_html,
-        'shap_explanation': explanation_text,
+        'shap_explanation': explanation_html,  
         'description_html': description_html 
+    })
 
-})
 
-
-# SHAP 그래프에 대한 줄글 설명 출력 코드
-def generate_shap_explanation(shap_row_df):
-    explanations = []
-    for _, row in shap_row_df.iterrows():
+def generate_shap_table(shap_df):
+    """SHAP 설명을 테이블 형식으로 생성 - 색상별 기여도 표시"""
+    table_html = """
+    <div style="margin-top: 1rem;">
+        <h4 style="color: #1976d2; font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; border-bottom: 2px solid #e3f2fd; padding-bottom: 0.5rem;">상세 설명</h4>
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #dee2e6;">
+            <thead>
+                <tr style="background: #f1f3f5;">
+                    <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #495057; border: 1px solid #dee2e6;">컬럼</th>
+                    <th style="padding: 12px 15px; text-align: center; font-weight: 600; color: #495057; border: 1px solid #dee2e6;">기여도</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+    
+    for idx, row in shap_df.head(6).iterrows():
         feature = row['feature']
-        if not feature:  # feature가 비어 있는 경우 (빈 bar용) 설명 제외
+        if not feature:
             continue
-
-        # SHAP 값의 절댓값을 기준으로 영향도 판단
-        shap_magnitude = abs(row['shap_value'])
-        data_value = row['data']
+        shap_value = abs(row['shap_value'])
         
-        # 만약 data_value가 Series나 배열이면 float로 변환 (대표값 사용)
-        if isinstance(data_value, (np.ndarray, pd.Series)):
-            data_magnitude = float(np.abs(data_value).max())
+        if shap_value > 0.1:
+            color = "#c62828"  # 빨간색
+            bg_color = "#ffebee"
+            level = "높음"
+        elif shap_value > 0.05:
+            color = "#ef6c00"  # 주황색
+            bg_color = "#fff3e0"
+            level = "중간"
+        elif shap_value > 0.01:
+            color = "#f57f17"  # 노란색
+            bg_color = "#fffde7"
+            level = "약간"
         else:
-            data_magnitude = abs(float(data_value)) if data_value is not None else 0.0
-
-        # SHAP 값의 크기에 따른 영향도 레벨 결정
-        if shap_magnitude > 0.1:
-            level = "<span style='color: #B22222'>크게</span>"  # 빨간색
-        elif shap_magnitude > 0.05:
-            level = "<span style='color: #e67e22'>중간 정도</span>"  # 주황색
-        elif shap_magnitude > 0.01:
-            level = "<span style='color: #f1c40f'>약간</span>"  # 노란색
-        else:
-            level = "거의"
-
-        # 설명 텍스트 생성 - SHAP 기여도를 중심으로
-        if shap_magnitude < 0.01:
-            explanations.append(
-                f"{feature}: 이상 탐지에 거의 영향 없음 (기여도: {shap_magnitude:.3f})"
-            )
-        else:
-            # 데이터 차이와 영향도의 관계 설명
-            if data_magnitude < 0.01 and shap_magnitude > 0.05:
-                # 값 차이는 작지만 영향이 큰 경우
-                explanation_reason = "※ 이 특성은 희귀하거나 모델이 중요하게 학습한 패턴입니다"
-                data_text = "값의 차이는 미미하지만"
-            elif data_magnitude < 0.01:
-                data_text = "값의 차이는 미미하며"
-                explanation_reason = ""
-            elif data_magnitude < 1.0:
-                data_text = f"평균 대비 {data_magnitude:.2f} 차이로"
-                explanation_reason = ""
-            else:
-                data_text = f"평균 대비 {data_magnitude:.2f} 만큼 크게 차이나며"
-                explanation_reason = ""
-            
-            base_explanation = f"{feature}: {data_text} 이상 탐지에 {level} 영향 (기여도: {shap_magnitude:.3f})"
-            if explanation_reason:
-                explanations.append(f"{base_explanation}<br><small style='color: #666; font-style: italic;'>{explanation_reason}</small>")
-            else:
-                explanations.append(base_explanation)
-
-    explanations.append("<span style='color: #555; font-size: 0.95em;'>💡 <strong>참고:</strong> 값의 차이가 작아도 영향이 클 수 있습니다. 이는 해당 특성이 희귀하거나, 모델이 이상 탐지의 중요한 패턴으로 학습했기 때문입니다.</span>")
-
-    return explanations
+            color = "#1565c0"  # 파란색
+            bg_color = "#e3f2fd"
+            level = "미미"
+        
+        table_html += f"""
+        <tr style="background: white;">
+            <td style="padding: 10px 15px; border: 1px solid #dee2e6; font-weight: 500; color: #333;">{feature}</td>
+            <td style="padding: 10px 15px; border: 1px solid #dee2e6; text-align: center; background: {bg_color}; color: {color}; font-weight: bold; font-size: 1.1rem;">
+                {level}<br><small style="font-size: 0.9em; color: #666;">({shap_value:.3f})</small>
+            </td>
+        </tr>
+        """
+    
+    table_html += """
+            </tbody>
+        </table>
+        <div style="margin-top: 10px; font-size: 0.95em; color: #666; line-height: 1.5;">
+            <strong><br>기여도 범례</br></strong> 
+            <span style="color: #c62828; font-weight: bold;">높음(0.1↑)</span> | 
+            <span style="color: #ef6c00; font-weight: bold;">중간(0.05~0.1)</span> | 
+            <br>
+            <span style="color: #f57f17; font-weight: bold;">약간(0.01~0.05)</span> | 
+            <span style="color: #1565c0; font-weight: bold;">미미(0.01↓)</span>
+        </div>
+    </div>
+    """
+    return table_html
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
@@ -891,3 +908,309 @@ def anomaly_by_hour_viewall(request):
         return render(request, 'web/anomaly_by_hour.html', {
             'hour_graph_html': f"<p>그래프 로딩 중 오류 발생: {str(e)}</p>"
         })
+
+def generate_interactive_summary_html(session):
+    """분석 결과를 기반으로 인터랙티브 요약 HTML 생성 - 가로 누적막대 버전"""
+    if not session.analysis_result:
+        return "<p>분석 결과가 없습니다.</p>"
+    
+    try:
+        time_periods, top_users = parse_analysis_data(session)
+        
+        max_time_period = max(time_periods, key=lambda x: x['count']) if time_periods else None
+        max_user = max(top_users, key=lambda x: x['count']) if top_users else None
+        
+        total_time_anomalies = sum(p['count'] for p in time_periods)
+        total_user_anomalies = sum(u['count'] for u in top_users)
+        
+        time_segments = []
+        if total_time_anomalies > 0:
+            cumulative = 0
+            for period in time_periods:
+                percentage = (period['count'] / total_time_anomalies) * 100
+                time_segments.append({
+                    'period': period['period'],
+                    'count': period['count'],
+                    'percentage': percentage,
+                    'color': period['color'],
+                    'start': cumulative,
+                    'width': percentage
+                })
+                cumulative += percentage
+        
+        user_segments = []
+        if total_user_anomalies > 0:
+            cumulative = 0
+            for user in top_users:
+                percentage = (user['count'] / total_user_anomalies) * 100
+                user_segments.append({
+                    'user': user['user'],
+                    'count': user['count'],
+                    'percentage': percentage,
+                    'color': user['color'],
+                    'start': cumulative,
+                    'width': percentage
+                })
+                cumulative += percentage
+        
+        html = f"""
+        <div style="display: flex; gap: 2rem; height: 100%;">
+            <div style="flex: 1; padding: 1rem;">
+                <h4 style="color: #1976d2; margin-bottom: 1rem; border-bottom: 2px solid #e3f2fd; padding-bottom: 0.5rem;">종합 평가</h4>
+                
+                <div style="margin-bottom: 2rem;">
+                    <h5 style="color: #333; margin-bottom: 1rem;"><p style="font-size:1"><b>시간대별 이상 로그 분포 (총 {total_time_anomalies}건)</b></p></h5>
+                    <div style="height: 120px; margin-bottom: 1rem; border: 1px solid #eee; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 15px; justify-content: center;">
+                        <div style="position: relative; width: 100%; height: 50px; background: #f5f5f5; border-radius: 8px; overflow: hidden; display: flex;">
+                            {"".join([
+                                f'''<div 
+                                    data-name="{seg['period']}"
+                                    data-count="{seg['count']}"
+                                    data-percentage="{seg['percentage']:.1f}"
+                                    style="
+                                        width: {seg['width']}%;
+                                        background: {seg['color']};
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        color: #000;
+                                        font-size: 16px;
+                                        font-weight: bold;
+                                        cursor: pointer;
+                                        transition: opacity 0.2s;
+                                        position: relative;
+                                    "
+                                    onmouseover="this.style.opacity='0.8'; showBarTooltip(event, this)"
+                                    onmouseout="this.style.opacity='1'; hideBarTooltip()"
+                                    onmousemove="showBarTooltip(event, this)"
+                                >
+                                    {seg['count'] if seg['width'] > 8 else ''}
+                                </div>'''
+                                for seg in time_segments
+                            ])}
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
+                            {"".join([
+                                f'<div style="display: flex; align-items: center; gap: 6px; font-size: 13px;"><div style="width: 14px; height: 14px; background: {seg["color"]}; border-radius: 3px;"></div><span>{seg["period"]} ({seg["count"]}건)</span></div>'
+                                for seg in time_segments
+                            ])}
+                        </div>
+                    </div>
+                    <p style="color: #666; font-size: 0.95rem; line-height: 1.5; text-align: left;">
+                        <b>{f'<span style="color: {max_time_period["color"]}; font-weight: bold;">{max_time_period["period"]}</span>에 가장 많은 이상 로그({max_time_period["count"]}건)가 집중되어 있습니다.' if max_time_period and max_time_period['count'] > 0 else '시간대별 이상 로그가 없거나 고르게 분포되어 있습니다.'}</b>
+                    </p>
+                </div>
+                
+                <div>
+                    <h5 style="color: #333; margin-bottom: 1rem;"><p style="font-size:1"><b>상위 사용자 이상 로그 개수 (총 {total_user_anomalies}건)</b></p></h5>
+                    <div style="height: 120px; margin-bottom: 1rem; border: 1px solid #eee; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 15px; justify-content: center;">
+                        <div style="position: relative; width: 100%; height: 50px; background: #f5f5f5; border-radius: 8px; overflow: hidden; display: flex;">
+                            {"".join([
+                                f'''<div 
+                                    data-name="{seg['user']}"
+                                    data-count="{seg['count']}"
+                                    data-percentage="{seg['percentage']:.1f}"
+                                    style="
+                                        width: {seg['width']}%;
+                                        background: {seg['color']};
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        color: #000;
+                                        font-size: 16px;
+                                        font-weight: bold;
+                                        cursor: pointer;
+                                        transition: opacity 0.2s;
+                                        position: relative;
+                                    "
+                                    onmouseover="this.style.opacity='0.8'; showBarTooltip(event, this)"
+                                    onmouseout="this.style.opacity='1'; hideBarTooltip()"
+                                    onmousemove="showBarTooltip(event, this)"
+                                >
+                                    {seg['count'] if seg['width'] > 8 else ''}
+                                </div>'''
+                                for seg in user_segments
+                            ])}
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
+                            {"".join([
+                                f'<div style="display: flex; align-items: center; gap: 6px; font-size: 13px;"><div style="width: 14px; height: 14px; background: {seg["color"]}; border-radius: 3px;"></div><span>{seg["user"]} ({seg["count"]}건)</span></div>'
+                                for seg in user_segments
+                            ])}
+                        </div>
+                    </div>
+                    <p style="color: #666; font-size: 0.95rem; line-height: 1.5; text-align: left;">
+                        <b>{f'사용자 <span style="color: {max_user["color"]}; font-weight: bold;">{max_user["user"]}</span>에게 가장 많은 이상 로그({max_user["count"]}건)가 집중되어 있습니다.' if max_user and max_user['count'] > 0 else '사용자별 이상 로그 분포를 확인할 수 없습니다.'}</b>
+                    </p>
+                    <br>
+                </div>
+            </div>
+        </div>
+        
+        <div id="bar-tooltip" style="
+            position: fixed;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 10000;
+            transition: opacity 0.2s;
+        "></div>
+        
+        <script type="text/javascript">
+            function showBarTooltip(event, element) {{
+                const tooltip = document.getElementById('bar-tooltip');
+                const name = element.getAttribute('data-name');
+                const count = element.getAttribute('data-count');
+                const percentage = element.getAttribute('data-percentage');
+                
+                tooltip.innerHTML = `<strong>${{name}}</strong><br/>이상 로그: ${{count}}건<br/>비율: ${{percentage}}%`;
+                tooltip.style.left = (event.pageX + 10) + 'px';
+                tooltip.style.top = (event.pageY - 28) + 'px';
+                tooltip.style.opacity = '1';
+            }}
+            
+            function hideBarTooltip() {{
+                const tooltip = document.getElementById('bar-tooltip');
+                tooltip.style.opacity = '0';
+            }}
+        </script>
+        """
+        
+        return html
+    except Exception as e:
+        print(f"DEBUG: generate_interactive_summary_html 오류: {e}")
+        import traceback
+        traceback.print_exc()
+        return f"<p>종합 설명 생성 중 오류가 발생했습니다: {str(e)}</p>"
+
+def parse_analysis_data(session):
+    """분석 결과에서 실제 데이터를 파싱하여 차트 데이터 생성 (디버깅 강화)"""
+    time_periods = []
+    top_users = []
+    
+    try:
+        print(f"DEBUG: parse_analysis_data 시작, session.id={session.id}")
+        
+        if session.analysis_result and 'result_csv_path' in session.analysis_result:
+            csv_path = session.analysis_result['result_csv_path']
+            print(f"DEBUG: CSV 경로: {csv_path}")
+            
+            if not os.path.exists(csv_path):
+                print(f"DEBUG: CSV 파일이 존재하지 않음: {csv_path}")
+                raise FileNotFoundError(f"CSV 파일을 찾을 수 없습니다: {csv_path}")
+                
+            df = pd.read_csv(csv_path)
+            print(f"DEBUG: CSV 로드 성공, shape={df.shape}")
+            print(f"DEBUG: 컬럼명: {list(df.columns)}")
+            
+            anomaly_df = df[df['Anomaly'] == 1]
+            print(f"DEBUG: 이상치 데이터 shape={anomaly_df.shape}")
+            
+            if not anomaly_df.empty and session.time_col and session.time_col in anomaly_df.columns:
+                print(f"DEBUG: 시간 컬럼 '{session.time_col}' 처리 시작")
+                
+                try:
+                    anomaly_df = anomaly_df.copy()  
+                    anomaly_df[session.time_col] = pd.to_datetime(anomaly_df[session.time_col])
+                    anomaly_df['hour'] = anomaly_df[session.time_col].dt.hour
+                    
+                    print(f"DEBUG: 시간대별 분포: {anomaly_df['hour'].value_counts().sort_index()}")
+                    
+                    def categorize_time(hour):
+                        if 0 <= hour <= 5:
+                            return '새벽시간(00-05시)'
+                        elif 6 <= hour <= 11:
+                            return '오전시간(06-11시)'
+                        elif 12 <= hour <= 17:
+                            return '오후시간(12-17시)'
+                        else:
+                            return '저녁시간(18-23시)'
+                    
+                    anomaly_df['time_period'] = anomaly_df['hour'].apply(categorize_time)
+                    
+                    time_counts = anomaly_df['time_period'].value_counts()
+                    print(f"DEBUG: 시간대별 집계: {time_counts}")
+                    
+                    sorted_time_data = []
+                    colors = ['#FF6B6B', '#4ECDC4', "#45B7D1", '#96CEB4']
+                    periods = ['새벽시간(00-05시)', '오전시간(06-11시)', '오후시간(12-17시)', '저녁시간(18-23시)']
+                    
+                    period_data = []
+                    for period in periods:
+                        count = time_counts.get(period, 0)
+                        period_data.append({
+                            'period': period,
+                            'count': int(count)
+                        })
+                    
+                    period_data.sort(key=lambda x: x['count'], reverse=True)
+                    
+                    for i, data in enumerate(period_data):
+                        time_periods.append({
+                            'period': data['period'],
+                            'count': data['count'],
+                            'color': colors[i] if i < len(colors) else '#D3D3D3'
+                        })
+                        
+                    print(f"DEBUG: time_periods 생성 완료 (시계방향 내림차순): {time_periods}")
+                        
+                except Exception as time_error:
+                    print(f"DEBUG: 시간 컬럼 파싱 오류: {time_error}")
+                    pass
+            else:
+                print(f"DEBUG: 시간 데이터 처리 건너뛰기 - empty={anomaly_df.empty}, time_col={session.time_col}")
+            
+            if not anomaly_df.empty and session.user_col and session.user_col in anomaly_df.columns:
+                print(f"DEBUG: 사용자 컬럼 '{session.user_col}' 처리 시작")
+                
+                user_counts = anomaly_df[session.user_col].value_counts().head(4)
+                print(f"DEBUG: 사용자별 집계: {user_counts}")
+                
+                colors = ['#FF6B6B', '#4ECDC4', "#45B7D1", '#96CEB4']
+                
+                for i, (user, count) in enumerate(user_counts.items()):
+                    top_users.append({
+                        'user': str(user)[:10],  
+                        'count': int(count),
+                        'color': colors[i] if i < len(colors) else '#D3D3D3'
+                    })
+                
+                if len(user_counts) > 4:
+                    other_count = user_counts.iloc[4:].sum()
+                    if other_count > 0:
+                        top_users.append({
+                            'user': '기타',
+                            'count': int(other_count),
+                            'color': '#D3D3D3'
+                        })
+                
+                print(f"DEBUG: top_users 생성 완료: {top_users}")
+            else:
+                print(f"DEBUG: 사용자 데이터 처리 건너뛰기 - empty={anomaly_df.empty}, user_col={session.user_col}")
+                    
+    except Exception as e:
+        print(f"DEBUG: 데이터 파싱 오류: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    if not time_periods:
+        print("DEBUG: time_periods가 비어있음, 기본값 설정")
+        time_periods = [
+            {'period': '새벽시간(00-05시)', 'count': 0, 'color': '#FF6B6B'},
+            {'period': '오전시간(06-11시)', 'count': 0, 'color': '#4ECDC4'},
+            {'period': '오후시간(12-17시)', 'count': 0, 'color': "#45B7D1"},
+            {'period': '저녁시간(18-23시)', 'count': 0, 'color': '#96CEB4'}
+        ]
+    
+    if not top_users:
+        print("DEBUG: top_users가 비어있음, 기본값 설정")
+        top_users = [
+            {'user': '데이터 없음', 'count': 0, 'color': '#D3D3D3'}
+        ]
+    
+    print(f"DEBUG: parse_analysis_data 완료 - time_periods={len(time_periods)}, top_users={len(top_users)}")
+    return time_periods, top_users
