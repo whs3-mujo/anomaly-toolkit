@@ -324,6 +324,7 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     # SHAP 입력값으로 사용할 DataFrame 생성
     forshap_input = sorted_results.drop(columns=['Anomaly', 'Anomaly_Score'], errors='ignore')
     forshap_input = forshap_input.round(6)
+    forshap_input = forshap_input.head(100)
 
 # user_col, time_col 복원
     if user_col and user_col in data.columns and user_col not in results.columns:
