@@ -56,7 +56,6 @@
   white-space: nowrap;
 }
 
-/* 진한 색상 적용 */
 .history-item .filename {
   color: #173a7d;
   font-weight: 700;
@@ -82,7 +81,6 @@
   margin-left: 2px;
 }
 
-/* 색상 변경 */
 .session-time {
   color: #1976d2;
   font-size: 0.97em;
@@ -135,7 +133,7 @@
 
         .table {
       width: 100%;
-      min-width: 900px; /* 칼럼 많을 때 가로 스크롤 */
+      min-width: 900px; 
       border-collapse: collapse;
       font-size: 0.95rem;
       margin-top: 0.5rem;
@@ -155,21 +153,20 @@
     }
     
     .selected-row {
-      background-color: #e3f2fd !important;  /* 로그 열 누르면 색칠할 파란색 */
+      background-color: #e3f2fd !important; 
     }
     table tbody tr:hover {
-      background-color: #f1f3f5;  /* 마우스 오버시 부드러운 회색 */
-      cursor: pointer; /*클릭가능한 마우스 모양? 으로 바꿔줌*/
+      background-color: #f1f3f5; 
+      cursor: pointer;
     }
 
-    .table thead th { /*맨 위 행(로그 열 정보)는 아래로 스크롤해도 고정 */
+    .table thead th { 
       position: sticky;
       top: 0;
       background: #f1f3f5;
       z-index: 2;
     }
 
-    /* 대시보드 그래프 카드 스타일 */
     .dashboard-graphs-card {
       background: #fff;
       border-radius: 12px;
@@ -179,15 +176,20 @@
       flex-direction: column;
       gap: 1.2rem;
       box-shadow: 0 2px 12px rgba(23,58,125,0.06);
-      margin-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      width: 100%;
+      margin-right: 0;
+      max-width: calc(100% - 60px);
     }
+    
     .dashboard-graphs-row {
       display: flex;
       gap: 1.2rem;
       min-height: 220px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       width: 100%;
     }
+    
     .dashboard-graph-box {
       flex: 1 1 0;
       min-width: 0;
@@ -199,8 +201,9 @@
       align-items: stretch;
       height: 220px;
       box-shadow: 0 1px 4px rgba(23,58,125,0.04);
-      overflow: hidden; /* 카드 밖으로 안 나가게 */
+      overflow: hidden;
     }
+    
     .dashboard-graph-inner {
       width: 100%;
       height: 100%;
@@ -210,6 +213,7 @@
       align-items: stretch;
       justify-content: stretch;
     }
+    
     .dashboard-graph-inner > div,
     .dashboard-graph-inner > iframe,
     .dashboard-graph-inner > .plotly-graph-div {
@@ -221,6 +225,7 @@
       max-height: 100% !important;
       box-sizing: border-box;
     }
+    
     .dashboard-graph-bottom {
       height: 260px;
       min-width: 0;
@@ -230,14 +235,15 @@
       padding: 0.5rem;
       margin-top: 1.2rem;
       box-shadow: 0 1px 4px rgba(23,58,125,0.04);
+      width: 100%;
     }
-    /* 표/버튼 영역 개선 */
+    
     .dashboard-table-area {
       background: white;
       border-radius: 12px;
       border: 1.5px solid #e9ecef;
-      padding: 1.2rem 1.5rem;
-      margin-top: 0.5rem;
+      padding: 1.2rem 1.5rem 1.5rem 1.5rem;
+      margin-bottom: 1rem;
       flex: 1;
       min-height: 300px;
       max-width: 100%;
@@ -245,7 +251,11 @@
       display: flex;
       flex-direction: column;
       position: relative;
+      width: 100%;
+      max-width: calc(100% - 60px);
+      margin-right: 0;
     }
+    
     .dashboard-table-header {
       display: flex;
       justify-content: space-between;
@@ -257,60 +267,233 @@
       position: relative;
       background: white;
     }
+    
     .dashboard-table-header .download-btns {
       display: flex;
       gap: 0.5rem;
     }
+    
     .dashboard-table-scroll {
       max-height: 400px;
       overflow-y: auto;
       overflow-x: auto;
     }
+    
     .dashboard-table-inner {
       min-width: 900px;
     }
-    .dashboard-flex-right {
-      flex: 1 1 320px;
+
+    .dashboard-shap-section {
       display: flex;
-      flex-direction: column;
       gap: 1.2rem;
-      min-width: 0;
-      max-width: 480px;
+      width: 99.5%;
+      align-items: flex-start;
     }
+    
     .dashboard-shap-plot {
       background: white;
       border: 1.5px solid #e9ecef;
       border-radius: 10px;
-      padding: 1rem;
-      height: 600px;
+      padding: 1.5rem;
+      height: 550px; 
       min-width: 0;
       overflow: hidden;
       box-shadow: 0 1px 4px rgba(23,58,125,0.04);
+      flex: 2 1 0; 
     }
+    
     .dashboard-shap-inner {
       height: 100%;
       width: 100%;
       min-width: 0;
     }
+    
     .dashboard-shap-explain {
       background: white;
       border: 1.5px solid #e9ecef;
       border-radius: 10px;
-      padding: 1rem;
-      flex: 1;
-      min-height: 180px;
+      padding: 1.5rem;
+      height: 550px; 
+      min-width: 0;
       overflow-y: auto;
       box-shadow: 0 1px 4px rgba(23,58,125,0.04);
+      flex: 1 1 0;
+      font-size: 1.08rem; 
+      line-height: 1.7;
     }
+    
     .dashboard-desc-area {
       background: white;
       border: 1.5px solid #e9ecef;
       border-radius: 10px;
-      padding: 1rem;
-      max-height: 200px;
+      padding: 1.5rem;
+      height: 550px; 
       overflow-y: auto;
       box-shadow: 0 1px 4px rgba(23,58,125,0.04);
+      flex: 0 0 28%;       
+      font-size: 1.08rem; 
+      line-height: 1.7;  
     }
+
+    .dashboard-shap-inner img {
+      max-width: 100%;
+      height: 700px;
+      object-fit: contain;
+    }
+
+    .dashboard-shap-explain h4 {
+      color: #1976d2;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      margin-top: 0;
+      border-bottom: 2px solid #e3f2fd;
+      padding-bottom: 0.5rem;
+    }
+
+    .dashboard-shap-explain ul {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+
+    .dashboard-shap-explain li {
+      margin-bottom: 0.8rem;
+      color: #495057;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      font-weight: 500;  
+
+    }
+
+    .dashboard-shap-explain small {
+      display: block;
+      margin-top: 0.4rem;
+      font-size: 0.95rem;
+      color: #6c757d;
+      font-style: italic;
+      line-height: 1.4;
+    }
+
+    .dashboard-desc-area h3, .dashboard-desc-area h4 {
+      color: #1976d2;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      margin-top: 1.5rem;
+      border-bottom: 2px solid #e3f2fd;
+      padding-bottom: 0.5rem;
+    }
+
+    .dashboard-desc-area h3:first-child, .dashboard-desc-area h4:first-child {
+      margin-top: 0;
+    }
+
+    .dashboard-desc-area p {
+      color: #495057;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin-bottom: 1rem;
+      font-weight: 400;
+    }
+
+    .dashboard-desc-area ul {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .dashboard-desc-area li {
+      margin-bottom: 0.7rem;
+      color: #495057;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      font-weight: 400;
+    }
+
+    .dashboard-shap-explain strong,
+    .dashboard-desc-area strong {
+      color: #1976d2;
+      font-weight: 700;
+    }
+
+    .dashboard-shap-explain code,
+    .dashboard-desc-area code {
+      background: #f8f9fa;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-size: 0.95em;
+      color: #e91e63;
+      font-weight: 500;
+    }
+    
+    .dashboard-shap-explain table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1.02rem;
+      margin-top: 0.5rem;
+    }
+    
+    .dashboard-shap-explain table th {
+      background: #f1f3f5;
+      color: #495057;
+      font-weight: 600;
+      padding: 12px 15px;
+      text-align: left;
+      border: 1px solid #dee2e6;
+    }
+    
+    .dashboard-shap-explain table th:last-child {
+      text-align: center;
+    }
+    
+    .dashboard-shap-explain table td {
+      padding: 10px 15px;
+      border: 1px solid #dee2e6;
+      font-weight: 500;
+    }
+    
+    .dashboard-shap-explain table tr:hover {
+      background: #f8f9fa;
+      transition: background 0.2s ease;
+    }
+    .contrib-high {
+      background: #ffebee !important;
+      color: #c62828 !important;
+    }
+    
+    .contrib-medium {
+      background: #fff3e0 !important;
+      color: #ef6c00 !important;
+    }
+    
+    .contrib-low {
+      background: #fffde7 !important;
+      color: #f57f17 !important;
+    }
+    
+    .contrib-minimal {
+      background: #e3f2fd !important;
+      color: #1565c0 !important;
+    }
+
+    .dashboard-shap-explain::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .dashboard-shap-explain::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+    
+    .dashboard-shap-explain::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+    
+    .dashboard-shap-explain::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+
 
     /* 상단 네비게이션 스타일 개선 */
     .top-navbar {
@@ -400,30 +583,33 @@
     .history-item .meta {
       font-size: 0.65rem;
     }
+    
     @media (max-width: 1200px) {
-      .dashboard-flex-main {
+      .dashboard-shap-section {
         flex-direction: column;
         gap: 1rem;
       }
-      .dashboard-flex-right {
-        max-width: 100%;
+      .dashboard-shap-plot, .dashboard-shap-explain, .dashboard-desc-area {
+        height: 450px;
+        flex: none;
       }
     }
+    
     @media (max-width: 900px) {
-      .dashboard-flex-main {
+      .dashboard-graphs-row {
         flex-direction: column;
         gap: 0.5rem;
-      }
-      .dashboard-flex-left, .dashboard-flex-right {
-        max-width: 100%;
-        min-width: 0;
       }
       .dashboard-graph-box, .dashboard-graph-bottom {
         height: 180px;
         min-width: 0;
       }
-      .dashboard-shap-plot {
-        height: 180px;
+      .dashboard-shap-section {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .dashboard-shap-plot, .dashboard-shap-explain, .dashboard-desc-area {
+        height: 350px;
       }
       .dashboard-graphs-card {
         padding: 0.7rem 0.5rem 1rem 0.5rem;
@@ -435,6 +621,8 @@
     
     </style>
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script> 
 </head>
 <body>
   <!-- 상단 네비게이션 -->
@@ -467,7 +655,7 @@
       <div class="sidebar-history-title" style="display:flex;align-items:center;justify-content:space-between;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span>Detection History</span>
-          <button id="delete-all-btn" title="모두 삭제" style="background:none;border:none;cursor:pointer;color:#dc3545;font-size:0.75rem;padding:0;">모두 삭제❌</button>
+          <button id="delete-all-btn" title="모두 삭제" style="background:none;border:none;cursor:pointer;color:#dc3545;font-size:0.75rem;padding:0;">모두 삭제</button>
         </div>
       </div>
       <div id="loading-spinner" style="text-align: center; padding: 2rem; display: none;">
@@ -551,7 +739,7 @@ function renderHistoryList(history) {
   if (history.length === 0) {
     listContainer.innerHTML = `
       <div style="text-align: center; padding: 2rem; color: #6c757d;">
-        <div style="font-size: 2rem; margin-bottom: 1rem;">📭</div>
+        <div style="font-size: 2rem; margin-bottom: 1rem;">🔭</div>
         <p>분석 기록이 없습니다.</p>
       </div>
     `;
@@ -734,7 +922,6 @@ function renderAnalysisResult(session) {
 
   resultPanel.innerHTML = resultHTML;
 
-
   /* Plotly 그래프 스크립트 실행 */
   /* 분석 결과 영역 내 모든 <script> 태그 실행 */
   resultPanel.querySelectorAll('script').forEach(oldScript => {
@@ -759,84 +946,81 @@ function formatAnalysisResult(result, session) {
   let html = '';
 
   html += `
-    <div class="dashboard-flex-main" style="display: flex; gap: 1.2rem; align-items: flex-start;">
-      <!-- 좌측: 그래프 3개 + 표 -->
-      <div class="dashboard-flex-left" style="flex: 2 1 0; min-width: 0;">
-       <!-- ...생략... -->
-<div class="dashboard-graphs-card">
-
-            <div style="display: flex; margin-bottom: 0.5rem;">
-              <a href="#" onclick="goToViewAll(); return false;" 
-                style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none;">
-                View All
-              </a>
-              <a href="#" onclick="goToHourViewAll(); return false;" 
-                style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none; margin-left: auto;">
-                View All
-              </a>
-            </div>
-
-
-
-          <div class="dashboard-graphs-row">
-            <div class="dashboard-graph-box">
-              <div class="dashboard-graph-inner">
-                <!-- Plotly 그래프 HTML -->
-                ${session.user_graph_html || '<span style="color:#bbb;">User 그래프 없음</span>'}
-              </div>
-            </div>
-            <div class="dashboard-graph-box">
-              <div class="dashboard-graph-inner">
-                ${session.hour_graph_html || '<span style="color:#bbb;">Hour 그래프 없음</span>'}
-              </div>
+    <div style="width: 100%;">
+      <div class="dashboard-graphs-card">
+        <div style="display: flex; margin-bottom: 0.5rem;">
+          <a href="#" onclick="goToViewAll(); return false;" 
+            style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none;">
+            View All
+          </a>
+          <a href="#" onclick="goToHourViewAll(); return false;" 
+            style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none; margin-left: auto;">
+            View All
+          </a>
+        </div>
+        
+        <div class="dashboard-graphs-row">
+          <div class="dashboard-graph-box">
+            <div class="dashboard-graph-inner">
+              ${session.user_graph_html || '<span style="color:#bbb;">User 그래프 없음</span>'}
             </div>
           </div>
-          <div class="dashboard-graph-bottom">
+          <div class="dashboard-graph-box">
+            <div class="dashboard-graph-inner">
+              ${session.hour_graph_html || '<span style="color:#bbb;">Hour 그래프 없음</span>'}
+            </div>
+          </div>
+          <div class="dashboard-graph-box">
             <div class="dashboard-graph-inner">
               ${session.score_graph_html || '<span style="color:#bbb;">Score 그래프 없음</span>'}
             </div>
           </div>
         </div>
-        <div class="dashboard-table-area">
-          <div class="dashboard-table-header">
-            <div style="font-size:0.93rem; color:#888;">
-              ※ 아래 표는 임계치 5% 기준 이상치(Anomaly=1)로 판단한 데이터 중 최대 100개만 미리보기로 보여집니다.
-            </div>
-            <div class="download-btns">
-              <button onclick="downloadCSV('${session.session_id}', '${session.filename}', 'all')"
-                style="background:#1976d2; color:white; border:none; border-radius:6px; padding:6px 16px; font-size:0.95rem; font-weight:500; cursor:pointer; transition:background 0.2s;">
-                전체 데이터 다운로드
-              </button>
-              <button onclick="downloadCSV('${session.session_id}', '${session.filename}', 'anomaly')"
-                style="background:#dc3545; color:white; border:none; border-radius:6px; padding:6px 16px; font-size:0.95rem; font-weight:500; cursor:pointer; transition:background 0.2s;">
-                이상치만 다운로드
-              </button>
-            </div>
+      </div>
+      
+      <div class="dashboard-table-area">
+        <div class="dashboard-table-header">
+          <div style="font-size:0.93rem; color:#888;">
+            ※ 아래 표는 임계치 5% 기준 이상치(Anomaly=1)로 판단한 데이터 중 최대 100개만 미리보기로 보여집니다.
           </div>
-          <div class="dashboard-table-scroll">
-            <div class="dashboard-table-inner">
-              ${result.table_html}
-            </div>
+          <div class="download-btns">
+            <button onclick="downloadCSV('${session.session_id}', '${session.filename}', 'all')"
+              style="background:#1976d2; color:white; border:none; border-radius:6px; padding:6px 16px; font-size:0.95rem; font-weight:500; cursor:pointer; transition:background 0.2s;">
+              전체 데이터 다운로드
+            </button>
+            <button onclick="downloadCSV('${session.session_id}', '${session.filename}', 'anomaly')"
+              style="background:#dc3545; color:white; border:none; border-radius:6px; padding:6px 16px; font-size:0.95rem; font-weight:500; cursor:pointer; transition:background 0.2s;">
+              이상치만 다운로드
+            </button>
+          </div>
+        </div>
+        <div class="dashboard-table-scroll">
+          <div class="dashboard-table-inner">
+            ${result.table_html}
           </div>
         </div>
       </div>
-      <!-- 우측: SHAP + 설명 + Description -->
-      <div class="dashboard-flex-right" style="flex: 1 1 320px; min-width: 0; max-width: 480px;">
+      
+      <div class="dashboard-shap-section">
         <div class="dashboard-shap-plot">
           <div id="shap-plot" class="dashboard-shap-inner">
-            <p style="color: #999; text-align: center; margin-top: 120px;">SHAP 그래프가 여기에 표시됩니다</p>
+            <p style="color: #999; text-align: center; margin-top: 200px;">SHAP 그래프가 여기에 표시됩니다</p>
           </div>
         </div>
         <div class="dashboard-shap-explain">
           <div id="shap-explanation">
-            <p style="color: #999; text-align: center;">로그를 클릭하면 SHAP 설명이 표시됩니다</p>
+            <p style="color: #999; text-align: center; margin-top: 200px;">로그를 클릭하면 SHAP 설명이 표시됩니다</p>
           </div>
         </div>
         ${session.analysis_result && session.analysis_result.text_html ? `
         <div class="dashboard-desc-area">
           ${session.analysis_result.text_html}
         </div>
-        ` : ''}
+        ` : `
+        <div class="dashboard-desc-area">
+          <p style="color: #999; text-align: center; margin-top: 200px;">종합 설명이 여기에 표시됩니다</p>
+        </div>
+        `}
       </div>
     </div>
   `;
@@ -876,7 +1060,7 @@ function renameAnalysis() {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        loadAnalysisHistory(); /* 히스토리 새로고침 */
+        loadAnalysisHistory();
         alert('이름이 변경되었습니다.');
       } else {
         alert('이름 변경 실패: ' + data.error);
@@ -1010,7 +1194,6 @@ function attachShapClickHandlers() {
           if (data.success) {
             document.getElementById("shap-plot").innerHTML = data.plot_html;
 
-            /* 2. SHAP 설명 텍스트 생성 */
             let explanationHtml = "";
             
             /* 중간 멘트 추가 */
@@ -1018,18 +1201,8 @@ function attachShapClickHandlers() {
               explanationHtml += data.shap_middle_html;
             }
             
-            /* SHAP 설명 목록 추가 */
-            if (data.shap_explanation && data.shap_explanation.length > 0) {
-              explanationHtml += "<h4>설명:</h4><ul>";
-              /* 마지막 요소(총합 설명)를 제외하고 리스트 생성 */
-              const listItems = data.shap_explanation.slice(0, -1);
-              explanationHtml += listItems.map(line => `<li>${line}</li>`).join("");
-              explanationHtml += "</ul>";
-
-              /* 마지막 요소(총합 설명)를 별도로 표시 */
-              if (data.shap_explanation.length > 0) {
-                explanationHtml += `<div style="margin-top: 0.5rem; color: #888; font-size: 0.9em;">${data.shap_explanation[data.shap_explanation.length - 1]}</div>`;
-              }
+            if (data.shap_explanation) {
+              explanationHtml += data.shap_explanation;  
             }
 
             /* 설명 영역에 HTML 삽입 */
@@ -1038,9 +1211,17 @@ function attachShapClickHandlers() {
           } else {
             document.getElementById("shap-plot").innerHTML =
               `<p style="color:red;">SHAP 오류: ${data.error}</p>`;
+            document.getElementById("shap-explanation").innerHTML =
+              `<p style="color:red;">설명을 불러올 수 없습니다.</p>`;
           }
-        }
-      );
+        })
+        .catch(error => {
+          console.error('SHAP 요청 오류:', error);
+          document.getElementById("shap-plot").innerHTML =
+            `<p style="color:red;">SHAP 그래프를 불러오는 중 오류가 발생했습니다.</p>`;
+          document.getElementById("shap-explanation").innerHTML =
+            `<p style="color:red;">설명을 불러오는 중 오류가 발생했습니다.</p>`;
+        });
     });
   });
 }
