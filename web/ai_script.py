@@ -1,7 +1,8 @@
 # ai_script.py
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from pycaret.anomaly import setup, create_model, assign_model
+from sklearn.feature_extraction.text import CountVectorizer
+from pyod.models.iforest import IForest
 import category_encoders as ce
 try:
     import chardet ###수정하면서 추가한 부분
@@ -11,7 +12,7 @@ import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer ###수정하면서 추가한 부분
 import numpy as np
 import shap
-from .restore import restore_and_save_readable_anomalies
+from .restore import restore_and_save_readable_anomalies #.restore -> restore로 수정함(단독코드사용을 위해)
 from .visualize_graph import (
     plot_anomaly_by_hour,
     plot_anomaly_by_user,
@@ -201,7 +202,7 @@ def detect_text_columns(df, min_avg_length=20):
     candidate_cols = df.select_dtypes(include=['object', 'string']).columns
     return [col for col in candidate_cols if df[col].astype(str).apply(len).mean() >= min_avg_length]
 
-# 전처리 함수
+# 전처리 함수*************************************************************
 def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_max_features=100):
     encoder = None 
     
@@ -267,79 +268,77 @@ def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_m
 def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=None):
     """
     업로드된 CSV 파일 경로(file_path)와 제외할 칼럼 리스트(exclude_columns)를 받아
-    1) 전처리 → 2) PyCaret 이상 탐지 → 3) HTML 테이블 형태 결과 반환 """
+    1) 전처리 → 2) PyOD 이상 탐지 → 3) HTML 테이블 형태 결과 반환
+    """
 
     # 인코딩 자동 감지
     if chardet:
         with open(file_path, 'rb') as f:
-            raw_data = f.read(10000)  # 앞부분만 샘플로 추출
+            raw_data = f.read(10000)
             result = chardet.detect(raw_data)
             detected_encoding = result['encoding'] if result['encoding'] else 'utf-8'
     else:
         detected_encoding = 'utf-8'
 
-    # 1. 데이터 불러오기 (컬럼 삭제하지 않고 원본 유지)
+    # 1. 데이터 불러오기 (원본 유지)
     data = pd.read_csv(file_path, encoding=detected_encoding)
-    
-    # 사용자 칼럼이 None이거나 빈 값일 때 "all"로 설정
+
+    # 사용자 칼럼 기본 설정
     if user_col is None or user_col == "":
         data['user'] = 'all'
         user_col = 'user'
-    
-    # 시간 칼럼이 None이거나 빈 값일 때 None으로 설정 (그래프에서 처리)
+
     if time_col is None or time_col == "":
         time_col = None
-    # 빈 값이 많은 컬럼도 원본 데이터 구조 유지를 위해 삭제하지 않음
-    # data = data.dropna(axis=1, thresh=int(len(data)*0.7))  # 컬럼 삭제 제거
 
-    # 제외할 칼럼이 있으면 제거
+    # 제외할 칼럼 제거
     if exclude_columns:
         data = data.drop(columns=[col for col in exclude_columns if col in data.columns])
 
-    # 2. 전처리 수행 (스케일링 포함, 사용자 컬럼은 따로 무시하지 않음 → 그대로 포함됨)  categorical_cols, encoder 추가
+    # user_col 은 탐지에서 제거
+    data_for_model = data.copy()
+    if user_col is not None and user_col in data_for_model.columns:
+        data_for_model.drop(columns=[user_col], inplace=True)
+
+    # 2. 전처리
     processed_data, categorical_cols, encoder = preprocess_log_data_with_text(
-        data,
+        data_for_model,
         encode_method='count',
         scale=True,
         tfidf_max_features=100
-    ) 
-    # TF-IDF 컬럼 패턴으로 추출
-    # tfidf_cols = [col for col in processed_data.columns if col.startswith('{text_cols}_tfidf')]
-    # non_tfidf_features = [col for col in processed_data.columns if col not in tfidf_cols]
-    # processed_data_no_tfidf = processed_data[non_tfidf_features]
-
-    exp = setup(
-        data=processed_data,  # 전처리된 데이터 그대로 사용 (사용자 컬럼 포함)
-        session_id=42,
-        ignore_features=user_col,  # 사용자 컬럼 무시 (모델 학습엔 안 쓰임) 다른 그래프 코드랑 합치면 될 듯.
-        verbose=False,              #출력 제어 옵션
-        index=False
     )
 
-    # 복원용 원본 정보 백업 (예: user_id, timestamp 등)
-    original_info = data.reset_index(drop=True)  # 모든 원본 칼럼 포함
-
-    # user_col, time_col 복원 보완
-    if user_col and user_col in data.columns and user_col not in original_info.columns:
-        original_info[user_col] = data[user_col].reset_index(drop=True)
-
-    if time_col and time_col in data.columns and time_col not in original_info.columns:
-        original_info[time_col] = data[time_col].reset_index(drop=True)
-
-    model = create_model('iforest')
-    results = assign_model(model, score=True)
+# 3. 이상치 탐지 (PyOD IForest)**
+    model = IForest(contamination=0.05, random_state=42)
+    model.fit(processed_data)
+    y_pred = model.predict(processed_data)           # 1: 이상치, 0: 정상
+    scores = model.decision_function(processed_data) # 이상치 점수
+  # 4. 결과 합치기**
+    results = processed_data.copy().reset_index(drop=True)
+    results['Anomaly'] = y_pred
+    results['Anomaly_Score'] = scores
 
     # Anomaly_Score 기준 내림차순 정렬
     sorted_results = results.sort_values(by='Anomaly_Score', ascending=False).reset_index(drop=True)
 
     # SHAP 입력값으로 사용할 DataFrame 생성
     forshap_input = sorted_results.drop(columns=['Anomaly', 'Anomaly_Score'], errors='ignore')
+    forshap_input = forshap_input.round(6)
+    forshap_input = forshap_input.head(100)
+
+# user_col, time_col 복원
+    if user_col and user_col in data.columns and user_col not in results.columns:
+        results[user_col] = data[user_col].reset_index(drop=True)
+
+    if time_col and time_col in data.columns and time_col not in results.columns:
+        results[time_col] = data[time_col].reset_index(drop=True)
 
 
-    # 4. 결과 출력
+
+    # 5. 결과 출력
     count_anomaly = results['Anomaly'].sum()
     total = len(results)
-    print(f"\n PyCaret이 이상치로 판단한 로그 개수: {count_anomaly:,}건 / 전체 {total:,}건")
+    print(f"\n PyOD가 이상치로 판단한 로그 개수: {count_anomaly:,}건 / 전체 {total:,}건")
 
     # 원본 정보에서 인코딩된 컬럼들을 제거하고 합치기 
     encoded_columns = [col for col in categorical_cols if col in results.columns]  
@@ -360,7 +359,7 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         results['Anomaly_Score'] = results['anomaly_score']
 
     # 복원한 문자열 컬럼을 결과에 다시 붙이기 (중복 컬럼 방지)
-    results_with_info = pd.concat([results_cleaned, original_info], axis=1)
+    results_with_info = pd.concat([results_cleaned, data.reset_index(drop=True)], axis=1)
 
 
     # 6. 결과 저장
@@ -416,7 +415,7 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
 
     # 8. 이상 탐지된 항목만 추출
     detected = df_full[df_full['Anomaly'] == 1]
-    detected_anomalies_path = f"{base_filename}_pycaret_detected_anomalies.csv"
+    detected_anomalies_path = f"{base_filename}_pyod_detected_anomalies.csv"
     detected.to_csv(detected_anomalies_path, index=False)
 
     # TF-IDF 컬럼은 제외하고 표를 생성
