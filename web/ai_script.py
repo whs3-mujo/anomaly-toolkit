@@ -1,18 +1,44 @@
-# ai_script.py
+"""
+Anomaly Detection AI Script - Refactored for Open Source
+
+This module provides the main interface for anomaly detection using machine learning.
+It has been refactored to use a modular architecture with clear separation of concerns
+for better maintainability and extensibility.
+
+The original functionality is preserved through legacy wrapper functions while
+new modular components provide enhanced functionality for open source distribution.
+"""
+
 import pandas as pd
+import numpy as np
+from typing import Dict, Any, Optional, List
+import warnings
+
+# Import new modular components
+from .services.analysis_service import AnalysisService, detect_anomalies as new_detect_anomalies
+from .pipelines.preprocessing import (
+    preprocess_log_data_with_text as new_preprocess,
+    detect_text_columns as new_detect_text_columns
+)
+from .core.config import config
+
+# Legacy imports for backward compatibility
 from sklearn.preprocessing import StandardScaler
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from pyod.models.iforest import IForest
 import category_encoders as ce
+import joblib
+import shap
+from collections import Counter
+
+# Optional imports
 try:
-    import chardet ###수정하면서 추가한 부분
+    import chardet
 except ImportError:
     chardet = None
-import joblib
-from sklearn.feature_extraction.text import TfidfVectorizer ###수정하면서 추가한 부분
-import numpy as np
-import shap
-from .restore import restore_and_save_readable_anomalies #.restore -> restore로 수정함(단독코드사용을 위해)
+
+# Import other modules
+from .restore import restore_and_save_readable_anomalies
 from .visualize_graph import (
     plot_anomaly_by_hour,
     plot_anomaly_by_user,
