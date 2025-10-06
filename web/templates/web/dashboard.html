@@ -630,7 +630,7 @@
     <button class="logo-btn" onclick="location.href='{% url 'web:dashboard' %}'" title="대시보드로 이동">
       <!-- 대시보드 아이콘 SVG -->
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="2" fill="#1976d2"/><rect x="14" y="3" width="7" height="7" rx="2" fill="#42a5f5"/><rect x="14" y="14" width="7" height="7" rx="2" fill="#1976d2"/><rect x="3" y="14" width="7" height="7" rx="2" fill="#42a5f5"/></svg>
-      <span>이상無조</span>
+      <span>LOGSCO</span>
     </button>
   </div>
 
@@ -948,15 +948,16 @@ function formatAnalysisResult(result, session) {
   html += `
     <div style="width: 100%;">
       <div class="dashboard-graphs-card">
-        <div style="display: flex; margin-bottom: 0.5rem;">
+        <div style="display: flex; margin-bottom: 0.5rem; justify-content: space-between; align-items: center;">
           <a href="#" onclick="goToViewAll(); return false;" 
             style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none;">
             View All
           </a>
           <a href="#" onclick="goToHourViewAll(); return false;" 
-            style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none; margin-left: auto;">
+            style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none;">
             View All
           </a>
+          <div style="width: 33.33%;"></div>
         </div>
         
         <div class="dashboard-graphs-row">
