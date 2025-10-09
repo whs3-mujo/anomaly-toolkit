@@ -604,8 +604,11 @@ def get_shap_plot(request, session_id, row_index):
     plt.close(fig) 
     
     encoded = base64.b64encode(image_png).decode('utf-8')
-    img_html = f'<img src="data:image/png;base64,{encoded}" style="width:100%; max-width:100%; height:auto;">'
-
+    img_html = f'''
+    <div style="width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;">
+        <img src="data:image/png;base64,{encoded}" style="width:100%; max-width:100%; height:auto;">
+    </div>
+    '''
     explanation_html = generate_shap_table(negative_df)    
 
     middle_html = """
@@ -745,6 +748,8 @@ def search_anomaly_logs(request):
             return JsonResponse({'error': '정확한 사용자명을 입력해주세요.'}, status=404)
     else:
         return JsonResponse({'error': '검색어를 입력해주세요.'}, status=400)
+
+
 from django.shortcuts import render
 
 
@@ -857,7 +862,6 @@ def get_user_graph(request):
         """)
 
 
-    
 def total_anomaly_count(request):
     """
     전체 이상 로그 건수를 반환합니다.
