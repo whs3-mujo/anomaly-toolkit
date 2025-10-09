@@ -165,7 +165,12 @@
     <div class="graph-section">
       <div class="graph-title-bar" style="display: flex; justify-content: space-between; align-items: center;">
         <div class="graph-title">사용자별 이상 로그 그래프</div>
-        <a href="{% url 'web:dashboard' %}" class="dashboard-button">대시보드</a>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button id="show-more-btn" onclick="toggleShowMore()" class="dashboard-button" style="background-color: #007bff; color: white;">
+            더보기
+          </button>
+          <a href="{% url 'web:dashboard' %}" class="dashboard-button">대시보드</a>
+        </div>
       </div>
       <div id="graph-container" class="graph-container">
         <div class="loading">그래프를 로딩하는 중...</div>
@@ -202,53 +207,46 @@
   </div>
 
   <script>
-    function loadTotalAnomalyCount() {
-      /* URL 파라미터에서 session_id 읽기 */
+    let isShowingMore = false;  // 더보기 상태 관리
+    
+    function toggleShowMore() {
+      isShowingMore = !isShowingMore;
+      loadGraph(isShowingMore);
+      
+      const btn = document.getElementById('show-more-btn');
+      btn.textContent = isShowingMore ? '기본 보기' : '더보기';
+      btn.style.backgroundColor = isShowingMore ? '#28a745' : '#007bff';
+    }
+    
+    function loadGraph(showMore = false) {
       const urlParams = new URLSearchParams(window.location.search);
       const sessionId = urlParams.get('session_id');
       
-      let apiUrl = '/api/anomaly/total/';
+      let apiUrl = '/api/get_user_graph/';
+      const params = new URLSearchParams();
+      
       if (sessionId) {
-        apiUrl += `?session_id=${sessionId}`;
+        params.append('session_id', sessionId);
+      }
+      if (showMore) {
+        params.append('show_more', 'true');
       }
       
-      fetch(apiUrl)
-          .then(response => response.json())
-          .then(data => {
-              const descDiv = document.getElementById('description-content');
-              descDiv.innerHTML = `전체 이상 로그 건수: <b>${data.total_count}건</b><br>
-                                  필터 기능을 사용하여 특정 사용자나 상위 사용자들의 로그를 조회할 수 있습니다.`;
-          })
-          .catch(error => {
-              document.getElementById('description-content').innerHTML = 
-                  '전체 로그 건수를 불러오는 중 오류가 발생했습니다.';
-          });
-    }
-
-    window.onload = function () {
-
-      /* URL 파라미터에서 session_id 읽기 */
-      const urlParams = new URLSearchParams(window.location.search);
-      const sessionId = urlParams.get('session_id');
-
-      /* API URL 생성 */
-      let apiUrl = '/api/get_user_graph/';
-      if (sessionId) {
-        apiUrl += `?session_id=${sessionId}`;
-      } 
-            
+      if (params.toString()) {
+        apiUrl += '?' + params.toString();
+      }
+      
       const container = document.getElementById('graph-container');
       container.innerHTML = '<div class="loading">그래프를 로딩하는 중...</div>';
       
       fetch(apiUrl)
         .then(response => {
-          
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
           return response.text();
         })
-        .then(html => {       
+        .then(html => {
           container.innerHTML = html;
           
           setTimeout(() => {
@@ -299,7 +297,34 @@
             </div>
           `;
         });
+    }
+
+    function loadTotalAnomalyCount() {
+      /* URL 파라미터에서 session_id 읽기 */
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session_id');
       
+      let apiUrl = '/api/anomaly/total/';
+      if (sessionId) {
+        apiUrl += `?session_id=${sessionId}`;
+      }
+      
+      fetch(apiUrl)
+          .then(response => response.json())
+          .then(data => {
+              const descDiv = document.getElementById('description-content');
+              descDiv.innerHTML = `전체 이상 로그 건수: <b>${data.total_count}건</b><br>
+                                  필터 기능을 사용하여 특정 사용자나 상위 사용자들의 로그를 조회할 수 있습니다.`;
+          })
+          .catch(error => {
+              document.getElementById('description-content').innerHTML = 
+                  '전체 로그 건수를 불러오는 중 오류가 발생했습니다.';
+          });
+    }
+
+    window.onload = function () {
+      // 초기 그래프 로드
+      loadGraph(false);
       loadTotalAnomalyCount();
     };
 

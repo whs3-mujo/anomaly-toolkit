@@ -383,8 +383,9 @@ def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False):
             # 이상 사용자가 10명 이하인 경우 그 수만큼, 10명 이상인 경우 10명까지
             display_count = min(10, total_anomaly_users)
         else:
-            # 더보기: 전체 이상 사용자의 10%~20% 추가 표시
-            additional_count = max(1, int(total_anomaly_users * 0.1))  # 최소 1명
+            # 더보기: 최소 5명 또는 전체 이상 사용자의 20% 중 더 큰 값을 추가
+            additional_by_percent = int(total_anomaly_users * 0.2)  # 전체의 20%
+            additional_count = max(5, additional_by_percent)
             display_count = min(10 + additional_count, total_anomaly_users)
         
         print(f"표시할 사용자 수: {display_count}명 (show_more: {show_more})")
@@ -406,7 +407,9 @@ def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False):
         if not show_more:
             display_count = min(10, total_users)
         else:
-            additional_count = max(1, int(total_users * 0.1))
+            # 더보기: 최소 5명 또는 전체 사용자의 20% 중 더 큰 값을 추가
+            additional_by_percent = int(total_users * 0.2)  # 전체의 20%
+            additional_count = max(5, additional_by_percent)  # 최소 5명 보장
             display_count = min(10 + additional_count, total_users)
         
         print(f"표시할 사용자 수: {display_count}명 (show_more: {show_more})")
