@@ -3,7 +3,6 @@ from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.http import JsonResponse
 from .forms import UploadFileForm
 from .models import AnalysisSession, AnomalyLog
 import uuid
@@ -11,13 +10,29 @@ import json
 import os
 from django.conf import settings
 import pandas as pd
+import numpy as np
+import shap
+import matplotlib
+import matplotlib.pyplot as plt
+from io import BytesIO
+import base64
+import platform
+import time
+import threading
 from .ai_script import detect_anomalies
 from .visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot_anomaly_score_distribution
 from django.db.models import Count, Q
 from django.contrib.auth.models import User
-import time
-import threading
-from .visualize_graph import plot_anomaly_by_user, plot_anomaly_by_hour, plot_anomaly_score_distribution
+
+# 한글 폰트 설정 (윈도우 기준 예시)
+matplotlib.rc('font', family='Malgun Gothic')  # 윈도우용
+matplotlib.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
+matplotlib.use('Agg')
+
+if platform.system() == 'Windows':
+    matplotlib.rc('font', family='Malgun Gothic')
+else:
+    matplotlib.rc('font', family='AppleGothic')
 
 
 def redirect_dashboard(request):
@@ -138,10 +153,8 @@ def upload_view(request):
                 with open(save_path, "wb+") as dest:
                     for chunk in file.chunks():
                         dest.write(chunk)
-                print(f"파일 저장 완료: {save_path}")
 
                 analysis_result = detect_anomalies(save_path)
-                print(f"분석 결과: {analysis_result}")
 
                 # 업로드만 하는 경우에는 그래프 저장하지 않음
                 AnalysisSession.objects.create(
@@ -151,13 +164,11 @@ def upload_view(request):
                     file_type=os.path.splitext(file.name)[-1][1:].upper(),
                     analysis_result=analysis_result,
                 )
-                print("DB 저장 완료")
                 return redirect("web:dashboard")
             except Exception as e:
-                print(f"업로드 중 오류: {e}")
                 return render(request, "web/upload.html", {"form": form, "error": str(e)})
         else:
-            print("폼이 유효하지 않음:", form.errors)
+            pass  # 폼이 유효하지 않음
     else:
         form = UploadFileForm()
     return render(request, "web/upload.html", {"form": form})
@@ -187,7 +198,6 @@ def preview_columns(request):
                 except UnicodeDecodeError:
                     continue
                 except Exception as e:
-                    print(f"인코딩 {enc} 시도 중 오류: {e}")
                     continue
             else:
                 return JsonResponse({
@@ -431,48 +441,7 @@ def download_analysis_csv(request, session_id):
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 
-def visualize_graph_view(request):
-    if request.method == "POST":
-        file = request.FILES["file"]
-        user_col = request.POST.get("user_col")
-        time_col = request.POST.get("time_col")
-        file_path = save_uploaded_file(file)
-        df = pd.read_csv(file_path)
-        hour_html = plot_anomaly_by_hour(df, user_col, time_col)
-        user_html = plot_anomaly_by_user(df, user_col)
-        score_html = plot_anomaly_score_distribution(df)
-
-        context = {
-            'hour_graph': hour_html,
-            'user_graph': user_html,
-            'score_graph': score_html,
-        }
-        return render(request, 'web/dashboard.html', context)
-    return JsonResponse({"error": "Invalid request"}, status=400)
-
-
 # get_shap_plot 함수를 선언하여 SHAP그래프를 생성 및 이미지 파일 만듦 / 그래프 모양, 크기를 여기서 바꿀 수 있음
-import pandas as pd
-import numpy as np
-import shap
-import matplotlib
-import matplotlib.pyplot as plt
-from django.http import JsonResponse
-from io import BytesIO
-import base64
-from django.shortcuts import get_object_or_404
-from .models import AnalysisSession
-import platform
-
-# 한글 폰트 설정 (윈도우 기준 예시)
-matplotlib.rc('font', family='Malgun Gothic')  # 윈도우용
-matplotlib.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
-matplotlib.use('Agg')
-
-if platform.system() == 'Windows':
-    matplotlib.rc('font', family='Malgun Gothic')
-else:
-    matplotlib.rc('font', family='AppleGothic')
 
 def get_shap_plot(request, session_id, row_index):
     session = get_object_or_404(AnalysisSession, session_id=session_id)
