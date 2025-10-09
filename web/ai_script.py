@@ -429,7 +429,7 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         print("이상치 점수 분포 그래프 생성 완료")
         
         print(f"사용자별 그래프 생성 시작... user_col={user_col}")
-        user_graph_html = plot_anomaly_by_user(df_full[df_full['Anomaly'] == 1], user_col=user_col)
+        user_graph_html = plot_anomaly_by_user(df_full[df_full['Anomaly'] == 1], user_col=user_col, top_n=5, for_dashboard=True)
         print(f"사용자별 그래프 생성 완료, 길이: {len(user_graph_html) if user_graph_html else 0}")
         
         # 시간 칼럼이 있는 경우에만 시간 그래프 생성

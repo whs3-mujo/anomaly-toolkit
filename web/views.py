@@ -939,9 +939,9 @@ def get_user_graph(request):
                 user_graph_html__isnull=False
             ).order_by('-created_at').first()
         
-        # show_more=true인 경우 새로 그래프 생성
-        if show_more and session:
-            print(f"(더보기)그래프 생성 중... (session: {session.session_id})")
+        # viewall 페이지에서는 새로 그래프 생성 (기본 10명, 더보기 시 더 많이)
+        if session:
+            print(f"viewall 그래프 생성 중... (session: {session.session_id}, show_more: {show_more})")
             
             # 세션의 데이터를 다시 로드하여 그래프 생성
             from .visualize_graph import plot_anomaly_by_user
@@ -957,13 +957,13 @@ def get_user_graph(request):
                         df = pd.read_csv(result_csv_path)
                         user_col = session.user_col or 'user'
                         
-                        # 더보기 모드로 그래프 생성
-                        user_graph_html = plot_anomaly_by_user(df, user_col, show_more=True)
+                        # viewall용 그래프 생성 (기본 10명, 더보기 시 더 많이)
+                        user_graph_html = plot_anomaly_by_user(df, user_col, top_n=10, show_more=show_more, for_dashboard=False)
                         
                         if user_graph_html:
                             return HttpResponse(user_graph_html)
                 except Exception as e:
-                    print(f"더보기 그래프 생성 실패: {e}")
+                    print(f"viewall 그래프 생성 실패: {e}")
                     # 실패시 기본 그래프 사용
         
         if session and session.user_graph_html:

@@ -259,7 +259,7 @@ class AnalysisService:
             
             # 사용자 기반 시각화
             visualizations['user_graph'] = plot_anomaly_by_user(
-                anomalies_df, user_col=user_col
+                anomalies_df, user_col=user_col, for_dashboard=True
             )
             
             # 시간 기반 시각화 (시간 컬럼이 있는 경우)

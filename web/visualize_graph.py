@@ -301,7 +301,7 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
     return fig_html
 
 # === 사용자별 이상탐지 시각화 ===
-def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False):
+def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False, for_dashboard=False):
     print("사용자별 이상탐지 그래프 생성 중...")
     start_time = time.time()
     
@@ -380,8 +380,12 @@ def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False):
         
         # 기본 10명 표시 로직
         if not show_more:
-            # 이상 사용자가 10명 이하인 경우 그 수만큼, 10명 이상인 경우 10명까지
-            display_count = min(10, total_anomaly_users)
+            # 대시보드용: 5명까지만 표시
+            if for_dashboard:
+                display_count = min(5, total_anomaly_users)
+            else:
+                # 이상 사용자가 10명 이하인 경우 그 수만큼, 10명 이상인 경우 10명까지
+                display_count = min(10, total_anomaly_users)
         else:
             # 더보기: 최소 5명 또는 전체 이상 사용자의 20% 중 더 큰 값을 추가
             additional_by_percent = int(total_anomaly_users * 0.2)  # 전체의 20%
@@ -405,7 +409,11 @@ def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False):
         
         # 기본 10명 표시 로직
         if not show_more:
-            display_count = min(10, total_users)
+            # 대시보드용: 5명까지만 표시
+            if for_dashboard:
+                display_count = min(5, total_users)
+            else:
+                display_count = min(10, total_users)
         else:
             # 더보기: 최소 5명 또는 전체 사용자의 20% 중 더 큰 값을 추가
             additional_by_percent = int(total_users * 0.2)  # 전체의 20%
@@ -436,7 +444,7 @@ def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False):
         xaxis_title='User',
         yaxis_title='Anomaly Count',
         xaxis=dict(
-            showticklabels=True,  # X축 사용자 이름 항상 표시
+            showticklabels=False if for_dashboard else True,  # 대시보드에서는 사용자명 숨기기
             tickangle=45,  # 사용자명이 겹치지 않도록 45도 회전
             tickfont=dict(size=10)  # 글자 크기 조정
         ),
