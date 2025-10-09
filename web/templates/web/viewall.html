@@ -165,12 +165,7 @@
     <div class="graph-section">
       <div class="graph-title-bar" style="display: flex; justify-content: space-between; align-items: center;">
         <div class="graph-title">사용자별 이상 로그 그래프</div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <button id="show-more-btn" class="dashboard-button" style="background-color: #007bff; color: white;">
-            더보기
-          </button>
-          <a href="{% url 'web:dashboard' %}" class="dashboard-button">대시보드</a>
-        </div>
+        <a href="{% url 'web:dashboard' %}" class="dashboard-button">대시보드</a>
       </div>
       <div id="graph-container" class="graph-container">
         <div class="loading">그래프를 로딩하는 중...</div>
@@ -208,7 +203,16 @@
 
   <script>
     function loadTotalAnomalyCount() {
-      fetch('/api/anomaly/total/')
+      /* URL 파라미터에서 session_id 읽기 */
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session_id');
+      
+      let apiUrl = '/api/anomaly/total/';
+      if (sessionId) {
+        apiUrl += `?session_id=${sessionId}`;
+      }
+      
+      fetch(apiUrl)
           .then(response => response.json())
           .then(data => {
               const descDiv = document.getElementById('description-content');
@@ -221,25 +225,17 @@
           });
     }
 
-    function loadGraph(showMore = false) {
+    window.onload = function () {
+
       /* URL 파라미터에서 session_id 읽기 */
       const urlParams = new URLSearchParams(window.location.search);
       const sessionId = urlParams.get('session_id');
 
       /* API URL 생성 */
       let apiUrl = '/api/get_user_graph/';
-      const params = new URLSearchParams();
-      
       if (sessionId) {
-        params.append('session_id', sessionId);
-      }
-      if (showMore) {
-        params.append('show_more', 'true');
-      }
-      
-      if (params.toString()) {
-        apiUrl += `?${params.toString()}`;
-      }
+        apiUrl += `?session_id=${sessionId}`;
+      } 
             
       const container = document.getElementById('graph-container');
       container.innerHTML = '<div class="loading">그래프를 로딩하는 중...</div>';
@@ -254,16 +250,6 @@
         })
         .then(html => {       
           container.innerHTML = html;
-          
-          // 더보기 버튼 텍스트 업데이트
-          const showMoreBtn = document.getElementById('show-more-btn');
-          if (showMore) {
-            showMoreBtn.textContent = '기본보기';
-            showMoreBtn.onclick = () => loadGraph(false);
-          } else {
-            showMoreBtn.textContent = '더보기';
-            showMoreBtn.onclick = () => loadGraph(true);
-          }
           
           setTimeout(() => {
             const plotlyDiv = container.querySelector('.plotly-graph-div');
@@ -313,14 +299,6 @@
             </div>
           `;
         });
-    }
-
-    window.onload = function () {
-      // 초기 그래프 로드
-      loadGraph(false);
-      
-      // 더보기 버튼 이벤트 설정
-      document.getElementById('show-more-btn').onclick = () => loadGraph(true);
       
       loadTotalAnomalyCount();
     };
@@ -337,7 +315,16 @@
 
       document.getElementById('username-search-result').innerHTML = '<span class="loading">검색 중...</span>';
       
-      fetch(`/api/anomaly/search/?username=${encodeURIComponent(username)}`)
+      /* URL 파라미터에서 session_id 읽기 */
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session_id');
+      
+      let searchUrl = `/api/anomaly/search/?username=${encodeURIComponent(username)}`;
+      if (sessionId) {
+        searchUrl += `&session_id=${sessionId}`;
+      }
+      
+      fetch(searchUrl)
         .then(response => {
           if (!response.ok) {
             return response.json().then(errorData => {
@@ -354,10 +341,15 @@
             resultDiv.innerHTML = `<b><span style="color:green;">${data.username}</b></span>의 이상 로그: <b><span style="color:green;">${data.anomaly_count}건</b>`;
             
             /* 전체 로그 수 가져와서 비율 계산 */
-            fetch('/api/anomaly/total/')
+            let totalUrl = '/api/anomaly/total/';
+            if (sessionId) {
+              totalUrl += `?session_id=${sessionId}`;
+            }
+            
+            fetch(totalUrl)
               .then(r => r.json())
               .then(totalData => {
-                const percentage = data.anomaly_count > 0 ? 
+                const percentage = totalData.total_count > 0 ? 
                   ((data.anomaly_count / totalData.total_count) * 100).toFixed(2) : '0.00';
                 descDiv.innerHTML = `<b><span style="color:green;">${data.username}</span></b> 사용자의 이상 로그 분석 결과:<br>
                     • 개별 로그 수: <b><span style="color:green;">${data.anomaly_count}건</span></b><br>
@@ -390,7 +382,16 @@
 
       document.getElementById('top-users-result').innerHTML = '<span class="loading">조회 중...</span>';
       
-      fetch(`/api/anomaly/top/${n}/`)
+      /* URL 파라미터에서 session_id 읽기 */
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session_id');
+      
+      let topUrl = `/api/anomaly/top/${n}/`;
+      if (sessionId) {
+        topUrl += `?session_id=${sessionId}`;
+      }
+      
+      fetch(topUrl)
         .then(response => {
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
@@ -408,10 +409,15 @@
             const topTotal = data.top_users.reduce((sum, u) => sum + u.anomaly_count, 0);
 
             /* 전체 로그 수 가져와서 비율 계산 */
-            fetch('/api/anomaly/total/')
+            let totalUrl = '/api/anomaly/total/';
+            if (sessionId) {
+              totalUrl += `?session_id=${sessionId}`;
+            }
+            
+            fetch(totalUrl)
               .then(r => r.json())
               .then(totalData => {
-                const percentage = topTotal > 0 ? 
+                const percentage = topTotal > 0 && totalData.total_count > 0 ? 
                   ((topTotal / totalData.total_count) * 100).toFixed(2) : '0.00';
                 descDiv.innerHTML = `<b><span style="color:green;">상위 ${n}명</span></b> 사용자 이상 로그 분석 결과:<br>
                     • 상위 ${n}명 총 로그 수: <b><span style="color:green;">${topTotal}건</span></b><br>
