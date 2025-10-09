@@ -380,22 +380,53 @@ def download_analysis_csv(request, session_id):
     result = session.analysis_result or {}
 
     download_type = request.GET.get("type", "anomaly")
+    
     if download_type == "all":
+        # 전체 데이터: 원본 업로드 파일 순서 그대로, Anomaly 라벨만 추가
+        try:
+            import os
+            result_csv_path = result.get("result_csv_path")
+            if result_csv_path and os.path.exists(result_csv_path):
+                df = pd.read_csv(result_csv_path)
+                
+                # 원본 파일에서 인덱스 순서 복원 (업로드 순서)
+                # TF-IDF 컬럼 제거
+                tfidf_cols = [col for col in df.columns if '_tfidf_' in col]
+                df_clean = df.drop(columns=tfidf_cols, errors='ignore')
+                
+                # 원본 순서대로 정렬 (index 기준)
+                df_original_order = df_clean.sort_index()
+                
+                csv_data = df_original_order.to_csv(index=False, encoding="utf-8-sig")
+                
+                base_name = session.original_filename
+                if base_name.lower().endswith('.csv'):
+                    base_name = base_name[:-4]
+                filename = f"{base_name}_전체.csv"
+                
+                response = HttpResponse(csv_data, content_type="text/csv; charset=utf-8-sig")
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                return response
+        except Exception as e:
+            print(f"전체 데이터 다운로드 중 오류: {e}")
+        
+        # analysis_result에서 가져오기
         records = result.get("all_records", [])
     else:
+        # 이상치만: 이상치 점수가 높은 순서대로 (대시보드 표와 동일)
         records = result.get("records", [])
 
     if not records:
         return HttpResponse("다운로드할 데이터가 없습니다.", status=404)
 
     df = pd.DataFrame(records)
-    # 한글 깨짐 방지: utf-8-sig로 저장
     csv_data = df.to_csv(index=False, encoding="utf-8-sig")
-    # 파일명에서 .csv 중복 제거
+    
     base_name = session.original_filename
     if base_name.lower().endswith('.csv'):
         base_name = base_name[:-4]
     filename = f"{base_name}_{'전체' if download_type == 'all' else '이상치'}.csv"
+    
     response = HttpResponse(csv_data, content_type="text/csv; charset=utf-8-sig")
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
@@ -791,8 +822,10 @@ def get_user_graph(request):
     """
     사용자별 이상 로그 그래프를 반환하는 뷰 (viewall.html용)
     session_id가 제공되면 해당 세션의 데이터를 사용하고, 없으면 최신 세션 사용
+    show_more 파라미터로 더보기 기능 지원
     """
     session_id = request.GET.get('session_id')
+    show_more = request.GET.get('show_more', 'false').lower() == 'true'
     
     try:
         if session_id:
@@ -806,6 +839,33 @@ def get_user_graph(request):
             session = AnalysisSession.objects.filter(
                 user_graph_html__isnull=False
             ).order_by('-created_at').first()
+        
+        # show_more=true인 경우 새로 그래프 생성
+        if show_more and session:
+            print(f"(더보기)그래프 생성 중... (session: {session.session_id})")
+            
+            # 세션의 데이터를 다시 로드하여 그래프 생성
+            from .visualize_graph import plot_anomaly_by_user
+            import pandas as pd
+            import json
+            
+            # 세션에서 데이터 가져오기
+            if hasattr(session, 'analysis_result') and session.analysis_result:
+                try:
+                    # 분석 결과 CSV 파일에서 읽기 (Anomaly 컬럼 포함)
+                    result_csv_path = session.analysis_result.get("result_csv_path")
+                    if result_csv_path and os.path.exists(result_csv_path):
+                        df = pd.read_csv(result_csv_path)
+                        user_col = session.user_col or 'user'
+                        
+                        # 더보기 모드로 그래프 생성
+                        user_graph_html = plot_anomaly_by_user(df, user_col, show_more=True)
+                        
+                        if user_graph_html:
+                            return HttpResponse(user_graph_html)
+                except Exception as e:
+                    print(f"더보기 그래프 생성 실패: {e}")
+                    # 실패시 기본 그래프 사용
         
         if session and session.user_graph_html:
             user_graph_html = session.user_graph_html
@@ -824,10 +884,16 @@ def get_user_graph(request):
                                 ...currentLayout,
                                 height: 600,
                                 font: {size: 16},
-                                margin: {l: 60, r: 60, t: 80, b: 60},
+                                margin: {l: 60, r: 60, t: 80, b: 80},
                                 title: {
                                     text: currentLayout.title?.text || 'Anomalies by User',
                                     font: {size: 20}
+                                },
+                                xaxis: {
+                                    ...currentLayout.xaxis,
+                                    showticklabels: true,
+                                    tickangle: 45,
+                                    tickfont: {size: 10}
                                 }
                             };
                             
@@ -842,7 +908,30 @@ def get_user_graph(request):
 
             return HttpResponse(user_graph_html + size_adjustment_script)
 
-        # user_graph_html이 없으면 아무것도 출력하지 않음
+        # user_graph_html이 없으면 기본 그래프 생성 시도
+        if not session or not session.user_graph_html:
+            print(f"DEBUG: user_graph_html이 없음. 세션에서 다시 생성 시도...")
+            
+            # 세션이 있다면 그래프를 다시 생성
+            if session and hasattr(session, 'analysis_result') and session.analysis_result:
+                try:
+                    from .visualize_graph import plot_anomaly_by_user
+                    import pandas as pd
+                    
+                    # 분석 결과 CSV 파일에서 읽기
+                    result_csv_path = session.analysis_result.get("result_csv_path")
+                    if result_csv_path and os.path.exists(result_csv_path):
+                        df = pd.read_csv(result_csv_path)
+                        user_col = session.user_col or 'user'
+                        
+                        # 그래프 생성
+                        user_graph_html = plot_anomaly_by_user(df, user_col, top_n=10, show_more=False)
+                        
+                        if user_graph_html:
+                            return HttpResponse(user_graph_html)
+                except Exception as e:
+                    print(f"그래프 재생성 실패: {e}")
+        
         return HttpResponse("")
     
     except Exception as e:

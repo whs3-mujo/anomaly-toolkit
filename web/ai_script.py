@@ -424,8 +424,14 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     hour_graph_html = None
     
     try:
+        print("그래프 생성 시작...")
         score_distribution_html = plot_anomaly_score_distribution(df_full, threshold=-0.20, score_col='Anomaly_Score')
+        print("이상치 점수 분포 그래프 생성 완료")
+        
+        print(f"사용자별 그래프 생성 시작... user_col={user_col}")
         user_graph_html = plot_anomaly_by_user(df_full[df_full['Anomaly'] == 1], user_col=user_col)
+        print(f"사용자별 그래프 생성 완료, 길이: {len(user_graph_html) if user_graph_html else 0}")
+        
         # 시간 칼럼이 있는 경우에만 시간 그래프 생성
         if time_col is not None:
             hour_graph_html = plot_anomaly_by_hour(df_full[df_full['Anomaly'] == 1], user_col=user_col, time_col=time_col)
@@ -434,6 +440,8 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
             print("시간 칼럼이 없어 시간대별 그래프를 생략합니다.")
     except Exception as e:
         print("그래프 시각화 중 오류:", e)
+        import traceback
+        traceback.print_exc()
 
     # 7. 탐지 개수 집계
     count_anomaly = int(df_full['Anomaly'].sum())

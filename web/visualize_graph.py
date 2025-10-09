@@ -296,18 +296,12 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
         config={'responsive': True}
     )
 
-    styled_html = f'''
-    <div style="width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;">
-        {fig_html}
-    </div>
-    '''
-
     elapsed_time = time.time() - start_time
     print(f"시간대별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
-    return styled_html
+    return fig_html
 
 # === 사용자별 이상탐지 시각화 ===
-def plot_anomaly_by_user(df, user_col, top_n=5):
+def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False):
     print("사용자별 이상탐지 그래프 생성 중...")
     start_time = time.time()
     
@@ -380,16 +374,45 @@ def plot_anomaly_by_user(df, user_col, top_n=5):
             )
             return fig.to_html(full_html=False, include_plotlyjs='cdn')
         
+        # 전체 이상 사용자 수 확인
+        total_anomaly_users = len(anomaly_df[actual_user_col].unique())
+        print(f"전체 이상 사용자 수: {total_anomaly_users}명")
+        
+        # 기본 10명 표시 로직
+        if not show_more:
+            # 이상 사용자가 10명 이하인 경우 그 수만큼, 10명 이상인 경우 10명까지
+            display_count = min(10, total_anomaly_users)
+        else:
+            # 더보기: 전체 이상 사용자의 10%~20% 추가 표시
+            additional_count = max(1, int(total_anomaly_users * 0.1))  # 최소 1명
+            display_count = min(10 + additional_count, total_anomaly_users)
+        
+        print(f"표시할 사용자 수: {display_count}명 (show_more: {show_more})")
+        
         # 사용자별 이상 로그 카운트 (원본 컬럼 사용)
-        user_counts = anomaly_df[actual_user_col].value_counts().nlargest(top_n)
-        print(f"상위 {top_n}명 사용자별 이상 로그 수:")
+        user_counts = anomaly_df[actual_user_col].value_counts().nlargest(display_count)
+        print(f"상위 {display_count}명 사용자별 이상 로그 수:")
         for user, count in user_counts.items():
             print(f"   - {user}: {count}건")
     else:
         # Anomaly 컬럼이 없으면 전체 데이터 사용 (이미 필터링된 것으로 간주)
         print(f"'Anomaly' 컬럼이 없어 전체 데이터 {len(df)}건을 사용합니다.")
-        user_counts = df[actual_user_col].value_counts().nlargest(top_n)
-        print(f"상위 {top_n}명 사용자별 로그 수:")
+        
+        # 전체 사용자 수 확인
+        total_users = len(df[actual_user_col].unique())
+        print(f"전체 사용자 수: {total_users}명")
+        
+        # 기본 10명 표시 로직
+        if not show_more:
+            display_count = min(10, total_users)
+        else:
+            additional_count = max(1, int(total_users * 0.1))
+            display_count = min(10 + additional_count, total_users)
+        
+        print(f"표시할 사용자 수: {display_count}명 (show_more: {show_more})")
+        
+        user_counts = df[actual_user_col].value_counts().nlargest(display_count)
+        print(f"상위 {display_count}명 사용자별 로그 수:")
         for user, count in user_counts.items():
             print(f"   - {user}: {count}건")
 
@@ -409,10 +432,14 @@ def plot_anomaly_by_user(df, user_col, top_n=5):
         title='Anomalies by User',
         xaxis_title='User',
         yaxis_title='Anomaly Count',
-        xaxis=dict(showticklabels=False),  # X축 사용자 이름 숨기기
+        xaxis=dict(
+            showticklabels=True,  # X축 사용자 이름 항상 표시
+            tickangle=45,  # 사용자명이 겹치지 않도록 45도 회전
+            tickfont=dict(size=10)  # 글자 크기 조정
+        ),
         plot_bgcolor='white',
         font=dict(size=12),  # 글자 크기
-        margin=dict(l=40, r=40, t=60, b=40),
+        margin=dict(l=40, r=40, t=60, b=80),  # 하단 마진 증가 (회전된 텍스트 공간)
         autosize=True, 
     )
     fig_html = fig.to_html(
@@ -423,15 +450,9 @@ def plot_anomaly_by_user(df, user_col, top_n=5):
         config={'responsive': True}
     )
 
-    styled_html = f'''
-    <div style="width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;">
-        {fig_html}
-    </div>
-    '''
-
     elapsed_time = time.time() - start_time
     print(f"사용자별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
-    return styled_html
+    return fig_html
 
 # === 이상치 점수 분포 시각화 ===
 def plot_anomaly_score_distribution(df, threshold=-0.2, score_col=None):
@@ -519,13 +540,7 @@ def plot_anomaly_score_distribution(df, threshold=-0.2, score_col=None):
         default_height='100%',
         config={'responsive': True}
     )
-    
-    styled_html = f'''
-    <div style="width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;">
-        {fig_html}
-    </div>
-    '''
 
     elapsed_time = time.time() - start_time
     print(f"이상치 점수 분포 그래프 생성 완료 ({elapsed_time:.2f}초)")
-    return styled_html
+    return fig_html

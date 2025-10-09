@@ -165,7 +165,12 @@
     <div class="graph-section">
       <div class="graph-title-bar" style="display: flex; justify-content: space-between; align-items: center;">
         <div class="graph-title">사용자별 이상 로그 그래프</div>
-        <a href="{% url 'web:dashboard' %}" class="dashboard-button">대시보드</a>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button id="show-more-btn" class="dashboard-button" style="background-color: #007bff; color: white;">
+            더보기
+          </button>
+          <a href="{% url 'web:dashboard' %}" class="dashboard-button">대시보드</a>
+        </div>
       </div>
       <div id="graph-container" class="graph-container">
         <div class="loading">그래프를 로딩하는 중...</div>
@@ -216,17 +221,25 @@
           });
     }
 
-    window.onload = function () {
-
+    function loadGraph(showMore = false) {
       /* URL 파라미터에서 session_id 읽기 */
       const urlParams = new URLSearchParams(window.location.search);
       const sessionId = urlParams.get('session_id');
 
       /* API URL 생성 */
       let apiUrl = '/api/get_user_graph/';
+      const params = new URLSearchParams();
+      
       if (sessionId) {
-        apiUrl += `?session_id=${sessionId}`;
-      } 
+        params.append('session_id', sessionId);
+      }
+      if (showMore) {
+        params.append('show_more', 'true');
+      }
+      
+      if (params.toString()) {
+        apiUrl += `?${params.toString()}`;
+      }
             
       const container = document.getElementById('graph-container');
       container.innerHTML = '<div class="loading">그래프를 로딩하는 중...</div>';
@@ -241,6 +254,16 @@
         })
         .then(html => {       
           container.innerHTML = html;
+          
+          // 더보기 버튼 텍스트 업데이트
+          const showMoreBtn = document.getElementById('show-more-btn');
+          if (showMore) {
+            showMoreBtn.textContent = '기본보기';
+            showMoreBtn.onclick = () => loadGraph(false);
+          } else {
+            showMoreBtn.textContent = '더보기';
+            showMoreBtn.onclick = () => loadGraph(true);
+          }
           
           setTimeout(() => {
             const plotlyDiv = container.querySelector('.plotly-graph-div');
@@ -290,6 +313,14 @@
             </div>
           `;
         });
+    }
+
+    window.onload = function () {
+      // 초기 그래프 로드
+      loadGraph(false);
+      
+      // 더보기 버튼 이벤트 설정
+      document.getElementById('show-more-btn').onclick = () => loadGraph(true);
       
       loadTotalAnomalyCount();
     };

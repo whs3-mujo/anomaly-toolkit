@@ -22,15 +22,16 @@
   background: white;
   border: 1px solid #e9ecef;
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 12px 12px;
   margin-bottom: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  min-height: 72px;
 }
 
 .history-item:hover {
@@ -623,6 +624,25 @@
       color: #fff !important;
     }
     
+    /* View All 버튼 호버 효과 */
+    a[onclick*="goToViewAll"]:hover,
+    a[onclick*="goToHourViewAll"]:hover {
+      background: #1976d2 !important;
+      color: #fff !important;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+    }
+    
+    a[onclick*="goToViewAll"]:hover svg path,
+    a[onclick*="goToHourViewAll"]:hover svg path,
+    a[onclick*="goToViewAll"]:hover svg circle,
+    a[onclick*="goToHourViewAll"]:hover svg circle,
+    a[onclick*="goToViewAll"]:hover svg polyline,
+    a[onclick*="goToHourViewAll"]:hover svg polyline {
+      stroke: #fff !important;
+      fill: #fff !important;
+    }
+    
     </style>
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
@@ -738,6 +758,15 @@ function formatLocalTime(utcString) {
   return date.toLocaleString();
 }
 
+function formatDateAndTime(utcString) {
+  if (!utcString) return { date: '', time: '' };
+  /* ISO 포맷이 아니면 'Z'를 붙여서 UTC로 인식 */
+  let date = new Date(utcString.endsWith('Z') ? utcString : utcString + 'Z');
+  const dateStr = date.toLocaleDateString('ko-KR');
+  const timeStr = date.toLocaleTimeString('ko-KR', { hour12: true });
+  return { date: dateStr, time: timeStr };
+}
+
 function renderHistoryList(history) {
   const listContainer = document.getElementById('history-list');
   if (history.length === 0) {
@@ -751,15 +780,21 @@ function renderHistoryList(history) {
   }
 
   const historyHTML = history.map(item => {
+    const dateTime = formatDateAndTime(item.created_at);
     return `
     <div class="history-item" data-session-id="${item.session_id}" onclick="loadAnalysisDetail('${item.session_id}')">
       <div style="flex: 1; min-width: 0;">
-        <div class="filename" title="${item.full_filename}" style="color:#173a7d; font-weight:700; margin-bottom: 3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+        <div class="filename" title="${item.full_filename}" style="color:#173a7d; font-weight:700; margin-bottom: 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
           ${item.filename}
         </div>
-        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.83rem; color: #777;">
-          <span>${formatLocalTime(item.created_at)}</span>
-          <span class="file-type-badge">${item.file_type.toUpperCase()}</span>
+        <div style="display: flex; flex-direction: column; gap: 2px; font-size: 0.83rem; color: #777;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span>${dateTime.date}</span>
+            <span class="file-type-badge">${item.file_type.toUpperCase()}</span>
+          </div>
+          <div style="font-size: 0.78rem; color: #999;">
+            ${dateTime.time}
+          </div>
         </div>
       </div>
       <div style="display: flex; align-items: center;">
@@ -879,13 +914,12 @@ function renderAnalysisResult(session) {
   }
   let resultHTML = `
   <div class="result-header">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center;">
       <div style="display: flex; align-items: center; gap: 1rem;">
         <h2 style="margin: 0; font-size: 1.08rem; font-weight: 700;">${session.filename}</h2>
         <span style="font-size: 1rem; color: #90caf9;">|</span>
-        <span style="font-size: 1rem; color: #90caf9;">분석 완료: ${formatLocalTime(session.created_at)}</span>
+        <span style="font-size: 1rem; color: #90caf9;">${formatLocalTime(session.created_at)}</span>
       </div>
-      <span class="status-badge">완료</span>
     </div>
   </div>
   `;
@@ -903,12 +937,20 @@ function renderAnalysisResult(session) {
 
     resultHTML += `
       <div class="result-content">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-          <h3 style="margin-bottom: 1rem; color: #495057;">분석 결과</h3>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #e3f2fd;">
+          <h3 style="margin: 0; color: #1976d2; font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="3" width="7" height="7" rx="2" fill="#1976d2"/>
+              <rect x="14" y="3" width="7" height="7" rx="2" fill="#42a5f5"/>
+              <rect x="14" y="14" width="7" height="7" rx="2" fill="#1976d2"/>
+              <rect x="3" y="14" width="7" height="7" rx="2" fill="#42a5f5"/>
+            </svg>
+            분석 결과
+          </h3>
           
           ${summaryText}
         </div>
-        <div style="background: white; padding: 1.5rem; border-radius: 4px; border-left: 4px solid #28a745;">
+        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e9ecef;">
           ${formatAnalysisResult(session.analysis_result, session)}
         </div>
       </div>
@@ -917,7 +959,7 @@ function renderAnalysisResult(session) {
     resultHTML += `
       <div class="result-content">
         <h3 style="margin-bottom: 1rem; color: #6c757d;">분석 결과 없음</h3>
-        <div style="background: white; padding: 1.5rem; border-radius: 4px; border-left: 4px solid #6c757d;">
+        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e9ecef;">
           <p style="color: #6c757d; margin: 0;">분석 결과 데이터가 없습니다.</p>
         </div>
       </div>
@@ -954,12 +996,20 @@ function formatAnalysisResult(result, session) {
       <div class="dashboard-graphs-card">
         <div style="display: flex; margin-bottom: 0.5rem; justify-content: space-between; align-items: center;">
           <a href="#" onclick="goToViewAll(); return false;" 
-            style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none;">
-            View All
+            style="color: #1976d2; font-weight: 600; font-size: 0.95rem; text-decoration: none; background: #e3f2fd; padding: 6px 12px; border-radius: 6px; transition: all 0.2s; display: flex; align-items: center; gap: 4px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.1 3.89 23 5 23H11V21H5V3H13V9H21Z" fill="#1976d2"/>
+              <path d="M18 15V13L22 17L18 21V19H14V15H18Z" fill="#1976d2"/>
+            </svg>
+            사용자별 상세보기
           </a>
           <a href="#" onclick="goToHourViewAll(); return false;" 
-            style="color: #1976d2; font-weight: 500; font-size: 1.15rem; text-decoration: none;">
-            View All
+            style="color: #1976d2; font-weight: 600; font-size: 0.95rem; text-decoration: none; background: #e3f2fd; padding: 6px 12px; border-radius: 6px; transition: all 0.2s; display: flex; align-items: center; gap: 4px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#1976d2" stroke-width="2"/>
+              <polyline points="12,6 12,12 16,14" stroke="#1976d2" stroke-width="2"/>
+            </svg>
+            시간별 상세보기
           </a>
           <div style="width: 33.33%;"></div>
         </div>
