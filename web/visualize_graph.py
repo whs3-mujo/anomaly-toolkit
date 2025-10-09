@@ -296,9 +296,15 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
         config={'responsive': True}
     )
 
+    styled_html = f'''
+    <div style="width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;">
+        {fig_html}
+    </div>
+    '''
+
     elapsed_time = time.time() - start_time
     print(f"시간대별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
-    return fig_html
+    return styled_html
 
 # === 사용자별 이상탐지 시각화 ===
 def plot_anomaly_by_user(df, user_col, top_n=5):
@@ -417,9 +423,15 @@ def plot_anomaly_by_user(df, user_col, top_n=5):
         config={'responsive': True}
     )
 
+    styled_html = f'''
+    <div style="width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;">
+        {fig_html}
+    </div>
+    '''
+
     elapsed_time = time.time() - start_time
     print(f"사용자별 이상탐지 그래프 생성 완료 ({elapsed_time:.2f}초)")
-    return fig_html
+    return styled_html
 
 # === 이상치 점수 분포 시각화 ===
 def plot_anomaly_score_distribution(df, threshold=-0.2, score_col=None):
@@ -507,7 +519,13 @@ def plot_anomaly_score_distribution(df, threshold=-0.2, score_col=None):
         default_height='100%',
         config={'responsive': True}
     )
+    
+    styled_html = f'''
+    <div style="width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;">
+        {fig_html}
+    </div>
+    '''
 
     elapsed_time = time.time() - start_time
     print(f"이상치 점수 분포 그래프 생성 완료 ({elapsed_time:.2f}초)")
-    return fig_html
+    return styled_html
