@@ -40,13 +40,32 @@
       color: #444;
       line-height: 1.5;
     }
+
+    .dashboard-button {
+      background-color: rgb(225, 222, 222);
+      color: black;
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    .dashboard-button:hover {
+      background-color: gray;
+    }
+
   </style>
 </head>
 <body>
   <div class="container">
     <h1>시간별 이상 탐지 그래프</h1>
-    {{ hour_graph_html|safe }}
-
+      <div class="container">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem;">
+          <a href="{% url 'web:dashboard' %}" class="dashboard-button">대시보드</a>
+        </div>
+        {{ hour_graph_html|safe }}
     <div class="description-box">
       🔍 <strong>그래프 설명:</strong><br>
       이 그래프는 상위 사용자들의 시간대별 이상 로그 발생 패턴을 시각화한 것입니다. <br>
