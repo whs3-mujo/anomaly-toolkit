@@ -291,7 +291,7 @@ def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_m
     return final_data, categorical_cols, encoder
 
 
-def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=None):
+def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=None, contamination=0.05):
     """
     업로드된 CSV 파일 경로(file_path)와 제외할 칼럼 리스트(exclude_columns)를 받아
     1) 전처리 → 2) PyOD 이상 탐지 → 3) HTML 테이블 형태 결과 반환
@@ -335,7 +335,7 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
     )
 
 # 3. 이상치 탐지 (PyOD IForest)**
-    model = IForest(contamination=0.05, random_state=42)
+    model = IForest(contamination=contamination, random_state=42)
     model.fit(processed_data)
     y_pred = model.predict(processed_data)           # 1: 이상치, 0: 정상
     scores = model.decision_function(processed_data) # 이상치 점수
@@ -495,6 +495,7 @@ def detect_anomalies(file_path, exclude_columns=None, user_col=None, time_col=No
         "summary": f"이상치 {count_anomaly:,}건 / 전체 {total:,}건",
         "anomaly_count": int(count_anomaly),  # numpy int를 Python int로 변환
         "total": int(total),  # numpy int를 Python int로 변환
+        "contamination": float(contamination),  # contamination 값 추가
         "table_html": preview_table_html,  # TF-IDF 컬럼이 빠진 표(대시보드용)
         "records": anomaly_records,   # 이상치 결과 (여긴 TF-IDF 제외)
         "all_records": all_records,   # 전체 결과
