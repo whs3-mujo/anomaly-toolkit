@@ -79,22 +79,37 @@ docker compose logs -f    # 로그 보기
 docker compose down       # 종료
 ```
 ### Docker 실행 (오프라인)
-1. 본 프로젝트는 온프레미스 환경에서도 실행할 수 있도록 Docker 이미지 파일(anomaly-toolkit.tar)을 제공합니다.
-<br />
+본 프로젝트는 온프레미스 및 망분리 환경에서도 실행할 수 있도록 오프라인 배포 패키지를 제공합니다.
 
-2. 아래 링크에서 Docker 이미지 파일을 다운로드 받아주세요:
-https://drive.google.com/drive/folders/1nwI_TW3FTxpsm7FXuqzWbMWsnxUHTQAQ?usp=sharing
-<br />
+#### 오프라인 패키지 사용 방법 (사용자용)
+1. 제공된 오프라인 패키지 파일(`logsco-anomaly-detector.zip`)을 다운로드합니다.
 
-3. 터미널에서 다음 명령어 2줄만 실행하면 웹 애플리케이션이 바로 실행됩니다:
-```bash
-docker load -i anomalytoolkit.tar
-docker run -d -p 8000:8000 --name anomaly-detector anomaly-detection:offline
+2. ZIP 파일을 압축 해제합니다.
+
+3. 운영체제에 맞는 시작 스크립트를 실행합니다:
+   - Windows: `start_service.bat` 파일을 더블클릭
+   - macOS/Linux: 터미널에서 `chmod +x start_service.sh` 실행 후 `./start_service.sh` 실행
+
+4. 웹 브라우저에서 http://localhost:8000 으로 접속하여 서비스를 사용합니다:
+   - 로그 파일 업로드: http://localhost:8000/upload/
+   - 분석 결과 확인: http://localhost:8000/dashboard/
+
+5. 서비스를 종료하려면:
+   - Windows: `stop_service.bat` 파일을 더블클릭
+   - macOS/Linux: `./stop_service.sh` 실행
+
+#### 오프라인 패키지 제작 방법 (개발자용)
+오프라인 패키지를 만들기 위해 다음 스크립트를 사용합니다:
+
+```powershell
+# PowerShell에서 실행
+.\create_offline_package.ps1
 ```
-4. 실행 후 웹 브라우저에서 http://localhost:8000 로 접속하시면 됩니다. 
 
-(업로드: http://localhost:8000/upload, 
- 대시보드: http://localhost:8000/dashboard)
+이 스크립트는 도커 이미지를 빌드하고 tar 파일로 저장한 후, 사용자가 쉽게 서비스를 시작/중지할 수 있는 스크립트와 함께 배포 패키지를 생성합니다.
+
+4. 웹 브라우저에서 http://localhost:8000 으로 접속하여 서비스를 사용합니다.
+   (업로드: http://localhost:8000/upload/, 대시보드: http://localhost:8000/dashboard/)
 <br />
 
 ### 초기 개발 환경 세팅 (개발자)
