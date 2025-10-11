@@ -303,6 +303,15 @@ def detect_anomalies_view(request):
             user_col = request.POST.get("user_col")
             time_col = request.POST.get("time_col")
             
+            # Contamination 값 받기
+            contamination_value = request.POST.get("contamination", "0.05")
+            try:
+                contamination = float(contamination_value)
+                # 범위 제한 (1%~50%)
+                contamination = max(0.01, min(0.5, contamination))
+            except (ValueError, TypeError):
+                contamination = 0.05  # 오류 시 기본값
+            
             # 빈 문자열을 None으로 변환
             user_col = user_col if user_col else None
             time_col = time_col if time_col else None
@@ -318,7 +327,7 @@ def detect_anomalies_view(request):
             def run_analysis():
                 nonlocal result, analysis_error
                 try:
-                    result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col)
+                    result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col, contamination=contamination)
                 except Exception as e:
                     analysis_error = True
                     print(f"분석 중 오류 발생: {e}")

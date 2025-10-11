@@ -431,6 +431,31 @@
       <!-- 칼럼 미리보기/제거 UI -->
       <div id="preview" class="preview-table" style="display:none;"></div>
 
+      <!-- 이상치 기준값 조정 UI -->
+      <div id="threshold-area" style="width:100%; margin-bottom:1.2rem; text-align:center; display:none;">
+        <label for="threshold_slider" class="selection-label" style="margin-bottom:0.75rem; display:block;">이상치 기준값 조정:</label>
+        <div id="threshold-slider-area" style="border:1.5px solid #cfd8dc; border-radius:8px; background:#f5f6fa; padding:0.8rem 1.2rem; margin-top:8px; box-sizing:border-box;">
+          <div style="display:flex; align-items:center; justify-content:center; margin-bottom:8px; gap:22px;">
+            <label style="margin-right:12px; font-size:1.05rem; font-weight:400; color:#1976d2;">
+              <input type="radio" name="threshold_mode" value="manual" checked onclick="toggleThresholdSlider(true)"> 직접 기준값 지정
+            </label>
+            <label style="font-size:1.05rem; font-weight:400; color:#1976d2;">
+              <input type="radio" name="threshold_mode" value="auto" onclick="toggleThresholdSlider(false)"> 자동 판정
+            </label>
+          </div>
+          <input type="range" id="threshold_slider" name="threshold" min="0.01" max="0.5" step="0.01" value="0.05" style="width:70%;">
+          <div style="margin-top:0.5rem; font-size:1.05rem; color:#1976d2;">
+            현재 값: <span id="threshold_value">5%</span>
+          </div>
+          <div style="margin-top:0.5rem; font-size:0.98rem; color:#888;">
+            <span style="font-size:1.05rem; font-weight:500; color:#888;">추천값:</span>
+            <span class="threshold-recommend" style="cursor:pointer; color:#888; margin:0 8px;" onclick="setThreshold(0.02)">2%(엄격)</span>
+            <span class="threshold-recommend" style="cursor:pointer; color:#888; margin:0 8px;" onclick="setThreshold(0.05)">5%(보통)</span>
+            <span class="threshold-recommend" style="cursor:pointer; color:#888; margin:0 8px;" onclick="setThreshold(0.1)">10%(느슨)</span>
+          </div>
+        </div>
+      </div>
+
       <!-- 제외할 칼럼 선택 (드롭다운 + 체크박스)-->
       <div id="column-selection-area" style="display:none; width: 100%; margin-bottom: 1.5rem;">
         <label class="selection-label">제외할 칼럼 선택:</label>
@@ -607,6 +632,7 @@
             /* UI 요소들 표시 */
             document.getElementById('column-selection-area').style.display = "block";
             document.getElementById('col-select-area').style.display = "block";
+            document.getElementById('threshold-area').style.display = "block";
             document.querySelector('.upload-btn').style.display = "block";
           })
           .catch(error => {
@@ -681,6 +707,14 @@
           updateSelectedText();
         }
       });
+
+      /* Threshold 슬라이더 이벤트 리스너 */
+      const thresholdSlider = document.getElementById('threshold_slider');
+      if (thresholdSlider) {
+        thresholdSlider.addEventListener('input', updateThresholdDisplay);
+        // 초기값 설정
+        updateThresholdDisplay();
+      }
     });
 
     /* 선택된 항목 텍스트 업데이트 */
@@ -695,6 +729,43 @@
       } else {
         selectText.textContent = `${selectedCheckboxes.length}개 선택됨`;
       }
+    }
+
+    /* Threshold 슬라이더 관련 함수들 */
+    function toggleThresholdSlider(enabled) {
+      const slider = document.getElementById('threshold_slider');
+      const valueDisplay = document.getElementById('threshold_value');
+      
+      if (enabled) {
+        slider.disabled = false;
+        slider.style.opacity = '1';
+        valueDisplay.style.opacity = '1';
+      } else {
+        slider.disabled = true;
+        slider.style.opacity = '0.5';
+        valueDisplay.style.opacity = '0.5';
+      }
+    }
+
+    function setThreshold(value) {
+      const slider = document.getElementById('threshold_slider');
+      const valueDisplay = document.getElementById('threshold_value');
+      
+      slider.value = value;
+      updateThresholdDisplay();
+      
+      // 직접 지정 라디오 버튼을 선택하고 슬라이더를 활성화
+      document.querySelector('input[name="threshold_mode"][value="manual"]').checked = true;
+      toggleThresholdSlider(true);
+    }
+
+    function updateThresholdDisplay() {
+      const slider = document.getElementById('threshold_slider');
+      const valueDisplay = document.getElementById('threshold_value');
+      
+      // 0.01~0.5 범위를 1~50% 범위로 변환해서 표시
+      const percentage = Math.round(parseFloat(slider.value) * 100);
+      valueDisplay.textContent = percentage + '%';
     }
 
     /* 업로드 폼 제출 및 로딩 관련 코드 */
@@ -734,6 +805,15 @@
       const timeCol = document.getElementById('time_col').value;
       formData.append("user_col", userCol);
       formData.append("time_col", timeCol);
+      
+      // Contamination 값 추가
+      const thresholdMode = document.querySelector('input[name="threshold_mode"]:checked').value;
+      if (thresholdMode === 'manual') {
+        const contaminationValue = document.getElementById('threshold_slider').value;
+        formData.append("contamination", contaminationValue);
+      } else {
+        formData.append("contamination", "0.05"); // 자동 모드일 때 기본값
+      }
 
       fetch("{% url 'web:detect_anomalies' %}", {
         method: "POST",
