@@ -304,13 +304,13 @@ def detect_anomalies_view(request):
             time_col = request.POST.get("time_col")
             
             # q(이상치 비율)값 받기
-            q_value = request.POST.get("q", "0.01")
+            q_value = request.POST.get("q", "0.05")
             try:
                 q = float(q_value)
                 # 범위 제한 (1%~50%)
                 q = max(0.01, min(0.5, q))
             except (ValueError, TypeError):
-                q = 0.01  # 오류 시 기본값
+                q = 0.05  # 오류 시 기본값
             
             # 빈 문자열을 None으로 변환
             user_col = user_col if user_col else None
@@ -1449,3 +1449,4 @@ def parse_analysis_data(session):
     
     print(f"DEBUG: parse_analysis_data 완료 - time_periods={len(time_periods)}, top_users={len(top_users)}")
     return time_periods, top_users
+
