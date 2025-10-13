@@ -474,9 +474,9 @@ def detect_anomalies(
     results_cleaned = results.drop(columns=encoded_columns, errors='ignore') 
 
     # 5. SHAP 그래프를 그리기 위한 파일 생성(1)
-    model_path = file_path.replace('.csv', '_model.pkl')    # SHAP값 계산을 위해 모델을 pkl파일로 추출
+    model_path = f"{base_filename}_model.pkl"    # SHAP값계산을위해 모델을 pkl파일로추출
     joblib.dump(models, model_path)
-    shap_input_path = file_path.replace('.csv', '_X_for_shap.csv')
+    shap_input_path = f"{base_filename}_X_for_shap.csv"
     forshap_input.to_csv(shap_input_path, index=False)  #forshap_input을 _X_for_shap.csv 라는 이름으로 저장
 
     # 이상치 점수 컬럼명 통일
@@ -493,7 +493,9 @@ def detect_anomalies(
     # 6. 결과 저장
     # results_with_info = pd.concat([results_cleaned.drop(columns=tfidf_cols, errors='ignore'), original_info], axis=1)
     # results_with_info = pd.concat([results, original_info], axis=1)
-    base_filename = file_path.replace('.csv', '')
+    from datetime import datetime
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    base_filename = file_path.replace('.csv', '') + f"_{timestamp}"
     full_anomaly_path = f"{base_filename}_full_data_with_anomaly_info.csv"
     results_with_info.to_csv(full_anomaly_path, index=False)
 
@@ -622,7 +624,7 @@ def detect_anomalies(
         if iforest_model is not None and not forshap_input.empty:
             print("TreeExplainer로 SHAP 계산 중...")
             shap_values = shap.TreeExplainer(iforest_model).shap_values(forshap_input)
-            np.save(file_path.replace(".csv", "_shap_values.npy"), shap_values)
+            np.save(f"{base_filename}_shap_values.npy", shap_values)
         else:
             print("트리 기반 모델이 없어 SHAP 계산 생략.")
 
