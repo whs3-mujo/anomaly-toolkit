@@ -38,7 +38,7 @@
 
 > LOGSCO는 **데이터의 연결을 이해하고, 관계 속에서 비정상을 감지하는 AI 시스템**을 의미합니다.
 
-![LOGSCO Icon](./assets/icon.png)
+![LOGSCO Icon](./header.png)
 
 ---
 
@@ -52,14 +52,14 @@
 
 > ⚙️ **업로드 제한 안내**  
 > - 기본적으로 5분 이하의 로그 데이터만 업로드 가능합니다.  
-> - 더 큰 데이터는 [GitHub Issue](https://github.com/your-org/LOGSCO/issues)를 통해 문의해주세요.  
+> - 더 큰 데이터는 [GitHub Issue](https://github.com/whs3-mujo/anomaly-toolkit/issues)를 통해 문의해주세요.  
 >   (기술적으로 가능하지만, 서비스 효율성을 위해 제한되어 있습니다.)
 
 ---
 
 ## 4. 샘플 데이터  
 
-**파일명:** `Final_Fintech_Security_Logs.csv`  
+**파일명:** [Final_Fintech_Security_Logs.csv](./Final_Fintech_Security_Logs.csv)
 **설명:** 실제 금융기관 로그 환경 기반의 보안 로그 샘플  
 
 | 컬럼명 | 설명 |
