@@ -806,13 +806,13 @@
       formData.append("user_col", userCol);
       formData.append("time_col", timeCol);
       
-      // Contamination 값 추가
+      // q(이상치 비율) 값 추가
       const thresholdMode = document.querySelector('input[name="threshold_mode"]:checked').value;
       if (thresholdMode === 'manual') {
-        const contaminationValue = document.getElementById('threshold_slider').value;
-        formData.append("contamination", contaminationValue);
+        const q_value = document.getElementById('threshold_slider').value;
+        formData.append("q", q_value);
       } else {
-        formData.append("contamination", "0.05"); // 자동 모드일 때 기본값
+        formData.append("q", "0.05"); // 자동 모드일 때 기본값
       }
 
       fetch("{% url 'web:detect_anomalies' %}", {

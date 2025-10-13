@@ -303,14 +303,14 @@ def detect_anomalies_view(request):
             user_col = request.POST.get("user_col")
             time_col = request.POST.get("time_col")
             
-            # Contamination 값 받기
-            contamination_value = request.POST.get("contamination", "0.05")
+            # q(이상치 비율)값 받기
+            q_value = request.POST.get("q", "0.05")
             try:
-                contamination = float(contamination_value)
+                q = float(q_value)
                 # 범위 제한 (1%~50%)
-                contamination = max(0.01, min(0.5, contamination))
+                q = max(0.01, min(0.5, q))
             except (ValueError, TypeError):
-                contamination = 0.05  # 오류 시 기본값
+                q = 0.05  # 오류 시 기본값
             
             # 빈 문자열을 None으로 변환
             user_col = user_col if user_col else None
@@ -327,7 +327,7 @@ def detect_anomalies_view(request):
             def run_analysis():
                 nonlocal result, analysis_error
                 try:
-                    result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col, contamination=contamination)
+                    result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col, q=q)
                 except Exception as e:
                     analysis_error = True
                     print(f"분석 중 오류 발생: {e}")
@@ -468,6 +468,57 @@ def get_shap_plot(request, session_id, row_index):
     shap_values = np.load(session.file_path.replace(".csv", "_shap_values.npy"))
     feature_cols = X.columns.tolist()
     
+    # row(1개 샘플에 대한 shap vector) 안전 추출
+    # shap_loaded의 가능한 형태를 모두 커버:
+    # - 2D ndarray: (n_samples, n_features)
+    # - 3D ndarray: (n_classes, n_samples, n_features)
+    # - object/리스트: [ (n_samples, n_features), ... ] 또는 list-of-arrays
+    if isinstance(shap_values, np.ndarray) and shap_values.dtype != object:
+        if shap_values.ndim == 2:
+            row = shap_values[int(row_index)]
+        elif shap_values.ndim == 3:
+            row = shap_values[0, int(row_index), :]  # 첫 클래스 사용
+        else:
+            # 예외 형태는 1D로 간주되지 않도록 방어
+            row = np.atleast_1d(shap_values[int(row_index)])
+    else:
+        # object array 혹은 list
+        shap_list = shap_values.tolist() if isinstance(shap_values, np.ndarray) else shap_values
+        if isinstance(shap_list, list):
+            # 첫 요소가 (n_samples, n_features)인 경우를 우선 가정
+            if len(shap_list) > 0 and isinstance(shap_list[0], (np.ndarray, list)):
+                first = np.asarray(shap_list[0])
+                if first.ndim == 2:
+                    row = np.asarray(shap_list[0][int(row_index)])
+                elif first.ndim == 3:
+                    row = np.asarray(shap_list[0][0, int(row_index), :])
+                else:
+                    row = np.asarray(shap_list[0]).reshape(-1)
+            else:
+                # 예외적으로 (n_samples, n_features)가 바로 들어온 경우
+                row = np.asarray(shap_list[int(row_index)]).reshape(-1)
+        else:
+            row = np.asarray(shap_list).reshape(-1)
+
+    row = np.asarray(row).ravel()  # 1D 보장
+
+    # 길이 정합성 강제: feature_cols vs row vs X.iloc[row_index]
+    if len(feature_cols) != len(row) or X.shape[1] != len(feature_cols):
+        print(f"[WARN] SHAP/특성 길이 불일치 -> 정합화 "
+              f"(features={len(feature_cols)}, shap={len(row)}, Xcols={X.shape[1]})")
+    min_len = min(len(feature_cols), len(row), X.shape[1])
+    feature_cols = feature_cols[:min_len]
+    row = row[:min_len]
+    X = X.iloc[:, :min_len]
+
+    # 이제 정합성 보장 후, 단 한 번만 shap_df 생성
+    shap_df = pd.DataFrame({
+        'feature': feature_cols,
+        'shap_value': row,
+        'abs_val': np.abs(row),
+        'data': X.iloc[int(row_index)].values
+    })
+
     # TF-IDF 칼럼 식별
     tfidf_cols = [col for col in feature_cols if '_tfidf_' in col]
     
@@ -1398,3 +1449,4 @@ def parse_analysis_data(session):
     
     print(f"DEBUG: parse_analysis_data 완료 - time_periods={len(time_periods)}, top_users={len(top_users)}")
     return time_periods, top_users
+
