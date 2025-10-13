@@ -326,7 +326,7 @@ def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False, for_dashboard=
         )])
         
         fig.update_layout(
-            title='Anomalies by User',
+            title='Anomaly By User',
             xaxis_title='User',
             yaxis_title='Anomaly Count',
             xaxis=dict(showticklabels=False),  # X축 사용자 이름 숨기기 (기존 스타일)
@@ -365,7 +365,7 @@ def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False, for_dashboard=
             print("이상 로그가 없습니다. 빈 그래프를 반환합니다.")
             fig = go.Figure()
             fig.update_layout(
-                title='Anomalies by User (No Anomalies Found)',
+                title='Anomaly By User (No Anomalies Found)',
                 xaxis_title='User',
                 yaxis_title='Anomaly Count',
                 annotations=[dict(text="이상 로그가 발견되지 않았습니다.", 
@@ -440,7 +440,7 @@ def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False, for_dashboard=
     )])
 
     fig.update_layout(
-        title='Anomalies by User',
+        title='Anomaly By User',
         xaxis_title='User',
         yaxis_title='Anomaly Count',
         xaxis=dict(
