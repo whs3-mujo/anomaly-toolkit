@@ -2,7 +2,11 @@
 
 ## 개요
 본 도구는 AI 기반 로그 이상 탐지 도움 툴킷입니다. <br />
-[**시연 영상**](https://www.youtube.com/watch?v=6EWizN8p7mI&list=PLJOyfcewGGvYWiry_4vStBUEzOWpJ6w07)
+[**시연 영상**](https://www.youtube.com/watch?v=6EWizN8p7mI&list=PLJOyfcewGGvYWiry_4vStBUEzOWpJ6w07) <br />
+
+운영체제별 가이드북 (Windows, Mac) <br />
+Windows: https://www.notion.so/1bed038712de802fa97bce2017e43859?source=copy_link   <br />
+Mac: https://www.notion.so/2420363bd07c807191bde6b6acfee091?source=copy_link <br />
 
 ## 요구사항
 ### 실행 환경
