@@ -303,6 +303,15 @@ def detect_anomalies_view(request):
             user_col = request.POST.get("user_col")
             time_col = request.POST.get("time_col")
             
+            # q(이상치 비율)값 받기
+            q_value = request.POST.get("q", "0.01")
+            try:
+                q = float(q_value)
+                # 범위 제한 (1%~50%)
+                q = max(0.01, min(0.5, q))
+            except (ValueError, TypeError):
+                q = 0.01  # 오류 시 기본값
+            
             # 빈 문자열을 None으로 변환
             user_col = user_col if user_col else None
             time_col = time_col if time_col else None
@@ -318,7 +327,7 @@ def detect_anomalies_view(request):
             def run_analysis():
                 nonlocal result, analysis_error
                 try:
-                    result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col)
+                    result = detect_anomalies(file_path, exclude_columns, user_col=user_col, time_col=time_col, q=q)
                 except Exception as e:
                     analysis_error = True
                     print(f"분석 중 오류 발생: {e}")
@@ -454,11 +463,12 @@ def get_shap_plot(request, session_id, row_index):
         original_df = None
         original_columns = set()
     
-    # SHAP 입력/출력 로드 (데이터 불러오기)
+    # 데이터 불러오기
     X = pd.read_csv(session.file_path.replace(".csv", "_X_for_shap.csv"))
     shap_values = np.load(session.file_path.replace(".csv", "_shap_values.npy"))
     feature_cols = X.columns.tolist()
-     # (3) row(1개 샘플에 대한 shap vector) 안전 추출
+    
+    # row(1개 샘플에 대한 shap vector) 안전 추출
     # shap_loaded의 가능한 형태를 모두 커버:
     # - 2D ndarray: (n_samples, n_features)
     # - 3D ndarray: (n_classes, n_samples, n_features)
@@ -492,7 +502,7 @@ def get_shap_plot(request, session_id, row_index):
 
     row = np.asarray(row).ravel()  # 1D 보장
 
-    # (4) 길이 정합성 강제: feature_cols vs row vs X.iloc[row_index]
+    # 길이 정합성 강제: feature_cols vs row vs X.iloc[row_index]
     if len(feature_cols) != len(row) or X.shape[1] != len(feature_cols):
         print(f"[WARN] SHAP/특성 길이 불일치 -> 정합화 "
               f"(features={len(feature_cols)}, shap={len(row)}, Xcols={X.shape[1]})")
@@ -501,7 +511,7 @@ def get_shap_plot(request, session_id, row_index):
     row = row[:min_len]
     X = X.iloc[:, :min_len]
 
-    # (5) 이제 정합성 보장 후, 단 한 번만 shap_df 생성
+    # 이제 정합성 보장 후, 단 한 번만 shap_df 생성
     shap_df = pd.DataFrame({
         'feature': feature_cols,
         'shap_value': row,
