@@ -10,7 +10,6 @@ new modular components provide enhanced functionality for open source distributi
 """
 from scipy.stats import rankdata
 from pyod.models.ecod import ECOD
-from pyod.models.copod import COPOD
 from pyod.models.hbos import HBOS           
 from pyod.models.iforest import IForest    #추가(채윤)
 
@@ -633,4 +632,5 @@ def detect_anomalies(
         traceback.print_exc()
 
     return result
+
 
