@@ -307,7 +307,7 @@ def cdf_normalize(x):
 def fit_predict_ensemble_fast(
     X,
     mode="recall",         # 'recall' | 'balanced' | 'weighted'
-    q=0.01,                # 상위 q 비율을 이상치로 라벨링
+    q=0.05,                # 상위 q 비율을 이상치로 라벨링
     hbos_n_bins=30,        # HBOS 파라미터
     include_iforest=True,  # ← IForest 포함 여부
     if_n_estimators=200,
@@ -380,7 +380,7 @@ def detect_anomalies(
     user_col=None,
     time_col=None,
     mode="recall",
-    q=0.01,
+    q=0.05,
     include_iforest=True,
     if_n_estimators=200,
     if_max_samples=256,
@@ -633,3 +633,4 @@ def detect_anomalies(
         traceback.print_exc()
 
     return result
+
