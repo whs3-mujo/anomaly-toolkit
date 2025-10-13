@@ -228,21 +228,19 @@ def generate_description(df, user_col, time_col):
 
 
 
-# =========================
 # 텍스트 컬럼 탐지
-# =========================
 def detect_text_columns(df, min_avg_length=20):
     candidate_cols = df.select_dtypes(include=['object', 'string']).columns
     return [col for col in candidate_cols if df[col].astype(str).apply(len).mean() >= min_avg_length]
 
-# =========================
 # 전처리
-# =========================
 def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_max_features=100):
     encoder = None
+    
+    # 빈 값이 많은 컬럼도 유지하되, 적절히 처리
     df = df.copy()
 
-    # 숫자형 결측 0 채우기
+    # 숫자형 컬럼의 빈 값을 0으로 채우기
     numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
     for col in numeric_cols:
         df[col] = df[col].fillna(0)
@@ -252,7 +250,7 @@ def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_m
     categorical_cols = df.select_dtypes(include=['object', 'category', 'bool']).columns
     categorical_cols = [col for col in categorical_cols if col not in text_cols]
 
-    # 범주형 결측 채우기
+    # 범주형 컬럼의 빈 값을 "Unknown"으로 채우기
     for col in categorical_cols:
         df[col] = df[col].fillna("Unknown")
 
@@ -272,6 +270,7 @@ def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_m
         try:
             tfidf_vectorizer = TfidfVectorizer(max_features=min(tfidf_max_features, len(df)//2))
             tfidf_matrix = tfidf_vectorizer.fit_transform(df[col].astype(str).fillna(''))
+            # 칼럼명에 원본 칼럼명을 명확히 포함
             column_prefix = col.replace(' ', '_').lower()
             tfidf_df = pd.DataFrame(
                 tfidf_matrix.toarray(),
@@ -283,11 +282,11 @@ def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_m
             continue
     tfidf_combined = pd.concat(tfidf_df_list, axis=1) if tfidf_df_list else pd.DataFrame(index=df.index)
 
-    # 합치기
+    # 숫자형, 인코딩된 범주형, TF-IDF 특성 결합
     df_numeric = df[numeric_cols].reset_index(drop=True)
     df_encoded = encoded.reset_index(drop=True)
     tfidf_combined = tfidf_combined.reset_index(drop=True)
-    final_data = pd.concat([df_numeric, df_encoded, tfidf_combined], axis=1)
+    final_data = pd.concat([df_numeric, df_encoded, tfidf_combined], axis=1)  # , tfidf_combined
 
     # 스케일링
     if scale and final_data.shape[1] > 0:
@@ -297,9 +296,7 @@ def preprocess_log_data_with_text(df, encode_method='count', scale=True, tfidf_m
     return final_data, categorical_cols, encoder
 
 
-# =========================
 # 앙상블 (ECOD + COPOD + HBOS [+IForest])
-# =========================
 def cdf_normalize(x):
     """스코어를 랭크→[0,1]로 정규화(CDF 근사)"""
     x = np.asarray(x).ravel()
@@ -376,25 +373,23 @@ def fit_predict_ensemble_fast(
         np.random.set_state(old_state)
 
 
-# =========================
 # 메인 파이프라인
-# =========================
 def detect_anomalies(
     file_path,
     exclude_columns=None,
     user_col=None,
     time_col=None,
-    label_col="Class",
     mode="recall",
     q=0.01,
     include_iforest=True,
     if_n_estimators=200,
     if_max_samples=256,
     if_random_state=42,
-    hbos_n_bins=30
+    hbos_n_bins=30,
 ):
     """
-    파일 입력 → 전처리 → ECOD+COPOD+HBOS (+IForest) 앙상블 → (옵션) 성능평가
+    업로드된 CSV 파일 경로(file_path)와 제외할 칼럼 리스트(exclude_columns)를 받아
+    1) 전처리 → 2) ECOD+HBOS+IForest 앙상블 -> 3) HTML 테이블 형태 결과 반환
     mode: 'recall' | 'balanced' | 'weighted'
     q   : 상위 q 비율 컷(기존 contamination 역할)
     """
@@ -408,9 +403,8 @@ def detect_anomalies(
     else:
         detected_encoding = 'utf-8'
 
-    # 1) 데이터 로딩/결측 열 제거
+    # 1. 데이터 불러오기 (원본 유지)
     data = pd.read_csv(file_path, encoding=detected_encoding)
-    # data = data.dropna(axis=1, thresh=int(len(data)*0.7))  # 70% 이상 결측 열 제거
 
     # 사용자 칼럼 기본 설정
     if user_col is None or user_col == "":
@@ -440,7 +434,7 @@ def detect_anomalies(
     if processed_data.shape[1] == 0:
             raise ValueError("전처리 결과 특성이 없습니다. (모든 열이 제거되었을 수 있음)")
 
-    # 3) 앙상블 탐지
+    # 3. 이상치 탐지
     y_pred, ens_score, indiv_scores, models = fit_predict_ensemble_fast(
         processed_data,
         mode=mode, q=q,
@@ -451,13 +445,11 @@ def detect_anomalies(
         hbos_n_bins=hbos_n_bins
     )
     
-  # 4. 결과 합치기**
+  # 4. 결과 합치기
     results = processed_data.copy().reset_index(drop=True)
     results['Anomaly'] = y_pred
     results['Anomaly_Score'] = ens_score
     
-    # print(f"[DATASET] {file_path} | rows={data.shape[0]}, cols={data.shape[1]}, feats={processed_data.shape[1]}")
-    # print(f"[OUTLIERS] {(results['Anomaly']==1).sum()}/{len(results)} ({(results['Anomaly']==1).mean():.2%}) | mode={mode}, q={q}, iforest={include_iforest}")
     # Anomaly_Score 기준 내림차순 정렬
     sorted_results = results.sort_values(by='Anomaly_Score', ascending=False).reset_index(drop=True)
 
@@ -466,7 +458,7 @@ def detect_anomalies(
     forshap_input = forshap_input.round(6)
     forshap_input = forshap_input.head(100)
 
-# user_col, time_col 복원
+    # user_col, time_col 복원
     if user_col and user_col in data.columns and user_col not in results.columns:
         results[user_col] = data[user_col].reset_index(drop=True)
 
@@ -476,13 +468,13 @@ def detect_anomalies(
     # 5. 결과 출력
     count_anomaly = results['Anomaly'].sum()
     total = len(results)
-    print(f"\n PyOD가 이상치로 판단한 로그 개수: {count_anomaly:,}건 / 전체 {total:,}건")
+    print(f"\n 이상치로 판단한 로그 개수: {count_anomaly:,}건 / 전체 {total:,}건")
 
     # 원본 정보에서 인코딩된 컬럼들을 제거하고 합치기 
     encoded_columns = [col for col in categorical_cols if col in results.columns]  
     results_cleaned = results.drop(columns=encoded_columns, errors='ignore') 
 
-     # 5. SHAP 그래프를 그리기 위한 파일 생성(1)
+    # 5. SHAP 그래프를 그리기 위한 파일 생성(1)
     model_path = file_path.replace('.csv', '_model.pkl')    # SHAP값 계산을 위해 모델을 pkl파일로 추출
     joblib.dump(models, model_path)
     shap_input_path = file_path.replace('.csv', '_X_for_shap.csv')
@@ -606,6 +598,7 @@ def detect_anomalies(
         "summary": f"이상치 {count_anomaly:,}건 / 전체 {total:,}건",
         "anomaly_count": int(count_anomaly),  # numpy int를 Python int로 변환
         "total": int(total),  # numpy int를 Python int로 변환
+        "q": float(q),  # q(이상치 비율) 값 추가
         "table_html": preview_table_html,  # TF-IDF 컬럼이 빠진 표(대시보드용)
         "records": anomaly_records,   # 이상치 결과 (여긴 TF-IDF 제외)
         "all_records": all_records,   # 전체 결과
@@ -622,8 +615,7 @@ def detect_anomalies(
 
     # 10. SHAP 그래프를 그리기 위한 파일 생성(2)
     try:
-        # 만약 models이 리스트(list)라면 트리 기반 모델만 선택
-    # <<-- 수정: 앙상블 모델 중 IForest 모델만 정확하게 선택
+        # 만약 models이 리스트(list)라면, 앙상블 모델 중 IForest 모델만 정확하게 선택
         iforest_model = next((m for n, m in models if n == 'iforest'), None)
         if iforest_model:
             shap_values = shap.TreeExplainer(iforest_model).shap_values(forshap_input)
