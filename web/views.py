@@ -790,6 +790,8 @@ def search_anomaly_logs(request):
     """
     특정 사용자의 이상 로그 건수를 검색합니다.
     """
+
+
     username = request.GET.get('username', '').strip()
     session_id = request.GET.get('session_id')
     
@@ -833,24 +835,37 @@ def search_anomaly_logs(request):
             anomaly_df = df[df['Anomaly'] == 1]
         else:
             anomaly_df = df
+
+        # 사용자명으로 검색 (정확 일치)
+        exact_match = anomaly_df[anomaly_df[user_col].astype(str) == username]
+        if exact_match.empty:
+            return JsonResponse({'error': '정확한 사용자명을 입력해주세요.'}, status=404)
         
-        # 사용자명으로 검색 (부분 일치)
-        user_anomalies = anomaly_df[
-            anomaly_df[user_col].astype(str).str.contains(username, case=False, na=False)
-        ]
-        
-        count = len(user_anomalies)
-        
-        # 정확히 일치하는 사용자가 있는지 확인
-        exact_match = anomaly_df[anomaly_df[user_col] == username]
-        exact_count = len(exact_match)
-        
+        #정확히 일치하는 사용자가 있는지 확인
+        count = int(len(exact_match))
         return JsonResponse({
             'username': username,
             'anomaly_count': count,
-            'exact_match_count': exact_count,
             'session_id': session.session_id
         })
+        
+        # 사용자명으로 검색 (부분 일치)
+        #user_anomalies = anomaly_df[
+        #    anomaly_df[user_col].astype(str).str.contains(username, case=False, na=False)
+        #]
+        
+        #count = len(user_anomalies)
+        
+        # 정확히 일치하는 사용자가 있는지 확인
+        #exact_match = anomaly_df[anomaly_df[user_col] == username]
+        #exact_count = len(exact_match)
+        
+        #return JsonResponse({
+        #    'username': username,
+        #    'anomaly_count': count,
+        #    'exact_match_count': exact_count,
+        #    'session_id': session.session_id
+        #})
         
     except AnalysisSession.DoesNotExist:
         return JsonResponse({'error': '분석 세션을 찾을 수 없습니다.'}, status=404)

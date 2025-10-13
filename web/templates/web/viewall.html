@@ -391,9 +391,16 @@
           }
         })
         .catch(error => {
-          document.getElementById('username-search-result').innerHTML = `<span class="error">${error.message}</span>`;
+          const message = error.message;
+          const resultBox = document.getElementById('username-search-result');
+
+          if (message.includes('정확한 사용자명을 입력해주세요')) {
+            resultBox.innerHTML = `<span class="error">정확한 사용자명을 입력해주세요</span>`;
+          } else {
+            resultBox.innerHTML = `<span class="error">${message}</span>`;
+          }
         });
-    });
+      });
 
     /* 상위 사용자 조회 */
     document.getElementById('top-users-form').addEventListener('submit', function (e) {
@@ -466,5 +473,6 @@
 
 
   </script>
+  
 </body>
 </html>
