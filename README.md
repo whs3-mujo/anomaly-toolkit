@@ -4,6 +4,10 @@
 본 도구는 AI 기반 로그 이상 탐지 도움 툴킷입니다. <br />
 [**시연 영상**](https://www.youtube.com/watch?v=6EWizN8p7mI&list=PLJOyfcewGGvYWiry_4vStBUEzOWpJ6w07)
 
+운영체제별 가이드북 (Windows, Mac)
+Windows:
+Mac: https://www.notion.so/2420363bd07c807191bde6b6acfee091?source=copy_link
+
 ## 요구사항
 ### 실행 환경
 - docker, docker-compose 필요
