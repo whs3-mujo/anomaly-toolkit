@@ -169,9 +169,9 @@ python manage.py runserver 0.0.0.0:8000
 | 백형철 | XAI 및 그래프 시각화 | [@BAEK10000](https://github.com/BAEK10000) |
 | 심준호 | XAI 및 그래프 시각화 | [@junho462](https://github.com/junho462) |
 | 이준혁 | XAI 및 그래프 시각화 | [@hubkorea](https://github.com/hubkorea) |
-| 정원재 | AI 모델 개발 | [@-](https://github.com/) |
+| 정원재 | AI 모델 개발 | [@daljoa](https://github.com/daljoa) |
 | 정채윤 | AI 모델 개발 | [@jcy333](https://github.com/jcy333) |
-| 최아현 | AI 모델 개발 | [@-](https://github.com/) |
+| 최아현 | AI 모델 개발 | [@ChoiAh](https://github.com/ChoiAh) |
 
 ---
 
