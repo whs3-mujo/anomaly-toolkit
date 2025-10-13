@@ -285,11 +285,14 @@
     .search-bar {
       position: relative;
       margin-bottom: 8px;
+      padding: 0 8px;          /* ⬅ 좌우 여백 추가 */
+      box-sizing: border-box;  /* ⬅ 패딩 포함하여 100% 계산 */
     }
 
     .search-bar input {
       width: 100%;
-      padding: 6px 28px 6px 8px;
+      box-sizing: border-box;  /* ⬅️ 테두리/패딩 포함 → 우측 테두리 안 잘림 */
+      padding: 6px 36px 6px 10px;  /* ⬅️ 아이콘 자리 확보 위해 오른쪽 패딩 확장 */
       border: 1px solid #e3e6ea;
       border-radius: 6px;
       font-size: 0.9rem;
@@ -297,7 +300,7 @@
 
     .search-icon {
       position: absolute;
-      right: 10px;
+      right: 16px;
       top: 50%;
       transform: translateY(-50%);
       color: #6c757d;
@@ -410,6 +413,10 @@
       </svg>
       <span>LOGSCO</span>
     </button>
+    <button class="nav-link"
+      onclick="const w=window.open('https://github.com/whs3-mujo/anomaly-toolkit','_blank'); if(w){ w.opener=null; w.focus(); }">
+      GitHub
+    </button>
     <button class="nav-link" onclick="location.href='{% url 'web:dashboard' %}'">Dashboard</button>
   </div>
 
@@ -475,7 +482,7 @@
         </div>
 
         <!-- 드롭다운 메뉴-->
-        <div class="dropdown-panel" style="display:none; width: 100%; max-width:300px;">
+        <div class="dropdown-panel" style="display:none; width: 100%; max-width: 500px;">
           <!-- 검색 필드 -->
           <div class="search-bar">
             <input type="text" placeholder="검색..." id="columnSearch">
