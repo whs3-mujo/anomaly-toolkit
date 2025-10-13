@@ -571,7 +571,7 @@ def get_shap_plot(request, session_id, row_index):
     flipped_values = -negative_df['shap_value']  
     max_value = flipped_values.max()
     if max_value > 0:
-        ax.set_xlim(0, max_value * 1.2)
+        ax.set_xlim(0, max_value * 1.25)
     else:
         ax.set_xlim(0, 1)
 
@@ -595,12 +595,12 @@ def get_shap_plot(request, session_id, row_index):
                 ha = 'left'
             
             ax.text(text_x, i, label, ha=ha, va='center', 
-                   fontsize=9, fontweight='bold',   
+                   fontsize=13, fontweight='bold',   
                    bbox=dict(boxstyle="round,pad=0.2", facecolor='white', alpha=0.8))  
 
-    ax.set_title(f"{row_index+1}번 ROW", fontweight='bold', fontsize=11, pad=10) 
-    ax.set_xlabel("영향도 크기 (SHAP)", fontsize=10) 
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), frameon=False, fontsize=9)  
+    ax.set_title(f"{row_index+1}번 ROW", fontweight='bold', fontsize=13, pad=10) 
+    ax.set_xlabel("영향도 크기 (SHAP)", fontsize=13, labelpad=8) 
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), frameon=False, fontsize=13)  
 
     plt.tight_layout()
     plt.subplots_adjust(left=0.02, right=0.98, top=0.85, bottom=0.20)  
