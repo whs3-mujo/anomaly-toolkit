@@ -38,7 +38,7 @@
 
 > LOGSCO는 **데이터의 연결을 이해하고, 관계 속에서 비정상을 감지하는 AI 시스템**을 의미합니다.
 
-🔗 [Download LOGSCO Icon (PNG)](./icon.png)
+🔗 [LOGSCO 아이콘](./icon.png)
 
 ---
 
@@ -59,7 +59,7 @@
 
 ## 4. 샘플 데이터  
 
-**파일명:** ['Final_Fintech_Security_Logs.csv' 다운로드](https://github.com/whs3-mujo/anomaly-toolkit/raw/main/Final_Fintech_Security_Logs.csv)<br />
+**파일명:** [Final_Fintech_Security_Logs.csv](https://github.com/whs3-mujo/anomaly-toolkit/raw/main/Final_Fintech_Security_Logs.csv)<br />
 **설명:** 실제 금융기관 로그 환경 기반의 보안 로그 샘플
 
 | 컬럼명 | 설명 |
