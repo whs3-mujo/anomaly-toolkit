@@ -1,6 +1,10 @@
 # 오프라인 배포 패키지 빌드 스크립트
 # build_offline_package.ps1
 
+# 인코딩 설정
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
 Write-Host "LOGSCO 이상 로그 탐지 서비스 오프라인 패키지 빌드 시작..." -ForegroundColor Green
 
 # 1. 도커 이미지 빌드
@@ -26,9 +30,10 @@ Write-Host "패키지에서 테스트 데이터 제외됨 (깨끗한 설치)" -F
 # 4. 환경 설정 파일 복사
 Copy-Item -Path ".env.example" -Destination "offline-package\"
 
-# 5. 배치 스크립트 복사
+# 5. 배치 스크립트 및 PowerShell 스크립트 복사
 Copy-Item -Path "start_service.bat" -Destination "offline-package\"
 Copy-Item -Path "stop_service.bat" -Destination "offline-package\"
+Copy-Item -Path "service.ps1" -Destination "offline-package\"
 
 # 6. 설치 스크립트 생성
 @"

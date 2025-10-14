@@ -1,5 +1,7 @@
 @echo off
-echo LOGSCO 이상 로그 탐지 서비스를 종료합니다...
+@echo off
+title LOGSCO Service Stop
+powershell.exe -ExecutionPolicy Bypass -Command "& {[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; .\service.ps1 stop}"
 echo.
 
 REM 컨테이너 상태 확인

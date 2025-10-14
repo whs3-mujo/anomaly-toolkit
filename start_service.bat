@@ -1,5 +1,6 @@
 @echo off
-echo LOGSCO 이상 로그 탐지 서비스를 시작합니다...
+title LOGSCO Service
+powershell.exe -ExecutionPolicy Bypass -Command "& {[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; .\service.ps1 start}"
 echo.
 
 REM 도커 이미지 로드
@@ -25,7 +26,7 @@ docker run -d ^
 
 echo.
 echo 서비스가 시작되었습니다!
-echo 웹 브라우저에서 http://localhost:8000 으로 접속하세요.
+echo 웹 브라우저에서 http://localhost:8000/dashboard 로 접속하세요.
 echo 업로드: http://localhost:8000/upload/
 echo 대시보드: http://localhost:8000/dashboard/
 echo.

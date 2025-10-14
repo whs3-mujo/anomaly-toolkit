@@ -24,15 +24,28 @@ from .ai.visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot
 from django.db.models import Count, Q
 from django.contrib.auth.models import User
 
-# 한글 폰트 설정 (윈도우 기준 예시)
-matplotlib.rc('font', family='Malgun Gothic')  # 윈도우용
-matplotlib.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
+# 한글 폰트 설정 (다양한 환경 지원)
 matplotlib.use('Agg')
+matplotlib.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
 
+# 플랫폼별 한글 폰트 설정
 if platform.system() == 'Windows':
-    matplotlib.rc('font', family='Malgun Gothic')
-else:
+    try:
+        matplotlib.rc('font', family='Malgun Gothic')
+    except:
+        try:
+            matplotlib.rc('font', family='NanumGothic')
+        except:
+            matplotlib.rc('font', family='DejaVu Sans')
+            print("한글 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
+elif platform.system() == 'Darwin':  # macOS
     matplotlib.rc('font', family='AppleGothic')
+else:  # Linux/Docker
+    try:
+        matplotlib.rc('font', family='NanumGothic')
+    except:
+        matplotlib.rc('font', family='DejaVu Sans')
+        print("한글 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
 
 
 def redirect_dashboard(request):
@@ -95,6 +108,90 @@ def get_analysis_detail(request, session_id):
             'error': str(e),
         }, status=500)
 
+def delete_session_files(session):
+    """세션과 관련된 모든 파일 삭제"""
+    import glob
+    
+    try:
+        files_to_delete = []
+        
+        # 1. 세션의 기본 파일 경로
+        if session.file_path and os.path.exists(session.file_path):
+            files_to_delete.append(session.file_path)
+        
+        # 2. analysis_result에서 파일 경로들 수집
+        if hasattr(session, 'analysis_result') and session.analysis_result:
+            result = session.analysis_result
+            
+            # 결과 CSV 파일들
+            result_csv_path = result.get('result_csv_path')
+            if result_csv_path and os.path.exists(result_csv_path):
+                files_to_delete.append(result_csv_path)
+            
+            # SHAP 관련 파일들
+            shap_csv_path = result.get('shap_csv_path')
+            shap_npy_path = result.get('shap_npy_path')
+            
+            if shap_csv_path and os.path.exists(shap_csv_path):
+                files_to_delete.append(shap_csv_path)
+            if shap_npy_path and os.path.exists(shap_npy_path):
+                files_to_delete.append(shap_npy_path)
+            
+            # result_csv_path에서 관련 파일들 유추
+            if result_csv_path:
+                base_path = result_csv_path.replace('_full_data_with_anomaly_info_readable.csv', '')
+                base_path = base_path.replace('_full_data_with_anomaly_info.csv', '')
+                
+                # 관련 파일 패턴들
+                patterns = [
+                    base_path + '_*.csv',
+                    base_path + '_*.npy',
+                    base_path + '_*.pkl',
+                ]
+                
+                for pattern in patterns:
+                    matching_files = glob.glob(pattern)
+                    files_to_delete.extend(matching_files)
+        
+        # 3. 파일명에서 타임스탬프 기반으로 관련 파일 찾기
+        if session.file_path:
+            import re
+            timestamp_match = re.search(r'(\d{8}_\d{6})', session.file_path)
+            if timestamp_match:
+                timestamp = timestamp_match.group(1)
+                upload_dir = os.path.dirname(session.file_path)
+                base_name = "Final_Fintech_Security_Logs"
+                
+                # 타임스탬프 기반 관련 파일들
+                timestamp_patterns = [
+                    os.path.join(upload_dir, f"{base_name}_{timestamp}_*.csv"),
+                    os.path.join(upload_dir, f"{base_name}_{timestamp}_*.npy"),
+                    os.path.join(upload_dir, f"{base_name}_{timestamp}_*.pkl"),
+                ]
+                
+                for pattern in timestamp_patterns:
+                    matching_files = glob.glob(pattern)
+                    files_to_delete.extend(matching_files)
+        
+        # 중복 제거
+        files_to_delete = list(set(files_to_delete))
+        
+        # 파일 삭제 실행
+        deleted_count = 0
+        for file_path in files_to_delete:
+            try:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    deleted_count += 1
+                    print(f"파일 삭제 성공: {file_path}")
+            except Exception as e:
+                print(f"파일 삭제 실패 ({file_path}): {e}")
+        
+        print(f"세션 {session.session_id}: 총 {deleted_count}개 파일 삭제 완료")
+        
+    except Exception as e:
+        print(f"세션 파일 삭제 중 오류 발생: {e}")
+
 def create_analysis_session(filename, file_path, file_type, analysis_result):
     """새로운 분석 세션 생성 (완료된 분석 결과와 함께)"""
     session_id = str(uuid.uuid4())
@@ -110,11 +207,15 @@ def create_analysis_session(filename, file_path, file_type, analysis_result):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def delete_analysis_session(request, session_id):
-    """분석 세션 삭제"""
+    """분석 세션 삭제 (관련 파일들도 함께 삭제)"""
     try:
         session = get_object_or_404(AnalysisSession, session_id=session_id)
+        
+        # 세션과 관련된 모든 파일 삭제
+        delete_session_files(session)
+        
         session.delete()
-        return JsonResponse({'success': True, 'message': '분석 기록이 삭제되었습니다.'})
+        return JsonResponse({'success': True, 'message': '분석 기록과 관련 파일들이 삭제되었습니다.'})
     except Exception as e:
         return JsonResponse({
             'success': False,
@@ -752,6 +853,10 @@ def get_shap_plot(request, session_id, row_index):
 
     y_pos = np.arange(max_len)
     
+    # 그래프별 폰트 설정 강화
+    plt.rcParams['font.family'] = 'Malgun Gothic' if platform.system() == 'Windows' else 'DejaVu Sans'
+    plt.rcParams['axes.unicode_minus'] = False
+    
     fig, ax = plt.subplots(figsize=(10, 8))  
     flipped_values = -negative_df['shap_value']  
     max_value = flipped_values.max()
@@ -888,9 +993,23 @@ def generate_shap_table(shap_df):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def delete_all_analysis_sessions(request):
-    """모든 분석 세션 삭제"""
-    AnalysisSession.objects.all().delete()
-    return JsonResponse({"success": True})
+    """모든 분석 세션 삭제 (관련 파일들도 함께 삭제)"""
+    try:
+        sessions = AnalysisSession.objects.all()
+        
+        # 각 세션의 관련 파일들 삭제
+        for session in sessions:
+            delete_session_files(session)
+        
+        # 모든 세션 삭제
+        sessions.delete()
+        
+        return JsonResponse({"success": True, "message": "모든 분석 기록과 관련 파일들이 삭제되었습니다."})
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+        }, status=500)
 
 
 from django.shortcuts import get_object_or_404

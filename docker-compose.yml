@@ -1,11 +1,25 @@
 version: '3.8'
 services:
   web:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
     container_name: anomalytoolkit-web
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
-    env_file:
-      - .env
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    environment:
+      - DEBUG=False
+      - PYTHONPATH=/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/dashboard/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  media_data:
+  static_data:
