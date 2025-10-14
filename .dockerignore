@@ -1,0 +1,67 @@
+# Git
+.git
+.gitignore
+
+# 개발 환경
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# 가상환경
+.venv
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 로그 파일
+*.log
+
+# 데이터베이스
+db.sqlite3
+
+# 미디어 파일 (런타임에 볼륨 마운트)
+media/
+
+# 빌드 아티팩트
+build/
+dist/
+
+# Docker 관련
+Dockerfile
+docker-compose*.yml
+*.tar
+
+# 오프라인 패키지 빌드 관련
+offline-package/
+anomaly-toolkit-offline.zip
+
+# 문서
+README.md
+docs/
+
+# 테스트
+tests/
+*.test
+
+# Node.js
+node_modules/
+npm-debug.log

@@ -35,8 +35,8 @@ VOLUME ["/app/media", "/app/logs"]
 EXPOSE 8000
 
 # 실행 권한 설정
-RUN chmod +x /app/docker-entrypoint.sh
-RUN sed -i 's/\r$//' /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.offline.sh
+RUN sed -i 's/\r$//' /app/docker-entrypoint.offline.sh
 
 # 실행 명령
-CMD ["/app/docker-entrypoint.sh"]
+CMD ["/app/docker-entrypoint.offline.sh"]
