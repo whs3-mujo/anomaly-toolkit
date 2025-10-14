@@ -1,27 +1,15 @@
+# macOS용 오프라인 배포 패키지 빌드 스크립트 (AMD64 only - 빠른 빌드)
+# macos_amd64_build_package.ps1
+
 # 인코딩 설정
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
-Write-Host "LOGSCO 이상 로그 탐지 서비스 오프라인 패키지 빌드 시작..." -ForegroundColor Green
+Write-Host "LOGSCO 이상 로그 탐지 서비스 macOS용 오프라인 패키지 빌드 시작 (AMD64 전용)..." -ForegroundColor Green
 
-# 1. macOS용 도커 이미지 빌드 (멀티플랫폼: Intel + Apple Silicon)
-Write-Host "macOS용 오프라인 도커 이미지 빌드 중 (Intel Mac + Apple Silicon)..." -ForegroundColor Yellow
-
-# Docker buildx 확인
-docker buildx version
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Docker buildx가 필요합니다. Docker Desktop을 최신 버전으로 업데이트하세요." -ForegroundColor Red
-    exit 1
-}
-
-# buildx 빌더 생성/사용
-docker buildx create --name multiplatform-builder --use 2>$null
-if ($LASTEXITCODE -ne 0) {
-    docker buildx use multiplatform-builder
-}
-
-# 멀티플랫폼 빌드
-docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile.offline -t anomaly-toolkit:offline --load .
+# 1. macOS용 도커 이미지 빌드 (AMD64만 - 빠른 빌드)
+Write-Host "macOS용 오프라인 도커 이미지 빌드 중 (AMD64 전용, Intel + Apple Silicon 호환)..." -ForegroundColor Yellow
+docker build -f Dockerfile.offline --platform linux/amd64 -t anomaly-toolkit:offline .
 
 # 2. 도커 이미지를 tar 파일로 저장
 Write-Host "도커 이미지 패키징 중..." -ForegroundColor Yellow
@@ -84,19 +72,19 @@ echo -e "`${CYAN}브라우저에서 http://localhost:8000/upload/ 또는 http://
 "@ | Out-File -FilePath "offline-package\setup.sh" -Encoding utf8
 
 
-# 최종 zip 파일 생성 (macOS용)
-Write-Host "macOS용 패키지 압축 중..." -ForegroundColor Yellow
-if (Test-Path "anomaly-toolkit-offline-macos.zip") {
-    Remove-Item "anomaly-toolkit-offline-macos.zip" -Force
+# 8. 최종 zip 파일 생성 (macOS용 - AMD64)
+Write-Host "macOS용 패키지 압축 중 (AMD64 호환)..." -ForegroundColor Yellow
+if (Test-Path "anomaly-toolkit-offline-macos-amd64.zip") {
+    Remove-Item "anomaly-toolkit-offline-macos-amd64.zip" -Force
 }
-Compress-Archive -Path "offline-package\*" -DestinationPath "anomaly-toolkit-offline-macos.zip" -Force
+Compress-Archive -Path "offline-package\*" -DestinationPath "anomaly-toolkit-offline-macos-amd64.zip" -Force
 
-# 8. 정리
+# 9. 정리
 Write-Host "임시 파일 정리 중..." -ForegroundColor Yellow
 Remove-Item "anomalytoolkit.tar" -Force -ErrorAction SilentlyContinue
 Remove-Item "offline-package" -Recurse -Force -ErrorAction SilentlyContinue
 
-Write-Host "macOS용 빌드 완료!" -ForegroundColor Green
-Write-Host "anomaly-toolkit-offline-macos.zip 파일이 생성되었습니다." -ForegroundColor Green
+Write-Host "macOS용 빌드 완료! (AMD64 호환)" -ForegroundColor Green
+Write-Host "anomaly-toolkit-offline-macos-amd64.zip 파일이 생성되었습니다." -ForegroundColor Green
+Write-Host "Intel Mac: 네이티브 실행 / Apple Silicon Mac: Rosetta 2 호환 실행" -ForegroundColor Cyan
 Write-Host "이 파일을 macOS 환경에 복사하여 사용하세요." -ForegroundColor Green
-Write-Host "Intel Mac과 Apple Silicon Mac 모두에서 동작합니다." -ForegroundColor Cyan
