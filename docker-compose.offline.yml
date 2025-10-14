@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  web:
+    image: anomaly-toolkit:offline
+    container_name: anomalytoolkit-web
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./media:/app/media  # 사용자가 업로드할 빈 디렉터리
+      - ./logs:/app/logs    # 로그 저장용 빈 디렉터리
+    env_file:
+      - .env
