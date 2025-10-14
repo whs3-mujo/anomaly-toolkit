@@ -16,7 +16,7 @@ scikit-learn==1.4.2
 pyod>=1.0.0
 category-encoders
 
-# Legacy support (for backward compatibility)
+# Legacy support
 pycaret==3.3.2
 
 # Model Explanation
