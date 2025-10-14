@@ -877,33 +877,42 @@ def search_anomaly_logs(request):
         print(f"검색 API - 전체 이상치 레코드 수: {total_records}")
         print(f"검색 API - 검색 대상 사용자: '{username}', 컬럼: {user_col}")
         
-        # 사용자명으로 검색 (정확히 일치)
-        exact_match = anomaly_df[anomaly_df[user_col].astype(str).str.strip() == username.strip()]
-        exact_count = len(exact_match)
+        # 사용자명으로 검색 (정확 일치)
+        exact_match = anomaly_df[anomaly_df[user_col].astype(str) == username]
+        if exact_match.empty:
+            return JsonResponse({'error': '정확한 사용자명을 입력해주세요.'}, status=404)
         
-        # 부분 일치도 확인 (참조용)
-        partial_match = anomaly_df[
-            anomaly_df[user_col].astype(str).str.contains(username, case=False, na=False)
-        ]
-        partial_count = len(partial_match)
+        # a: 해당 사용자의 이상 로그 수
+        anomaly_count = int(len(exact_match))
+
+        # b: 해당 사용자가 발생시킨 전체 로그 수 (원본 파일에서 조회)
+        try:
+            # 원본 CSV 파일에서 전체 로그 수 조회
+            original_df = pd.read_csv(session.file_path)
+            if user_col in original_df.columns:
+                user_total_logs = int(original_df[original_df[user_col].astype(str) == username].shape[0])
+            else:
+                user_total_logs = 0
+        except Exception:
+            # 원본 파일 읽기 실패시 이상 로그 수로 대체
+            user_total_logs = anomaly_count
+
         
-        print(f"검색 API - {username} 정확 일치: {exact_count}개, 부분 일치: {partial_count}개")
-        
-        # 정확한 일치를 우선 사용
-        count = exact_count if exact_count > 0 else partial_count
-        
+        #정확히 일치하는 사용자가 있는지 확인
+        count = int(len(exact_match))
         return JsonResponse({
             'username': username,
-            'anomaly_count': count,
-            'exact_match_count': exact_count,
-            'partial_match_count': partial_count,
+            'anomaly_count': anomaly_count, 
+            'user_total_logs': user_total_logs, 
             'session_id': session.session_id
         })
+        
         
     except AnalysisSession.DoesNotExist:
         return JsonResponse({'error': '분석 세션을 찾을 수 없습니다.'}, status=404)
     except Exception as e:
         return JsonResponse({'error': f'검색 중 오류가 발생했습니다: {str(e)}'}, status=500)
+
 
 
 from django.shortcuts import render

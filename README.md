@@ -13,7 +13,7 @@
 **AI 기반 이상로그 탐지 서비스 (AI-Powered Log Scoring & Analysis System)**  
 
 스마트 로그 분석과 이상 탐지를 자동화하는 오픈소스 툴킷입니다.  
-[시연 영상 보기](https://www.youtube.com/watch?v=6EWizN8p7mI&list=PLJOyfcewGGvYWiry_4vStBUEzOWpJ6w07)
+[시연 영상 보기](https://www.youtube.com/playlist?list=PLJOyfcewGGvYWiry_4vStBUEzOWpJ6w07)
 
 ---
 
