@@ -15,6 +15,10 @@
 스마트 로그 분석과 이상 탐지를 자동화하는 오픈소스 툴킷입니다.  
 [시연 영상 보기](https://www.youtube.com/playlist?list=PLJOyfcewGGvYWiry_4vStBUEzOWpJ6w07)
 
+운영체제별 가이드북 (Windows, Mac) <br />
+Windows: https://www.notion.so/1bed038712de802fa97bce2017e43859?source=copy_link   <br />
+Mac: https://www.notion.so/2420363bd07c807191bde6b6acfee091?source=copy_link <br />
+
 ---
 
 ## 1. LOGSCO 소개  
