@@ -700,8 +700,7 @@
   <!-- 상단 네비게이션 -->
   <div class="top-navbar">
     <button class="logo-btn" onclick="location.href='{% url 'web:dashboard' %}'" title="대시보드로 이동">
-      <!-- 대시보드 아이콘 SVG -->
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="2" fill="#1976d2"/><rect x="14" y="3" width="7" height="7" rx="2" fill="#42a5f5"/><rect x="14" y="14" width="7" height="7" rx="2" fill="#1976d2"/><rect x="3" y="14" width="7" height="7" rx="2" fill="#42a5f5"/></svg>
+      <img src="{% static 'web/img/logsco_logo_icon.png' %}" alt="LOGSCO 아이콘" width="50" height="50" style="border-radius: 4px;">
       <span>LOGSCO</span>
     </button>
     <button class="nav-link"

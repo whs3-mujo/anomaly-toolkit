@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 
@@ -405,12 +406,7 @@
   <!-- 상단 네비게이션 - 대시보드와 동일하게 -->
   <div class="top-navbar">
     <button class="logo-btn" onclick="location.href='{% url 'web:dashboard' %}'" title="대시보드로 이동">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-        <rect x="3" y="3" width="7" height="7" rx="2" fill="#1976d2" />
-        <rect x="14" y="3" width="7" height="7" rx="2" fill="#42a5f5" />
-        <rect x="14" y="14" width="7" height="7" rx="2" fill="#1976d2" />
-        <rect x="3" y="14" width="7" height="7" rx="2" fill="#42a5f5" />
-      </svg>
+      <img src="{% static 'web/img/logsco_logo_icon.png' %}" alt="LOGSCO 아이콘" width="50" height="50" style="border-radius: 4px;">
       <span>LOGSCO</span>
     </button>
     <button class="nav-link"
@@ -427,13 +423,13 @@
     {% endif %}
     <form id="uploadForm" enctype="multipart/form-data" style="width:100%;">
       {% csrf_token %}
-      <label for="datafile">Log File Upload</label>
+      <label for="datafile">로그 파일 업로드</label>
       <div class="upload-file-input">
         <label class="upload-file-label" id="fileLabel" onclick="triggerFileInput()">Choose a file</label>
         <input type="file" name="datafile" id="datafile" accept=".csv" required style="display:none;">
       </div>
       <div class="upload-desc">
-        * Please upload only<b>.csv</b> files.
+        * Please upload only<b><span style="color: red;">.csv</span></b> files.
       </div>
       <!-- 칼럼 미리보기/제거 UI -->
       <div id="preview" class="preview-table" style="display:none;"></div>
