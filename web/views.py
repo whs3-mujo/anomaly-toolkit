@@ -24,28 +24,51 @@ from .ai.visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot
 from django.db.models import Count, Q
 from django.contrib.auth.models import User
 
-# 한글 폰트 설정 (다양한 환경 지원)
+# 한글 폰트 설정
 matplotlib.use('Agg')
 matplotlib.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
 
+try:
+    matplotlib.font_manager._rebuild()
+except:
+    pass
+
 # 플랫폼별 한글 폰트 설정
-if platform.system() == 'Windows':
-    try:
-        matplotlib.rc('font', family='Malgun Gothic')
-    except:
+def setup_korean_font():
+    """한글 폰트 설정 함수"""
+    font_found = False
+    
+    if platform.system() == 'Windows':
+        for font_name in ['Malgun Gothic', 'NanumGothic']:
+            try:
+                matplotlib.rc('font', family=font_name)
+                print(f"한글 폰트 설정 성공: {font_name}")
+                font_found = True
+                break
+            except:
+                continue
+    elif platform.system() == 'Darwin':  # macOS
         try:
-            matplotlib.rc('font', family='NanumGothic')
+            matplotlib.rc('font', family='AppleGothic')
+            font_found = True
         except:
-            matplotlib.rc('font', family='DejaVu Sans')
-            print("한글 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
-elif platform.system() == 'Darwin':  # macOS
-    matplotlib.rc('font', family='AppleGothic')
-else:  # Linux/Docker
-    try:
-        matplotlib.rc('font', family='NanumGothic')
-    except:
+            pass
+    else:  # Linux/Docker
+        for font_name in ['NanumGothic', 'Nanum Gothic', 'DejaVu Sans']:
+            try:
+                matplotlib.rc('font', family=font_name)
+                print(f"한글 폰트 설정 성공: {font_name}")
+                font_found = True
+                break
+            except:
+                continue
+    
+    if not font_found:
         matplotlib.rc('font', family='DejaVu Sans')
         print("한글 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
+
+# 폰트 설정 실행
+setup_korean_font()
 
 
 def redirect_dashboard(request):
@@ -854,8 +877,23 @@ def get_shap_plot(request, session_id, row_index):
     y_pos = np.arange(max_len)
     
     # 그래프별 폰트 설정 강화
-    plt.rcParams['font.family'] = 'Malgun Gothic' if platform.system() == 'Windows' else 'DejaVu Sans'
+    try:
+        if platform.system() == 'Windows':
+            plt.rcParams['font.family'] = 'Malgun Gothic'
+        elif platform.system() == 'Linux':  # Docker
+            plt.rcParams['font.family'] = 'NanumGothic'
+        else:
+            plt.rcParams['font.family'] = 'AppleGothic'
+    except:
+        plt.rcParams['font.family'] = 'DejaVu Sans'
+    
     plt.rcParams['axes.unicode_minus'] = False
+    
+    # 폰트 캐시 강제 갱신
+    try:
+        matplotlib.font_manager._rebuild()
+    except:
+        pass
     
     fig, ax = plt.subplots(figsize=(10, 8))  
     flipped_values = -negative_df['shap_value']  

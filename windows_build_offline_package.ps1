@@ -57,12 +57,13 @@ Write-Host "docker-compose up -d" -ForegroundColor Cyan
 Write-Host "브라우저에서 http://localhost:8000/dashboard 로 접속하세요." -ForegroundColor Cyan
 "@ | Out-File -FilePath "offline-package\setup.ps1" -Encoding utf8
 
-# 7. 최종 zip 파일 생성
-Write-Host "최종 패키지 압축 중..." -ForegroundColor Yellow
-if (Test-Path "windows-anomaly-toolkit-offline.zip") {
-    Remove-Item "windows-anomaly-toolkit-offline.zip" -Force
+# 7. 최종 tar.gz 파일 생성
+Write-Host "최종 패키지 압축 중 (tar 방식)..." -ForegroundColor Yellow
+if (Test-Path "anomaly-toolkit-offline-windows.tar.gz") {
+    Remove-Item "anomaly-toolkit-offline-windows.tar.gz" -Force
 }
-Compress-Archive -Path "offline-package\*" -DestinationPath "windows-anomaly-toolkit-offline.zip" -Force
+
+tar -czf anomaly-toolkit-offline-windows.tar.gz -C offline-package .
 
 # 8. 정리
 Write-Host "임시 파일 정리 중..." -ForegroundColor Yellow
@@ -70,5 +71,5 @@ Remove-Item "anomalytoolkit.tar" -Force -ErrorAction SilentlyContinue
 Remove-Item "offline-package" -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host "빌드 완료!" -ForegroundColor Green
-Write-Host "anomaly-toolkit-offline.zip 파일이 생성되었습니다." -ForegroundColor Green
-Write-Host "이 파일을 원하는 환경에 복사하여 사용하세요." -ForegroundColor Green
+Write-Host "anomaly-toolkit-offline-windows.tar.gz 파일이 생성되었습니다." -ForegroundColor Green
+Write-Host "이 파일을 Windows 환경에 복사하여 사용하세요." -ForegroundColor Green
