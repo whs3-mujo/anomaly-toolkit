@@ -463,9 +463,143 @@ def get_shap_plot(request, session_id, row_index):
         original_df = None
         original_columns = set()
     
-    # 데이터 불러오기
-    X = pd.read_csv(session.file_path.replace(".csv", "_X_for_shap.csv"))
-    shap_values = np.load(session.file_path.replace(".csv", "_shap_values.npy"))
+    # 데이터 불러오기 - SHAP 파일 경로 올바르게 생성
+    try:
+        # analysis_result에서 올바른 파일 경로들 가져오기
+        if hasattr(session, 'analysis_result') and session.analysis_result:
+            print(f"DEBUG: analysis_result 키들: {list(session.analysis_result.keys())}")
+            
+            # 다양한 키 이름으로 SHAP 파일 경로 찾기
+            shap_csv_path = (session.analysis_result.get('shap_csv_path') or 
+                           session.analysis_result.get('X_for_shap_path') or
+                           session.analysis_result.get('shap_x_path'))
+            shap_npy_path = (session.analysis_result.get('shap_npy_path') or 
+                           session.analysis_result.get('shap_values_path') or
+                           session.analysis_result.get('shap_path'))
+            
+            # result_csv_path에서 경로 유추해보기
+            result_csv_path = session.analysis_result.get('result_csv_path')
+            if result_csv_path and (not shap_csv_path or not shap_npy_path):
+                base_path = result_csv_path.replace('_full_data_with_anomaly_info_readable.csv', '')
+                base_path = base_path.replace('_full_data_with_anomaly_info.csv', '')
+                potential_shap_csv = base_path + '_X_for_shap.csv'
+                potential_shap_npy = base_path + '_shap_values.npy'
+                
+                print(f"DEBUG: result_csv_path에서 유추한 경로:")
+                print(f"  CSV: {potential_shap_csv}, 존재: {os.path.exists(potential_shap_csv)}")
+                print(f"  NPY: {potential_shap_npy}, 존재: {os.path.exists(potential_shap_npy)}")
+                
+                if os.path.exists(potential_shap_csv) and os.path.exists(potential_shap_npy):
+                    shap_csv_path = potential_shap_csv
+                    shap_npy_path = potential_shap_npy
+            
+            print(f"DEBUG: 최종 SHAP 파일 경로:")
+            print(f"  CSV: {shap_csv_path}")
+            print(f"  NPY: {shap_npy_path}")
+            
+            if shap_csv_path and shap_npy_path and os.path.exists(shap_csv_path) and os.path.exists(shap_npy_path):
+                print(f"DEBUG: SHAP 파일 로드 성공!")
+                X = pd.read_csv(shap_csv_path)
+                shap_values = np.load(shap_npy_path)
+            else:
+                # fallback: 현재 세션 파일에서 올바른 타임스탬프 추출
+                current_file = session.file_path
+                print(f"DEBUG: 현재 세션 파일 경로: {current_file}")
+                
+                # 파일명에서 타임스탬프 패턴 추출 (20251014_144206 형태)
+                import re
+                timestamp_match = re.search(r'(\d{8}_\d{6})', current_file)
+                
+                if timestamp_match:
+                    timestamp = timestamp_match.group(1)
+                    base_name = "Final_Fintech_Security_Logs"
+                    upload_dir = os.path.dirname(current_file)
+                    
+                    shap_csv_path = os.path.join(upload_dir, f"{base_name}_{timestamp}_X_for_shap.csv")
+                    shap_npy_path = os.path.join(upload_dir, f"{base_name}_{timestamp}_shap_values.npy")
+                    
+                    print(f"DEBUG: 생성된 SHAP 파일 경로들:")
+                    print(f"  CSV: {shap_csv_path}")
+                    print(f"  NPY: {shap_npy_path}")
+                    print(f"  CSV 존재: {os.path.exists(shap_csv_path)}")
+                    print(f"  NPY 존재: {os.path.exists(shap_npy_path)}")
+                else:
+                    # 타임스탬프가 없는 경우 원본 방식 사용
+                    base_path = current_file
+                    if "_full_data_with_anomaly_info" in base_path:
+                        if "_readable.csv" in base_path:
+                            base_path = base_path.replace("_full_data_with_anomaly_info_readable.csv", ".csv")
+                        elif "_full_data_with_anomaly_info.csv" in base_path:
+                            base_path = base_path.replace("_full_data_with_anomaly_info.csv", ".csv")
+                    
+                    shap_csv_path = base_path.replace(".csv", "_X_for_shap.csv")
+                    shap_npy_path = base_path.replace(".csv", "_shap_values.npy")
+                
+                if not os.path.exists(shap_csv_path) or not os.path.exists(shap_npy_path):
+                    # 업로드 디렉토리에서 해당 세션과 매칭되는 SHAP 파일들 찾기
+                    upload_dir = os.path.dirname(current_file)
+                    available_files = os.listdir(upload_dir)
+                    
+                    # 세션의 생성시간과 가장 가까운 SHAP 파일 찾기
+                    session_created = session.created_at
+                    print(f"DEBUG: 세션 생성시간: {session_created}")
+                    
+                    # 사용 가능한 SHAP 파일들에서 타임스탬프 추출
+                    shap_files_info = []
+                    for f in available_files:
+                        if '_X_for_shap.csv' in f:
+                            timestamp_match = re.search(r'(\d{8}_\d{6})', f)
+                            if timestamp_match:
+                                timestamp_str = timestamp_match.group(1)
+                                # 타임스탬프를 datetime으로 변환
+                                try:
+                                    from datetime import datetime
+                                    file_time = datetime.strptime(timestamp_str, '%Y%m%d_%H%M%S')
+                                    shap_files_info.append({
+                                        'timestamp': timestamp_str,
+                                        'file_time': file_time,
+                                        'csv_file': f,
+                                        'npy_file': f.replace('_X_for_shap.csv', '_shap_values.npy')
+                                    })
+                                except ValueError:
+                                    continue
+                    
+                    # 세션 생성시간과 가장 가까운 SHAP 파일 선택
+                    if shap_files_info:
+                        # 세션 시간 이후의 파일 중 가장 가까운 것 선택
+                        valid_files = [f for f in shap_files_info if f['file_time'] >= session_created.replace(tzinfo=None)]
+                        if not valid_files:
+                            # 세션 시간 이후 파일이 없으면 가장 최근 파일 사용
+                            valid_files = shap_files_info
+                        
+                        closest_file = min(valid_files, key=lambda x: abs((x['file_time'] - session_created.replace(tzinfo=None)).total_seconds()))
+                        
+                        shap_csv_path = os.path.join(upload_dir, closest_file['csv_file'])
+                        shap_npy_path = os.path.join(upload_dir, closest_file['npy_file'])
+                        
+                        print(f"DEBUG: 매칭된 SHAP 파일:")
+                        print(f"  CSV: {shap_csv_path}")
+                        print(f"  NPY: {shap_npy_path}")
+                        
+                        if not os.path.exists(shap_csv_path) or not os.path.exists(shap_npy_path):
+                            matching_shap_files = [f for f in available_files if '_X_for_shap.csv' in f or '_shap_values.npy' in f]
+                            raise FileNotFoundError(f"매칭된 SHAP 파일을 찾을 수 없습니다.\n예상 경로: {shap_csv_path}, {shap_npy_path}\n사용 가능한 SHAP 파일들: {matching_shap_files}")
+                    else:
+                        matching_shap_files = [f for f in available_files if '_X_for_shap.csv' in f or '_shap_values.npy' in f]
+                        raise FileNotFoundError(f"SHAP 파일을 찾을 수 없습니다.\n예상 경로: {shap_csv_path}, {shap_npy_path}\n사용 가능한 SHAP 파일들: {matching_shap_files}")
+                
+                X = pd.read_csv(shap_csv_path)
+                shap_values = np.load(shap_npy_path)
+        else:
+            raise ValueError("분석 결과가 없습니다")
+            
+    except Exception as e:
+        print(f"SHAP 파일 로딩 오류: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': f'SHAP 데이터를 불러올 수 없습니다: {str(e)}'
+        }, status=500)
+    
     feature_cols = X.columns.tolist()
     
     # row(1개 샘플에 대한 shap vector) 안전 추출
