@@ -1,7 +1,7 @@
 # Python >=3.10, <= 3.11
 
 # Web Framework
-Django==5.1
+Django==5.1.4
 gunicorn==23.0.0
 
 # Configuration Management

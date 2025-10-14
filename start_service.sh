@@ -37,7 +37,7 @@ fi
 
 # 서비스 시작
 echo -e "${YELLOW}Docker 이미지 로딩 중...${NC}"
-docker load -i anomalytoolkit.tar
+docker load -i anomalytoolkit.tar > /dev/null 2>&1
 
 echo -e "${YELLOW}서비스 시작 중...${NC}"
 docker run -d -p 8000:8000 --name anomaly-detector anomaly-toolkit:offline
