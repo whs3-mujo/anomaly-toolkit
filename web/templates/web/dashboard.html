@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -647,8 +648,55 @@
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script> 
+
+
+<style>
+  /* 스플래시 전체 레이어 */
+  #splash {
+    position: fixed;
+    inset: 0;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999; 
+    opacity: 1;
+    transition: opacity 300ms ease;
+  }
+  /* 페이드아웃 상태 */
+  #splash.hide {
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* 로고 컨테이너 */
+  .splash-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .splash-logo {
+    width: 700px;  
+    height: auto;
+  }
+  .splash-text {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    color: #666;
+    letter-spacing: .2px;
+  }
+</style>
+
+
 </head>
 <body>
+  <div id="splash" role="status" aria-label="로딩 중">
+  <div class="splash-content">
+    <img class="splash-logo" src="{% static 'web/img/logsco_logo.png' %}" alt="서비스 로고">
+    <div class="splash-text">로딩 중…</div>
+  </div>
+</div>
+
   <!-- 상단 네비게이션 -->
   <div class="top-navbar">
     <button class="logo-btn" onclick="location.href='{% url 'web:dashboard' %}'" title="대시보드로 이동">
@@ -1333,6 +1381,31 @@ function goToHourViewAll() {
   }
 }
 
+</script>
+<script>
+  (function () {
+    // 첫 방문(세션 기준)에서만 스플래시 표시
+    const key = 'splashShown';
+    const alreadyShown = sessionStorage.getItem(key);
+    const splash = document.getElementById('splash');
+
+    if (!splash) return; 
+
+    if (alreadyShown) {
+
+      splash.classList.add('hide');
+      splash.style.display = 'none';
+      return;
+    }
+
+    setTimeout(() => {
+      splash.classList.add('hide');
+      setTimeout(() => {
+        splash.style.display = 'none';
+      }, 320);
+      sessionStorage.setItem(key, '1');
+    }, 2000); 
+  })();
 </script>
 
 </body>

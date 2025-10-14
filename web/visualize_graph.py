@@ -57,7 +57,10 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
             ))
             
             fig.update_layout(
-                title='Anomaly By Hour',
+                title=dict(
+                    text='<b>Anomaly By Hour</b>',
+                    font=dict(size=20, color='#1f4e8c')
+                ),
                 xaxis_title='Hour',
                 yaxis_title='Anomaly Count',
                 xaxis=dict(
@@ -273,7 +276,10 @@ def plot_anomaly_by_hour(df, user_col, time_col, top_n=3):
 
 
     fig.update_layout(
-        title='Anomaly By Hour',
+        title=dict(
+            text='<b>Anomaly By Hour</b>',
+            font=dict(size=20, color='#1f4e8c')
+        ),
         xaxis_title='Hour',
         yaxis_title='Anomaly Count',
         xaxis=dict(
@@ -326,7 +332,10 @@ def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False, for_dashboard=
         )])
         
         fig.update_layout(
-            title='Anomaly By User',
+            title=dict(
+                text='<b>Anomaly By User</b>',
+                font=dict(size=20, color='#1f4e8c')
+            ),
             xaxis_title='User',
             yaxis_title='Anomaly Count',
             xaxis=dict(showticklabels=False),  # X축 사용자 이름 숨기기 (기존 스타일)
@@ -440,7 +449,10 @@ def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False, for_dashboard=
     )])
 
     fig.update_layout(
-        title='Anomaly By User',
+        title=dict(
+            text='<b>Anomaly By Use</b>',
+            font=dict(size=20, color='#1f4e8c')
+        ),
         xaxis_title='User',
         yaxis_title='Anomaly Count',
         xaxis=dict(
@@ -535,7 +547,10 @@ def plot_anomaly_score_distribution(df, threshold=-0.2, score_col=None):
     )
 
     fig.update_layout(
-        title="Anomaly Score Distribution",
+        title=dict(
+            text='<b>Anomaly Score Distribution</b>',
+            font=dict(size=20, color='#1f4e8c')
+        ),
         xaxis_title=score_col,
         yaxis_title="Count",
         bargap=0.1,

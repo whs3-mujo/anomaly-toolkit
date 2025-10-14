@@ -163,9 +163,9 @@
   <div class="wrapper">
     <!-- 상단 그래프 -->
     <div class="graph-section">
-      <div class="graph-title-bar" style="display: flex; justify-content: space-between; align-items: center;">
-        <div class="graph-title">사용자별 이상 로그 그래프</div>
-        <div style="display: flex; gap: 10px; align-items: center;">
+      <div class="graph-title-bar" style="display: flex; flex-direction: column; gap: 0.6rem; width: 100%; margin-bottom: 1rem;">
+        <div class="graph-title" style="text-align: center; font-size: 1.6rem;">사용자별 이상 로그 그래프</div>
+        <div style="display: flex; gap: 10px; align-items: center; align-self: flex-end;">
           <button id="show-more-btn" onclick="toggleShowMore()" class="dashboard-button" style="background-color: #007bff; color: white;">
             더보기
           </button>
@@ -374,26 +374,63 @@
             fetch(totalUrl)
               .then(r => r.json())
               .then(totalData => {
-                const percentage = totalData.total_count > 0 ? 
-                  ((data.anomaly_count / totalData.total_count) * 100).toFixed(2) : '0.00';
-                descDiv.innerHTML = `<b><span style="color:green;">${data.username}</span></b> 사용자의 이상 로그 분석 결과:<br>
-                    • 개별 로그 수: <b><span style="color:green;">${data.anomaly_count}건</span></b><br>
-                    • 전체 대비 비율: <b><span style="color:green;">${percentage}%</span></b><br>
-                    • 전체 로그 수: <b><span style="color:green;">${totalData.total_count}건</span></b>
-                `;;
+                const a = Number(data.anomaly_count);   
+                const b = Number(data.user_total_logs || 0);
+                const c = Number(totalData.total_count || 0); 
+
+                const pctUserLogs = (b > 0) ? ((a / b) * 100).toFixed(2) : '0.00';
+                const pctGlobal   = (c > 0) ? ((a / c) * 100).toFixed(2) : '0.00';
+
+                // 숫자 포맷 & 색상(span)
+                const fmt = n => Number(n).toLocaleString('ko-KR');
+                const aSpan = `<span style="color:#d9534f; font-weight:bold;">${fmt(a)}</span>`;   // 빨강
+                const bSpan = `<span style="color:#6c757d; font-weight:bold;">${fmt(b)}</span>`;   // 회색
+                const cSpan = `<span style="color:#6c757d; font-weight:bold;">${fmt(c)}</span>`;   // 회색
+
+                descDiv.innerHTML = 
+                  `<b><span style="color:green;">${data.username}</span></b> 사용자의 이상 로그 분석 결과:<br>
+                  • 사용자 이상 로그 수: <b><span style="color:green;">${fmt(a)}건</span></b><br>
+                  • 사용자 로그 중 이상 로그 비율: <b><span style="color:green;">${pctUserLogs}%</span></b> <small>(${aSpan}/${bSpan})</small><br>
+                  • 전체 이상 로그 중 사용자 비중: <b><span style="color:green;">${pctGlobal}%</span></b> <small>(${aSpan}/${cSpan})</small>`;
+
               })
+
+              // total 불러오기 실패 시에도, 최소한 a와 b만으로 일부 정보 표기
+
               .catch(() => {
-                descDiv.innerHTML = `<b>${data.username}</b> 사용자의 이상 로그: <b>${data.anomaly_count}건</b>`;
+                
+                const a = Number(data.anomaly_count);
+                const b = Number(data.user_total_logs || 0);
+                const pctUserLogs = (b > 0) ? ((a / b) * 100).toFixed(2) : '0.00';
+
+                const fmt = n => Number(n).toLocaleString('ko-KR');
+                const aSpan = `<span style="color:#d9534f; font-weight:bold;">${fmt(a)}</span>`; // 빨강
+                const bSpan = `<span style="color:#6c757d; font-weight:bold;">${fmt(b)}</span>`; // 회색
+
+                descDiv.innerHTML =
+                  `<b><span style="color:green;">${data.username}</span></b> 사용자의 이상 로그 분석 결과:<br>
+                  • 사용자 이상 로그 수: <b><span style="color:green;">${fmt(a)}건</span></b><br>
+                  • 사용자 로그 중 이상 로그 비율: <b><span style="color:green;">${pctUserLogs}%</span></b> <small>(${aSpan}/${bSpan})</small><br>
+                  • 전체 이상 로그 중 사용자 비중: <span style="color:#999;">불러오기 실패</span> <small>(a/c)</small>`;
               });
+              
+
           } else {
             resultDiv.innerHTML = '<span class="error">결과 없음</span>';
             descDiv.innerHTML = '검색 결과가 없습니다.';
           }
         })
         .catch(error => {
-          document.getElementById('username-search-result').innerHTML = `<span class="error">${error.message}</span>`;
+          const message = error.message;
+          const resultBox = document.getElementById('username-search-result');
+
+          if (message.includes('정확한 사용자명을 입력해주세요')) {
+            resultBox.innerHTML = `<span class="error">정확한 사용자명을 입력해주세요</span>`;
+          } else {
+            resultBox.innerHTML = `<span class="error">${message}</span>`;
+          }
         });
-    });
+      });
 
     /* 상위 사용자 조회 */
     document.getElementById('top-users-form').addEventListener('submit', function (e) {
@@ -466,5 +503,6 @@
 
 
   </script>
+
 </body>
 </html>

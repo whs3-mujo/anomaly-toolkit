@@ -622,7 +622,7 @@ def get_shap_plot(request, session_id, row_index):
     flipped_values = -negative_df['shap_value']  
     max_value = flipped_values.max()
     if max_value > 0:
-        ax.set_xlim(0, max_value * 1.2)
+        ax.set_xlim(0, max_value * 1.25)
     else:
         ax.set_xlim(0, 1)
 
@@ -646,12 +646,12 @@ def get_shap_plot(request, session_id, row_index):
                 ha = 'left'
             
             ax.text(text_x, i, label, ha=ha, va='center', 
-                   fontsize=9, fontweight='bold',   
+                   fontsize=13, fontweight='bold',   
                    bbox=dict(boxstyle="round,pad=0.2", facecolor='white', alpha=0.8))  
 
-    ax.set_title(f"{row_index+1}번 ROW", fontweight='bold', fontsize=11, pad=10) 
-    ax.set_xlabel("영향도 크기 (SHAP)", fontsize=10) 
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), frameon=False, fontsize=9)  
+    ax.set_title(f"{row_index+1}번 ROW", fontweight='bold', fontsize=13, pad=10) 
+    ax.set_xlabel("영향도 크기 (SHAP)", fontsize=13, labelpad=8) 
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), frameon=False, fontsize=13)  
 
     plt.tight_layout()
     plt.subplots_adjust(left=0.02, right=0.98, top=0.85, bottom=0.20)  
@@ -841,6 +841,8 @@ def search_anomaly_logs(request):
     """
     특정 사용자의 이상 로그 건수를 검색합니다.
     """
+
+
     username = request.GET.get('username', '').strip()
     session_id = request.GET.get('session_id')
     
@@ -884,24 +886,28 @@ def search_anomaly_logs(request):
             anomaly_df = df[df['Anomaly'] == 1]
         else:
             anomaly_df = df
+
+        # 사용자명으로 검색 (정확 일치)
+        exact_match = anomaly_df[anomaly_df[user_col].astype(str) == username]
+        if exact_match.empty:
+            return JsonResponse({'error': '정확한 사용자명을 입력해주세요.'}, status=404)
         
-        # 사용자명으로 검색 (부분 일치)
-        user_anomalies = anomaly_df[
-            anomaly_df[user_col].astype(str).str.contains(username, case=False, na=False)
-        ]
+        # a: 해당 사용자의 이상 로그 수
+        anomaly_count = int(len(exact_match))
+
+        # b: 해당 사용자가 발생시킨 전체 로그 수
+        user_total_logs = int(df[df[user_col].astype(str) == username].shape[0])
+
         
-        count = len(user_anomalies)
-        
-        # 정확히 일치하는 사용자가 있는지 확인
-        exact_match = anomaly_df[anomaly_df[user_col] == username]
-        exact_count = len(exact_match)
-        
+        #정확히 일치하는 사용자가 있는지 확인
+        count = int(len(exact_match))
         return JsonResponse({
             'username': username,
-            'anomaly_count': count,
-            'exact_match_count': exact_count,
+            'anomaly_count': anomaly_count, 
+            'user_total_logs': user_total_logs, 
             'session_id': session.session_id
         })
+        
         
     except AnalysisSession.DoesNotExist:
         return JsonResponse({'error': '분석 세션을 찾을 수 없습니다.'}, status=404)
