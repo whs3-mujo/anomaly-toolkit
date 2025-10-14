@@ -38,7 +38,7 @@
 
 > LOGSCO는 **데이터의 연결을 이해하고, 관계 속에서 비정상을 감지하는 AI 시스템**을 의미합니다.
 
-🔗 [LOGSCO 아이콘](./icon.png)
+🔗 [LOGSCO 아이콘](./docs/images/icon.png)
 
 ---
 
@@ -59,7 +59,7 @@
 
 ## 4. 샘플 데이터  
 
-**파일명:** [Final_Fintech_Security_Logs.csv](https://github.com/whs3-mujo/anomaly-toolkit/raw/main/Final_Fintech_Security_Logs.csv)<br />
+**파일명:** [Final_Fintech_Security_Logs.csv](https://raw.githubusercontent.com/whs3-mujo/anomaly-toolkit/main/samples/Final_Fintech_Security_Logs.csv)<br />
 **설명:** 실제 금융기관 로그 환경 기반의 보안 로그 샘플
 
 | 컬럼명 | 설명 |
@@ -193,7 +193,7 @@ git push origin feature/새기능명
 **PR 규칙**
 - 제목은 *Conventional Commit* 규칙을 따릅니다.  
 - 예: `fix: threshold 슬라이더 오류 수정`  
-- 자세한 가이드는 [`CONTRIBUTING.md`](./CONTRIBUTING.md) 참고
+- 자세한 가이드는 [`CONTRIBUTING.md`](./docs/CONTRIBUTING.md) 참고
 
 ---
 
@@ -206,14 +206,14 @@ git push origin feature/새기능명
 모든 사용자는 자유롭게 이용·수정·배포할 수 있으며,  
 원 저작권 표기와 라이선스 전문을 포함해야 합니다.  
 소프트웨어는 **보증 없이 "있는 그대로(AS IS)" 제공**됩니다.  
-[전체 전문 보기](./LICENSE)
+[전체 전문 보기](./docs/LICENSE)
 
 ---
 
 ### 포함된 외부 라이브러리  
 
 LOGSCO는 다음 오픈소스 라이브러리들을 포함합니다.  
-세부 정보는 [`notice.txt`](./notice.txt)에서 확인할 수 있습니다.
+세부 정보는 [`notice.txt`](./docs/notice.txt)에서 확인할 수 있습니다.
 
 | 라이브러리 | 버전 | 라이선스 | 비고 |
 |-------------|-------|-----------|------|
