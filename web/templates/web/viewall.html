@@ -395,9 +395,9 @@
 
                 descDiv.innerHTML = 
                   `<b><span style="color:green;">${data.username}</span></b> 사용자의 이상 로그 분석 결과:<br>
-                  • 개별 이상 로그 수: <b><span style="color:green;">${fmt(a)}건</span></b><br>
-                  • 전체 이상 로그 대비 비율: <b><span style="color:green;">${pctGlobal}%</span></b> <small>(${aSpan}/${cSpan})</small><br>
-                  • 전체 이상 로그 수: <b><span style="color:green;">${fmt(c)}건</span></b>`;
+                  • 사용자 이상 로그 수: <b><span style="color:green;">${fmt(a)}건</span></b><br>
+                  • 사용자 로그 중 이상 로그 비율: <b><span style="color:green;">${pctUserLogs}%</span></b> <small>(${aSpan}/${bSpan})</small><br>
+                  • 전체 이상 로그 중 사용자 비중: <b><span style="color:green;">${pctGlobal}%</span></b> <small>(${aSpan}/${cSpan})</small>`;
 
               })
 
@@ -415,9 +415,9 @@
 
                 descDiv.innerHTML =
                   `<b><span style="color:green;">${data.username}</span></b> 사용자의 이상 로그 분석 결과:<br>
-                  • 개별 이상 로그 수: <b><span style="color:green;">${fmt(a)}건</span></b><br>
-                  • 전체 이상 로그 대비 비율: <span style="color:#999;">불러오기 실패</span><br>
-                  • 전체 이상 로그 수: <span style="color:#999;">불러오기 실패</span>`;
+                  • 사용자 이상 로그 수: <b><span style="color:green;">${fmt(a)}건</span></b><br>
+                  • 사용자 로그 중 이상 로그 비율: <b><span style="color:green;">${pctUserLogs}%</span></b> <small>(${aSpan}/${bSpan})</small><br>
+                  • 전체 이상 로그 중 사용자 비중: <span style="color:#999;">불러오기 실패</span> <small>(a/c)</small>`;
               });
               
 
