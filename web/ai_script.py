@@ -1,21 +1,16 @@
 """
-Anomaly Detection AI Script
-
-This module provides the main interface for anomaly detection using machine learning.
-It has been refactored to use a modular architecture with clear separation of concerns
-for better maintainability and extensibility.
+이상 탐지 모델 메인 스크립트
 """
 from scipy.stats import rankdata
 from pyod.models.ecod import ECOD
 from pyod.models.hbos import HBOS           
-from pyod.models.iforest import IForest    #추가(채윤)
+from pyod.models.iforest import IForest
 
 import pandas as pd
 import numpy as np
 from typing import Dict, Any, Optional, List
 import warnings
 
-# Import new modular components
 from .services.analysis_service import AnalysisService, detect_anomalies as new_detect_anomalies
 from .pipelines.preprocessing import (
     preprocess_log_data_with_text as new_preprocess,
@@ -23,7 +18,6 @@ from .pipelines.preprocessing import (
 )
 from .core.config import config
 
-# Legacy imports for backward compatibility
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from pyod.models.iforest import IForest
@@ -32,16 +26,13 @@ import joblib
 import shap
 from collections import Counter
 
-# Optional imports
 try:
     import chardet
 except ImportError:
     chardet = None
 
-# Import other modules
 from .restore import restore_and_save_readable_anomalies
 
-# Import refactored services
 from .services.shap_service import ShapService
 from .services.visualization_service import VisualizationService
 def generate_description(df, user_col, time_col, count_anomaly=None, total_count=None):

@@ -799,6 +799,11 @@ def top_anomaly_users(request, top_n):
             return JsonResponse({'error': '분석 결과가 없습니다.'}, status=404)
         
         user_col = session.user_col
+        
+        # 사용자 컬럼이 설정되지 않았거나 없는 경우
+        if not user_col or user_col == "없음":
+            return JsonResponse({'error': '사용자 컬럼이 설정되지 않아 상위 사용자를 조회할 수 없습니다.'}, status=400)
+            
         anomaly_records = session.analysis_result['records']
         
         if not anomaly_records:
@@ -809,7 +814,7 @@ def top_anomaly_users(request, top_n):
         anomaly_df = pd.DataFrame(anomaly_records)
         
         if user_col not in anomaly_df.columns:
-            return JsonResponse({'error': f'사용자 컬럼 {user_col}을 찾을 수 없습니다.'}, status=404)
+            return JsonResponse({'error': '사용자 컬럼이 데이터에 존재하지 않아 상위 사용자를 조회할 수 없습니다.'}, status=400)
         
         # 사용자별 이상 로그 집계
         user_counts = anomaly_df[user_col].value_counts().head(top_n)
@@ -825,7 +830,7 @@ def top_anomaly_users(request, top_n):
     except AnalysisSession.DoesNotExist:
         return JsonResponse({'error': '분석 세션을 찾을 수 없습니다.'}, status=404)
     except Exception as e:
-        return JsonResponse({'error': f'조회 중 오류가 발생했습니다: {str(e)}'}, status=500)
+        return JsonResponse({'error': '상위 사용자 조회 중 문제가 발생했습니다. 데이터를 다시 분석해보세요.'}, status=500)
 
 @require_http_methods(["GET"])
 def search_anomaly_logs(request):
