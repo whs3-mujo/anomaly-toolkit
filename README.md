@@ -1,5 +1,5 @@
 <!-- LOGSCO HEADER -->
-![LOGSCO Header](./header.png)
+![LOGSCO Header](./docs/images/header.png)
 
 [![license](https://img.shields.io/badge/license-MIT-ff4081.svg?style=flat-square&labelColor=black)](./LICENSE)
 [![python](https://img.shields.io/badge/python-3.11-blue.svg?style=flat-square&labelColor=black&logo=python&logoColor=white)](https://www.python.org/)
