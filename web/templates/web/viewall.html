@@ -488,9 +488,9 @@
                 const percentage = topTotal > 0 && totalData.total_count > 0 ? 
                   ((topTotal / totalData.total_count) * 100).toFixed(2) : '0.00';
                 descDiv.innerHTML = `<b><span style="color:green;">상위 ${n}명</span></b> 사용자 이상 로그 분석 결과:<br>
-                    • 상위 ${n}명 총 로그 수: <b><span style="color:green;">${topTotal}건</span></b><br>
-                    • 전체 대비 비율: <b><span style="color:green;">${percentage}%</span></b><br>
-                    • 전체 로그 수: <b><span style="color:green;">${totalData.total_count}건</span></b><br>
+                    • 상위 ${n}명 총 이상 로그 수: <b><span style="color:green;">${topTotal}건</span></b><br>
+                    • 전체 로그 수 대비 비율: <b><span style="color:green;">${percentage}%</span></b><br>
+                    • 전체 이상 로그 수: <b><span style="color:green;">${totalData.total_count}건</span></b><br>
                     • 평균 개별 로그 수: <b><span style="color:green;">${Math.round(topTotal/n)}건</span></b>
                 `;
               })
