@@ -59,7 +59,7 @@
 
 ## 4. 샘플 데이터  
 
-**파일명:** [Final_Fintech_Security_Logs.csv](https://raw.githubusercontent.com/whs3-mujo/anomaly-toolkit/main/samples/Final_Fintech_Security_Logs.csv)<br />
+**파일명:** [Final_Fintech_Security_Logs.csv](./docs/samples)<br />
 **설명:** 실제 금융기관 로그 환경 기반의 보안 로그 샘플
 
 | 컬럼명 | 설명 |
