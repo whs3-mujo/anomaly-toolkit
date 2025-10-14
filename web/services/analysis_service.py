@@ -16,7 +16,7 @@ from ..pipelines.preprocessing import DataPreprocessor
 from ..pipelines.detection import AnomalyDetector
 from ..services.file_service import FileService
 from ..restore import restore_and_save_readable_anomalies
-from ..visualize_graph import (
+from ..ai.visualize_graph import (
     plot_anomaly_by_hour,
     plot_anomaly_by_user,
     plot_anomaly_score_distribution
@@ -288,7 +288,7 @@ class AnalysisService:
         time_col: Optional[str]
     ) -> Dict[str, Any]:
         """분석 요약 및 설명을 생성합니다."""
-        from ..ai_script import generate_description  # 순환 참조 방지를 위해 여기서 임포트
+        from ..ai.ai_script import generate_description
         
         total_count = len(results_df)
         anomaly_count = int(results_df['Anomaly'].sum())

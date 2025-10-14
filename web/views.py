@@ -19,8 +19,8 @@ import base64
 import platform
 import time
 import threading
-from .ai_script import detect_anomalies
-from .visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot_anomaly_score_distribution
+from .ai.ai_script import detect_anomalies
+from .ai.visualize_graph import plot_anomaly_by_hour, plot_anomaly_by_user, plot_anomaly_score_distribution
 from django.db.models import Count, Q
 from django.contrib.auth.models import User
 
@@ -970,7 +970,7 @@ def get_user_graph(request):
             print(f"viewall 그래프 생성 중... (session: {session.session_id}, show_more: {show_more})")
             
             # 세션의 데이터를 다시 로드하여 그래프 생성
-            from .visualize_graph import plot_anomaly_by_user
+            from .ai.visualize_graph import plot_anomaly_by_user
             import pandas as pd
             import json
             
@@ -1102,7 +1102,7 @@ def total_anomaly_count(request):
 from django.shortcuts import render
 from .models import AnalysisSession
 import pandas as pd
-from .visualize_graph import plot_anomaly_by_hour
+from .ai.visualize_graph import plot_anomaly_by_hour
 
 @require_http_methods(["GET"])
 def anomaly_by_hour_viewall(request):

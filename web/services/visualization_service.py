@@ -11,7 +11,7 @@ from typing import Optional, Dict, Any
 import warnings
 
 # visualize_graph 모듈에서 그래프 함수들 import
-from ..visualize_graph import (
+from ..ai.visualize_graph import (
     plot_anomaly_by_hour,
     plot_anomaly_by_user, 
     plot_anomaly_score_distribution

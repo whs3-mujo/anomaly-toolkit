@@ -15,8 +15,8 @@ from django.conf import settings
 from django.utils import timezone
 
 from ..models import AnalysisSession
-from ..ai_script import detect_anomalies
-from ..visualize_graph import plot_anomaly_by_hour
+from ..ai.ai_script import detect_anomalies
+from ..ai.visualize_graph import plot_anomaly_by_hour
 
 
 class ViewService:
