@@ -1,47 +1,107 @@
-# LOGSCO: AI기반 이상로그 탐지서비스
+<!-- LOGSCO HEADER -->
+![LOGSCO Header](./header.png)
 
-## 개요
-본 도구는 AI 기반 로그 이상 탐지 도움 툴킷입니다. <br />
-[**시연 영상**](https://www.youtube.com/watch?v=6EWizN8p7mI&list=PLJOyfcewGGvYWiry_4vStBUEzOWpJ6w07) <br />
+[![license](https://img.shields.io/badge/license-MIT-ff4081.svg?style=flat-square&labelColor=black)](./LICENSE)
+[![python](https://img.shields.io/badge/python-3.11-blue.svg?style=flat-square&labelColor=black&logo=python&logoColor=white)](https://www.python.org/)
+[![docker](https://img.shields.io/badge/docker-ready-2496ED.svg?style=flat-square&labelColor=black&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-ffab00.svg?style=flat-square&labelColor=black)](https://conventionalcommits.org)
+![PRs welcome](https://img.shields.io/badge/PRs-welcome-09FF33.svg?style=flat-square&labelColor=black)
 
-운영체제별 가이드북 (Windows, Mac) <br />
-Windows: https://www.notion.so/1bed038712de802fa97bce2017e43859?source=copy_link   <br />
-Mac: https://www.notion.so/2420363bd07c807191bde6b6acfee091?source=copy_link <br />
+---
 
-## 요구사항
-### 실행 환경
-- docker, docker-compose 필요
+# LOGSCO  
+**AI 기반 이상로그 탐지 서비스 (AI-Powered Log Scoring & Analysis System)**  
 
-### 개발 환경
-- python 3.10, or 3.11 필요 (pycaret의 경우 3.12 이상 현재 미지원)
-- virtualenv 필요 (`pip install virtualenv`)
-<br />
+스마트 로그 분석과 이상 탐지를 자동화하는 오픈소스 툴킷입니다.  
+[시연 영상 보기](https://www.youtube.com/watch?v=6EWizN8p7mI&list=PLJOyfcewGGvYWiry_4vStBUEzOWpJ6w07)
 
-## 사용법
-### Docker 실행 (간소화 버전)
-1. [Docker Desktop 설치](https://www.docker.com/products/docker-desktop)
+---
+
+## 1. LOGSCO 소개  
+
+**LOGSCO**는 대규모 보안 로그에서 **AI 기반 이상 패턴을 자동 탐지**하는 플랫폼입니다.  
+데이터 흐름을 “점과 선(노드와 관계)”로 파악하여,  
+복잡한 로그 안에서도 비정상 행위를 직관적으로 찾아냅니다.  
+
+> LOGSCO의 목표는 단순한 탐지가 아닌,  
+> **‘데이터의 연결 관계 속에서 이상을 이해하는 것’** 입니다.
+
+---
+
+## 2. 로고의 의미  
+
+| 구성요소 | 의미 |
+|-----------|------|
+| 파란색 원 | 신뢰·보안·데이터의 안정성을 상징하며, LOGSCO의 분석 범위를 표현 |
+| 노드 + 연결선 | 로그 이벤트 간 상관관계, AI가 학습하는 데이터 흐름의 시각화 |
+| 원형 구조 | 폐쇄된 보안 경계와 자율 탐지 시스템의 완결성 상징 |
+
+> LOGSCO는 **데이터의 연결을 이해하고, 관계 속에서 비정상을 감지하는 AI 시스템**을 의미합니다.
+
+🔗 [LOGSCO 아이콘](./icon.png)
+
+---
+
+## 3. 주요 기능  
+
+- PyCaret 기반 **AI 이상탐지 자동화**
+- **Threshold 직접 설정 기능** (사용자 맞춤 조정)
+- Plotly 기반 **이상치 시각화 그래프**
+- **Docker 완전 지원**, 1분 내 실행 가능
+- **온프레미스(오프라인)** 환경 지원  
+
+> ⚙️ **업로드 제한 안내**  
+> - 기본적으로 5분 이하의 로그 데이터만 업로드 가능합니다.  
+> - 더 큰 데이터는 [GitHub Issue](https://github.com/whs3-mujo/anomaly-toolkit/issues)를 통해 문의해주세요.  
+>   (기술적으로 가능하지만, 서비스 효율성을 위해 제한되어 있습니다.)
+
+---
+
+## 4. 샘플 데이터  
+
+**파일명:** [Final_Fintech_Security_Logs.csv](https://github.com/whs3-mujo/anomaly-toolkit/raw/main/Final_Fintech_Security_Logs.csv)<br />
+**설명:** 실제 금융기관 로그 환경 기반의 보안 로그 샘플
+
+| 컬럼명 | 설명 |
+|--------|------|
+| timestamp | 로그 발생 시각 |
+| user_id | 사용자 식별자 |
+| event_type | 이벤트 유형 |
+| ip_address | 접속 IP 주소 |
+| process_name | 실행된 프로세스 이름 |
+| anomaly_score | AI 이상치 점수 |
+
+**사용 예시**
 ```bash
-2. 터미널에서 설치 확인
-$ docker --version
-$ docker compose version
-
-3. Docker Hub 로그인(최초 1회)
-$ docker login
-
-4. 이미지 다운로드
-$ docker pull ynjii/anomaly-toolkit:latest
-	#오프라인 환경 실행 버전(테스트 중 - plotly 그래프 미출력 오류)
-	$ docker pull ynjii/anomlay-toolkit:offline (docker-compose.yml 내용 다름)
-
-5. 실행 폴더 생성
-$ mkdir 폴더명
-$ cd 폴더명
+python manage.py runserver
+# 웹 대시보드 접속 후 Final_Fintech_Security_Logs.csv 업로드
 ```
-<br />
 
-6. docker-compose.yml 작성
-해당 폴더 안에 아래 내용으로 docker-compose.yml 파일 생성
+---
+
+## 5. Docker 실행 가이드  
+
+### 1) Docker 설치  
+[Docker Desktop 다운로드](https://www.docker.com/products/docker-desktop)
+
+### 2) 버전 확인  
 ```bash
+docker --version
+docker compose version
+```
+
+### 3) 이미지 다운로드  
+```bash
+docker pull ynjii/anomaly-toolkit:latest
+```
+
+### 4) 환경 설정  
+```bash
+mkdir logscope && cd logscope
+```
+
+`docker-compose.yml` 작성
+```yaml
 version: '3.8'
 services:
   web:
@@ -52,97 +112,137 @@ services:
     env_file:
       - .env
 ```
-<br />
 
-7. '.env' 파일 작성
-같은 폴더에 .env 파일을 만들고 아래 내용 입력
+`.env` 작성
 ```bash
-SECRET_KEY="이 부분에 시크릿키값 입력"
+SECRET_KEY="django-insecure-abc123456789"
 ```
-<br />
 
- ※ 아래 명령어로 새 SECRET_KEY를 발급해 사용할 수 있습니다.
+**새 SECRET_KEY 발급**
 ```bash
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())
-
-출력 예시)django-insecure-abc123456789
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
-<br />
 
-8. 실행
+### 5) 실행  
 ```bash
-$ docker compose up -d
-#업로드: http://localhost:8000/upload/ 대시보드: http://localhost:8000/dashboard/
+docker compose up -d
 ```
-<br />
 
-9. 상태 확인
-```bash
-docker compose ps         # 실행 상태 확인
-docker compose logs -f    # 로그 보기
-docker compose down       # 종료
-```
-### Docker 실행 (오프라인)
-1. 본 프로젝트는 온프레미스 환경에서도 실행할 수 있도록 Docker 이미지 파일(anomaly-toolkit.tar)을 제공합니다.
-<br />
+**접속 경로**
+- 업로드: http://localhost:8000/upload  
+- 대시보드: http://localhost:8000/dashboard  
 
-2. 아래 링크에서 Docker 이미지 파일을 다운로드 받아주세요:
-https://drive.google.com/drive/folders/1nwI_TW3FTxpsm7FXuqzWbMWsnxUHTQAQ?usp=sharing
-<br />
-
-3. 터미널에서 다음 명령어 2줄만 실행하면 웹 애플리케이션이 바로 실행됩니다:
-```bash
-docker load -i anomalytoolkit.tar
-docker run -d -p 8000:8000 --name anomaly-detector anomaly-detection:offline
-```
-4. 실행 후 웹 브라우저에서 http://localhost:8000 로 접속하시면 됩니다. 
-
-(업로드: http://localhost:8000/upload, 
- 대시보드: http://localhost:8000/dashboard)
-<br />
-
-### 초기 개발 환경 세팅 (개발자)
-```bash
-1. 가상환경 세팅
-(맥 OS 환경) 
-$ virtualenv --python=3.11 .venv
-$ . .venv/bin/activate
-
-(윈도우 환경 - powershell) 
-$ python -m venv venv
-$ .\venv\Scripts\Activate.ps1
-
-2. 의존성 파이썬 라이브러리 설치
-(.venv) $ pip install -r requirements.txt
-
-3. 장고 - 모델의 변경사항 확인 후 마이그레이션 파일로 기록
-(.venv) $ python manage.py makemigrations
-
-4. 장고 - 생성된 마이그레이션 파일을 읽어 DB에 실제 적용
-(.venv) $ python manage.py migrate
-4.1. 장고 - DB적용 오류 발생 시 (1)~(3) 입력 후 재실행(히스토리 조회 불가, 대시보드 조회 불가 등)
-(1) python manage.py makemigrations web
-(2) python manage.py migrate web 
-(3) python manage.py runserver  
-
-5. 장고 - admin 계정 생성(email 생략 가능)
-(.venv) $ python manage.py createsuperuser
-
-6. 장고 - 암호화 서명에 사용되는 비밀키 환경변수 지정
-(.venv) $ export SECRET_KEY=[비밀키 지정]
-
-7. 장고 - 서버 실행
-(.venv) $ python manage.py runserver 0.0.0.0:8000
-7.1. 서버 실행 오류 발생 시 
-(.venv) $ python manage.py runserver
-```
 ---
-## 운영체제별(WINDOWS, MAC) 가이드북
-- [Windows](https://www.notion.so/2425227467f780bb8b9cc9c0c159a368?source=copy_link)
-- [Mac](https://www.notion.so/2420363bd07c807191bde6b6acfee091?source=copy_link)
 
-## Open Source Acknowledgement
-본 프로젝트는 다음 오픈소스를 활용하였습니다:
-- [PyCaret](https://github.com/pycaret/pycaret) (MIT License)
-- [Plotly](https://github.com/plotly/plotly.py) (MIT License)
+## 6. 개발자 환경 세팅  
 
+```bash
+# 1. 가상환경 생성
+virtualenv --python=3.11 .venv
+. .venv/bin/activate
+
+# 2. 의존성 설치
+pip install -r requirements.txt
+
+# 3. 마이그레이션
+python manage.py makemigrations
+python manage.py migrate
+
+# 4. 관리자 계정 생성
+python manage.py createsuperuser
+
+# 5. SECRET_KEY 등록
+export SECRET_KEY=[비밀키]
+
+# 6. 서버 실행
+python manage.py runserver 0.0.0.0:8000
+```
+
+---
+
+## 7. 팀 구성  
+
+| 이름 | 역할 | GitHub |
+|------|------|---------|
+| 김윤지 | 웹 베이스코드 | [@ynjii](https://github.com/ynjii) |
+| 김지윤 | XAI 및 그래프 시각화 / DevOps | [@JIYUN02](https://github.com/JIYUN02) |
+| 백형철 | XAI 및 그래프 시각화 | [@BAEK10000](https://github.com/BAEK10000) |
+| 심준호 | XAI 및 그래프 시각화 | [@junho462](https://github.com/junho462) |
+| 이준혁 | XAI 및 그래프 시각화 | [@hubkorea](https://github.com/hubkorea) |
+| 정원재 | AI 모델 개발 | [@daljoa](https://github.com/daljoa) |
+| 정채윤 | AI 모델 개발 | [@jcy333](https://github.com/jcy333) |
+| 최아현 | AI 모델 개발 | [@ChoiAh](https://github.com/ChoiAh) |
+
+---
+
+## 8. 기여 (Contributing)
+
+LOGSCO 프로젝트에 기여하려면 아래 절차를 따르세요.
+
+```bash
+# 1. 포크 후 브랜치 생성
+git checkout -b feature/새기능명
+
+# 2. 코드 수정 및 커밋
+git commit -m "feat: 새 기능 요약"
+
+# 3. PR 생성
+git push origin feature/새기능명
+```
+
+**PR 규칙**
+- 제목은 *Conventional Commit* 규칙을 따릅니다.  
+- 예: `fix: threshold 슬라이더 오류 수정`  
+- 자세한 가이드는 [`CONTRIBUTING.md`](./CONTRIBUTING.md) 참고
+
+---
+
+## 9. 오픈소스 라이선스  
+
+### 메인 라이선스  
+
+본 프로젝트는 **MIT License** 하에 배포됩니다.  
+© 2025 TEAM LOGSCO  
+모든 사용자는 자유롭게 이용·수정·배포할 수 있으며,  
+원 저작권 표기와 라이선스 전문을 포함해야 합니다.  
+소프트웨어는 **보증 없이 "있는 그대로(AS IS)" 제공**됩니다.  
+[전체 전문 보기](./LICENSE)
+
+---
+
+### 포함된 외부 라이브러리  
+
+LOGSCO는 다음 오픈소스 라이브러리들을 포함합니다.  
+세부 정보는 [`notice.txt`](./notice.txt)에서 확인할 수 있습니다.
+
+| 라이브러리 | 버전 | 라이선스 | 비고 |
+|-------------|-------|-----------|------|
+| Django | 5.2.7 | BSD 3-Clause | 웹 프레임워크 |
+| gunicorn | 23.0.0 | MIT | WSGI 서버 |
+| python-dotenv | 1.1.1 | BSD 3-Clause | 환경변수 관리 |
+| pandas | 2.3.3 | BSD 3-Clause | 데이터 처리 |
+| scikit-learn | 1.7.2 | BSD 3-Clause | ML 알고리즘 |
+| numpy | 2.3.3 | BSD 3-Clause | 수치 계산 |
+| pyod | 2.0.5 | BSD 2-Clause | 이상탐지 모델 |
+| shap | 0.48.0 | MIT | 모델 해석용 |
+| plotly | 6.3.1 | MIT | 시각화 라이브러리 |
+| chardet | 5.2.0 | LGPL 2.1-or-later | 인코딩 탐지기 |
+| category-encoders | 2.81 | BSD 3-Clause | 데이터 전처리 |
+| joblib | 1.5.2 | BSD 3-Clause | 병렬처리 유틸리티 |
+
+> **참고:** LGPL(예: chardet) 기반 모듈은  
+> 사용자가 교체 가능한 형태로 제공되어야 합니다.
+
+---
+
+## 10. License Summary  
+
+- **Main Project:** MIT License (TEAM LOGSCO)  
+- **Sub Libraries:** BSD, MIT, LGPL (see notice.txt)  
+- **Distribution:** 자유로운 사용/수정/상용 배포 가능  
+- **Obligation:** 원저작권 표시 및 notice 파일 포함 필수  
+
+---
+
+### LOGSCO — 로그에서 인사이트로  
+AI와 함께, 더 똑똑한 로그 보안을 경험하세요.

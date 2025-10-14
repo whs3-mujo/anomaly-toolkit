@@ -704,6 +704,10 @@
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="2" fill="#1976d2"/><rect x="14" y="3" width="7" height="7" rx="2" fill="#42a5f5"/><rect x="14" y="14" width="7" height="7" rx="2" fill="#1976d2"/><rect x="3" y="14" width="7" height="7" rx="2" fill="#42a5f5"/></svg>
       <span>LOGSCO</span>
     </button>
+    <button class="nav-link"
+      onclick="const w=window.open('https://github.com/whs3-mujo/anomaly-toolkit','_blank'); if(w){ w.opener=null; w.focus(); }">
+      GitHub
+    </button>
   </div>
 
   <div style="display: flex; height: calc(100vh - 60px); position: relative;">
@@ -1060,7 +1064,7 @@ function formatAnalysisResult(result, session) {
             시간별 상세보기
           </a>
           <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 6px 12px; font-size: 0.95rem; color: #495057; font-weight: 500;">
-            이상치 기준값: ${session.analysis_result && session.analysis_result.contamination ? Math.round(session.analysis_result.contamination * 100) : 5}%
+            이상치 기준값: ${session.analysis_result && session.analysis_result.q ? Math.round(session.analysis_result.q * 100) : 5}%
           </div>
         </div>
         
@@ -1086,7 +1090,7 @@ function formatAnalysisResult(result, session) {
       <div class="dashboard-table-area">
         <div class="dashboard-table-header">
           <div style="font-size:0.93rem; color:#888;">
-            ※ 아래 표는 임계치 ${session.analysis_result && session.analysis_result.contamination ? Math.round(session.analysis_result.contamination * 100) : 5}% 기준 이상치(Anomaly=1)로 판단한 데이터 중 최대 100개만 미리보기로 보여집니다.
+            ※ 아래 표는 임계치 ${session.analysis_result && session.analysis_result.q ? Math.round(session.analysis_result.q * 100) : 5}% 기준 이상치(Anomaly=1)로 판단한 데이터 중 최대 100개만 미리보기로 보여집니다.
           </div>
           <div class="download-btns">
             <button onclick="downloadCSV('${session.session_id}', '${session.filename}', 'all')"
