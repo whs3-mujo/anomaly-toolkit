@@ -622,7 +622,7 @@ def get_shap_plot(request, session_id, row_index):
     flipped_values = -negative_df['shap_value']  
     max_value = flipped_values.max()
     if max_value > 0:
-        ax.set_xlim(0, max_value * 1.25)
+        ax.set_xlim(0, max_value * 1.2)
     else:
         ax.set_xlim(0, 1)
 
@@ -646,12 +646,12 @@ def get_shap_plot(request, session_id, row_index):
                 ha = 'left'
             
             ax.text(text_x, i, label, ha=ha, va='center', 
-                   fontsize=13, fontweight='bold',   
+                   fontsize=9, fontweight='bold',   
                    bbox=dict(boxstyle="round,pad=0.2", facecolor='white', alpha=0.8))  
 
-    ax.set_title(f"{row_index+1}번 ROW", fontweight='bold', fontsize=13, pad=10) 
-    ax.set_xlabel("영향도 크기 (SHAP)", fontsize=13, labelpad=8) 
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), frameon=False, fontsize=13)  
+    ax.set_title(f"{row_index+1}번 ROW", fontweight='bold', fontsize=11, pad=10) 
+    ax.set_xlabel("영향도 크기 (SHAP)", fontsize=10) 
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), frameon=False, fontsize=9)  
 
     plt.tight_layout()
     plt.subplots_adjust(left=0.02, right=0.98, top=0.85, bottom=0.20)  
@@ -794,31 +794,22 @@ def top_anomaly_users(request, top_n):
         if not session:
             return JsonResponse({'error': '분석 세션이 없습니다.'}, status=404)
         
-        # CSV 파일에서 상위 사용자 조회
-        import pandas as pd
+        # 세션의 analysis_result에서 이상치 데이터 조회 (대시보드와 동일한 소스)
+        if not session.analysis_result or 'records' not in session.analysis_result:
+            return JsonResponse({'error': '분석 결과가 없습니다.'}, status=404)
         
-        # 결과 CSV 파일 경로
-        csv_path = session.file_path.replace('.csv', '_full_data_with_anomaly_info_readable.csv')
-        
-        if not os.path.exists(csv_path):
-            # fallback: 원본 결과 파일
-            csv_path = session.file_path.replace('.csv', '_pyod_detected_anomalies.csv')
-        
-        if not os.path.exists(csv_path):
-            return JsonResponse({'error': '분석 결과 파일을 찾을 수 없습니다.'}, status=404)
-        
-        # CSV 데이터 로드
-        df = pd.read_csv(csv_path)
         user_col = session.user_col
+        anomaly_records = session.analysis_result['records']
         
-        if user_col not in df.columns:
+        if not anomaly_records:
+            return JsonResponse({'error': '이상치 데이터가 없습니다.'}, status=404)
+        
+        # DataFrame으로 변환
+        import pandas as pd
+        anomaly_df = pd.DataFrame(anomaly_records)
+        
+        if user_col not in anomaly_df.columns:
             return JsonResponse({'error': f'사용자 컬럼 {user_col}을 찾을 수 없습니다.'}, status=404)
-        
-        # 이상치만 필터링 (Anomaly 컬럼이 있는 경우)
-        if 'Anomaly' in df.columns:
-            anomaly_df = df[df['Anomaly'] == 1]
-        else:
-            anomaly_df = df
         
         # 사용자별 이상 로그 집계
         user_counts = anomaly_df[user_col].value_counts().head(top_n)
@@ -841,8 +832,6 @@ def search_anomaly_logs(request):
     """
     특정 사용자의 이상 로그 건수를 검색합니다.
     """
-
-
     username = request.GET.get('username', '').strip()
     session_id = request.GET.get('session_id')
     
@@ -861,53 +850,50 @@ def search_anomaly_logs(request):
         if not session:
             return JsonResponse({'error': '분석 세션이 없습니다.'}, status=404)
         
-        # CSV 파일에서 해당 사용자의 이상 로그 검색
-        import pandas as pd
+        # 세션의 analysis_result에서 이상치 데이터 조회 (대시보드와 동일한 소스)
+        if not session.analysis_result or 'records' not in session.analysis_result:
+            return JsonResponse({'error': '분석 결과가 없습니다.'}, status=404)
         
-        # 결과 CSV 파일 경로
-        csv_path = session.file_path.replace('.csv', '_full_data_with_anomaly_info_readable.csv')
-        
-        if not os.path.exists(csv_path):
-            # fallback: 원본 결과 파일
-            csv_path = session.file_path.replace('.csv', '_pyod_detected_anomalies.csv')
-        
-        if not os.path.exists(csv_path):
-            return JsonResponse({'error': '분석 결과 파일을 찾을 수 없습니다.'}, status=404)
-        
-        # CSV 데이터 로드
-        df = pd.read_csv(csv_path)
         user_col = session.user_col
+        anomaly_records = session.analysis_result['records']
         
-        if user_col not in df.columns:
+        if not anomaly_records:
+            return JsonResponse({'error': '이상치 데이터가 없습니다.'}, status=404)
+        
+        # DataFrame으로 변환
+        import pandas as pd
+        anomaly_df = pd.DataFrame(anomaly_records)
+        
+        if user_col not in anomaly_df.columns:
             return JsonResponse({'error': f'사용자 컬럼 {user_col}을 찾을 수 없습니다.'}, status=404)
         
-        # 이상치만 필터링 (Anomaly 컬럼이 있는 경우)
-        if 'Anomaly' in df.columns:
-            anomaly_df = df[df['Anomaly'] == 1]
-        else:
-            anomaly_df = df
-
-        # 사용자명으로 검색 (정확 일치)
-        exact_match = anomaly_df[anomaly_df[user_col].astype(str) == username]
-        if exact_match.empty:
-            return JsonResponse({'error': '정확한 사용자명을 입력해주세요.'}, status=404)
+        # 디버깅: 전체 데이터 현황 출력
+        total_records = len(anomaly_df)
+        print(f"검색 API - 전체 이상치 레코드 수: {total_records}")
+        print(f"검색 API - 검색 대상 사용자: '{username}', 컬럼: {user_col}")
         
-        # a: 해당 사용자의 이상 로그 수
-        anomaly_count = int(len(exact_match))
-
-        # b: 해당 사용자가 발생시킨 전체 로그 수
-        user_total_logs = int(df[df[user_col].astype(str) == username].shape[0])
-
+        # 사용자명으로 검색 (정확히 일치)
+        exact_match = anomaly_df[anomaly_df[user_col].astype(str).str.strip() == username.strip()]
+        exact_count = len(exact_match)
         
-        #정확히 일치하는 사용자가 있는지 확인
-        count = int(len(exact_match))
+        # 부분 일치도 확인 (참조용)
+        partial_match = anomaly_df[
+            anomaly_df[user_col].astype(str).str.contains(username, case=False, na=False)
+        ]
+        partial_count = len(partial_match)
+        
+        print(f"검색 API - {username} 정확 일치: {exact_count}개, 부분 일치: {partial_count}개")
+        
+        # 정확한 일치를 우선 사용
+        count = exact_count if exact_count > 0 else partial_count
+        
         return JsonResponse({
             'username': username,
-            'anomaly_count': anomaly_count, 
-            'user_total_logs': user_total_logs, 
+            'anomaly_count': count,
+            'exact_match_count': exact_count,
+            'partial_match_count': partial_count,
             'session_id': session.session_id
         })
-        
         
     except AnalysisSession.DoesNotExist:
         return JsonResponse({'error': '분석 세션을 찾을 수 없습니다.'}, status=404)
@@ -983,17 +969,25 @@ def get_user_graph(request):
             import pandas as pd
             import json
             
-            # 세션에서 데이터 가져오기
+            # 세션에서 데이터 가져오기 (검색 API와 동일한 소스 사용)
             if hasattr(session, 'analysis_result') and session.analysis_result:
                 try:
-                    # 분석 결과 CSV 파일에서 읽기 (Anomaly 컬럼 포함)
-                    result_csv_path = session.analysis_result.get("result_csv_path")
-                    if result_csv_path and os.path.exists(result_csv_path):
-                        df = pd.read_csv(result_csv_path)
-                        user_col = session.user_col or 'user'
+                    # analysis_result에서 이상치 데이터 가져오기 (검색 API와 동일)
+                    anomaly_records = session.analysis_result.get('records', [])
+                    user_col = session.user_col or 'user'
+                    
+                    if anomaly_records:
+                        # DataFrame으로 변환
+                        df_anomaly = pd.DataFrame(anomaly_records)
                         
-                        # viewall용 그래프 생성 (기본 10명, 더보기 시 더 많이)
-                        user_graph_html = plot_anomaly_by_user(df, user_col, top_n=10, show_more=show_more, for_dashboard=False)
+                        # 디버깅: EMP0111 사용자의 실제 데이터 개수 출력
+                        if user_col in df_anomaly.columns:
+                            emp0111_count = len(df_anomaly[df_anomaly[user_col].astype(str).str.strip() == 'EMP0111'])
+                            total_anomaly_count = len(df_anomaly)
+                            print(f"그래프 생성용 데이터에서 EMP0111의 이상치 개수: {emp0111_count} / 전체 이상치: {total_anomaly_count}")
+                        
+                        # viewall용 그래프 생성 (기본 10명, 더보기 시 더 많이)  
+                        user_graph_html = plot_anomaly_by_user(df_anomaly, user_col, top_n=10, show_more=show_more, for_dashboard=False)
                         
                         if user_graph_html:
                             return HttpResponse(user_graph_html)
@@ -1080,29 +1074,20 @@ def total_anomaly_count(request):
         if not session:
             return JsonResponse({'error': '분석 세션이 없습니다.'}, status=404)
         
-        # CSV 파일에서 전체 이상 로그 수 조회
-        import pandas as pd
-        
-        # 결과 CSV 파일 경로
-        csv_path = session.file_path.replace('.csv', '_full_data_with_anomaly_info_readable.csv')
-        
-        if not os.path.exists(csv_path):
-            # fallback: 원본 결과 파일
-            csv_path = session.file_path.replace('.csv', '_pyod_detected_anomalies.csv')
-        
-        if not os.path.exists(csv_path):
-            return JsonResponse({'error': '분석 결과 파일을 찾을 수 없습니다.'}, status=404)
-        
-        # CSV 데이터 로드
-        df = pd.read_csv(csv_path)
-        
-        # 이상치만 필터링 (Anomaly 컬럼이 있는 경우)
-        if 'Anomaly' in df.columns:
-            total_count = int(df['Anomaly'].sum())
+        # 세션의 analysis_result에서 데이터 조회
+        if session.analysis_result:
+            anomaly_count = session.analysis_result.get('anomaly_count', 0)
+            total_count = session.analysis_result.get('total', 0)
+            summary = session.analysis_result.get('summary', f'이상치 {anomaly_count:,}건 / 전체 {total_count:,}건')
+            
+            return JsonResponse({
+                'total_count': anomaly_count,  # 이상치 건수 (기존 API와 호환성 유지)
+                'anomaly_count': anomaly_count,
+                'total': total_count,
+                'summary': summary
+            })
         else:
-            total_count = len(df)
-        
-        return JsonResponse({'total_count': total_count})
+            return JsonResponse({'error': '분석 결과가 없습니다.'}, status=404)
         
     except AnalysisSession.DoesNotExist:
         return JsonResponse({'error': '분석 세션을 찾을 수 없습니다.'}, status=404)

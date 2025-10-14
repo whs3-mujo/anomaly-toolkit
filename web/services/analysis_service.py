@@ -321,7 +321,7 @@ class AnalysisService:
         # 출력을 위해 최종 결과 로드
         df_full = pd.read_csv(final_results_path)
         
-        # 이상치 추출 및 프론트엔드용 데이터 준비
+        # 이상치 추출 및 시각화용 데이터 준비
         detected_anomalies = df_full[df_full['Anomaly'] == 1]
         
         # 표시에 불필요한 TF-IDF 컬럼 제거
@@ -397,10 +397,7 @@ class AnalysisService:
 def detect_anomalies(file_path: str, exclude_columns: Optional[List[str]] = None, 
                    user_col: Optional[str] = None, time_col: Optional[str] = None) -> Dict[str, Any]:
     """
-    하위 호환성을 위한 레거시 함수입니다.
-    
-    이 함수는 새로운 모듈식 접근 방식을 사용하면서 기존 API를 유지합니다.
-    
+    이상 탐지 분석 수행
     Args:
         file_path: 입력 CSV 파일 경로
         exclude_columns: 분석에서 제외할 컬럼

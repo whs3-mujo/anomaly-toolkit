@@ -21,7 +21,7 @@ class AnomalyDetector:
     
     def __init__(self, model_name: str = 'iforest', model_params: Dict[str, Any] = None):
         """
-        이상 탐지기를 초기화합니다.
+        초기화
         
         Args:
             model_name: 사용할 모델의 이름
@@ -219,7 +219,6 @@ class AnomalyDetector:
 
 def create_anomaly_detector(model_name: str = 'iforest', **kwargs) -> AnomalyDetector:
     """
-    이상 탐지기를 생성하는 팩토리 함수입니다.
     
     Args:
         model_name: 생성할 모델의 이름

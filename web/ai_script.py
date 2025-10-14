@@ -1,12 +1,9 @@
 """
-Anomaly Detection AI Script - Refactored for Open Source
+Anomaly Detection AI Script
 
 This module provides the main interface for anomaly detection using machine learning.
 It has been refactored to use a modular architecture with clear separation of concerns
 for better maintainability and extensibility.
-
-The original functionality is preserved through legacy wrapper functions while
-new modular components provide enhanced functionality for open source distribution.
 """
 from scipy.stats import rankdata
 from pyod.models.ecod import ECOD
@@ -43,18 +40,19 @@ except ImportError:
 
 # Import other modules
 from .restore import restore_and_save_readable_anomalies
-from .visualize_graph import (
-    plot_anomaly_by_hour,
-    plot_anomaly_by_user,
-    plot_anomaly_score_distribution
-)
-def generate_description(df, user_col, time_col):
+
+# Import refactored services
+from .services.shap_service import ShapService
+from .services.visualization_service import VisualizationService
+def generate_description(df, user_col, time_col, count_anomaly=None, total_count=None):
     import pandas as pd
     from collections import Counter
 
     # 사용자 칼럼이 'all'인 경우 (모든 데이터가 하나의 사용자로 처리)
     if user_col == 'user' and df[user_col].nunique() == 1 and df[user_col].iloc[0] == 'all':
-        total = len(df)
+        # 전달받은 전체 통계를 사용, 없으면 기존 방식 사용
+        anomaly_count = count_anomaly if count_anomaly is not None else len(df)
+        total = total_count if total_count is not None else len(df)
         
         # 시간 컬럼이 있는 경우 시간대별 분석
         if time_col and time_col in df.columns:
@@ -74,7 +72,7 @@ def generate_description(df, user_col, time_col):
                 df_copy["period"] = df_copy["hour"].apply(time_to_period)
                 period_counts = df_copy["period"].value_counts().to_dict()
                 
-                period_summary = "<br>".join([f"{period}: <b><span style='color:red;'>{count}건</span></b> ({count/total:.1%})" 
+                period_summary = "<br>".join([f"{period}: <b><span style='color:red;'>{count}건</span></b> ({count/anomaly_count:.1%})" 
                                              for period, count in period_counts.items()])
                 
                 html = f"""
@@ -82,7 +80,7 @@ def generate_description(df, user_col, time_col):
                 <h3 style='margin-top:0;'>종합 평가</h3>
                 <div>
                     <b>&lt;전체 사용자 이상 로그 분석&gt;</b><br>
-                    전체 이상 로그: <b><span style='color:red;'>{total}건</span></b><br><br>
+                    이상치 <b><span style='color:red;'>{anomaly_count:,}건</span></b> / 전체 <b>{total:,}건</b><br><br>
                     <b>&lt;시간대별 이상 로그 분포&gt;</b><br>
                     {period_summary}
                 </div>
@@ -98,7 +96,7 @@ def generate_description(df, user_col, time_col):
         <h3 style='margin-top:0;'>종합 평가</h3>
         <div>
             <b>&lt;전체 사용자 이상 로그 분석&gt;</b><br>
-            전체 이상 로그: <b><span style='color:red;'>{total}건</span></b>
+            이상치 <b><span style='color:red;'>{anomaly_count:,}건</span></b> / 전체 <b>{total:,}건</b>
         </div>
         </div>
         """
@@ -112,13 +110,14 @@ def generate_description(df, user_col, time_col):
             print("시간 컬럼이 지정되지 않아 시간 분석을 생략합니다.")
         # 시간 분석 없이 사용자별 분석만 수행
         user_counts = Counter(df[user_col]) if user_col in df.columns else {}
-        total = len(df)
+        anomaly_count = count_anomaly if count_anomaly is not None else len(df)
+        total = total_count if total_count is not None else len(df)
         
         if user_counts:
             top_users = user_counts.most_common(5)
-            top_summary = ", ".join([f"{u}: {c}건 ({c/total:.1%})" for u, c in top_users])
+            top_summary = ", ".join([f"{u}: {c}건 ({c/anomaly_count:.1%})" for u, c in top_users])
             top_total = sum([c for _, c in top_users])
-            top_ratio = f"{top_total}건({top_total/total:.1%})"
+            top_ratio = f"{top_total}건({top_total/anomaly_count:.1%})"
             
             items = [item.strip() for item in top_summary.split(',') if item.strip()]
             formatted_top_summary = "<br>".join([
@@ -130,9 +129,11 @@ def generate_description(df, user_col, time_col):
             <div style='background:#e3f2fd; border-left:4px solid #2196f3; padding:1rem; margin-top:2rem;'>
             <h3 style='margin-top:0;'>종합 평가</h3>
             <div>
+                <b>&lt;전체 데이터 분석&gt;</b><br>
+                이상치 <b><span style='color:red;'>{anomaly_count:,}건</span></b> / 전체 <b>{total:,}건</b><br><br>
                 <b>&lt;상위 사용자 이상 로그 개수&gt;</b><br>
                 {formatted_top_summary}<br>
-                ➤ 상위 5명의 사용자가 전체 이상 로그 <b><span style='color:red;'>{total}건</span></b> 중 <b style='color:red;'>{top_ratio}</b>을 차지합니다.
+                ➤ 상위 5명의 사용자가 전체 이상 로그 <b><span style='color:red;'>{anomaly_count:,}건</span></b> 중 <b style='color:red;'>{top_ratio}</b>을 차지합니다.
             </div>
             </div>
             """
@@ -160,13 +161,14 @@ def generate_description(df, user_col, time_col):
         print(f"시간 데이터 처리 중 오류: {e}")
         # 시간 분석 실패 시 사용자별 분석만 수행
         user_counts = Counter(df[user_col]) if user_col in df.columns else {}
-        total = len(df)
+        anomaly_count = count_anomaly if count_anomaly is not None else len(df)
+        total = total_count if total_count is not None else len(df)
         
         if user_counts:
             top_users = user_counts.most_common(5)
-            top_summary = ", ".join([f"{u}: {c}건 ({c/total:.1%})" for u, c in top_users])
+            top_summary = ", ".join([f"{u}: {c}건 ({c/anomaly_count:.1%})" for u, c in top_users])
             top_total = sum([c for _, c in top_users])
-            top_ratio = f"{top_total}건({top_total/total:.1%})"
+            top_ratio = f"{top_total}건({top_total/anomaly_count:.1%})"
             
             items = [item.strip() for item in top_summary.split(',') if item.strip()]
             formatted_top_summary = "<br>".join([
@@ -178,9 +180,11 @@ def generate_description(df, user_col, time_col):
             <div style='background:#e3f2fd; border-left:4px solid #2196f3; padding:1rem; margin-top:2rem;'>
             <h3 style='margin-top:0;'>종합 평가</h3>
             <div>
+                <b>&lt;전체 데이터 분석&gt;</b><br>
+                이상치 <b><span style='color:red;'>{anomaly_count:,}건</span></b> / 전체 <b>{total:,}건</b><br><br>
                 <b>&lt;상위 사용자 이상 로그 개수&gt;</b><br>
                 {formatted_top_summary}<br>
-                ➤ 상위 5명의 사용자가 전체 이상 로그 <b><span style='color:red;'>{total}건</span></b> 중 <b style='color:red;'>{top_ratio}</b>을 차지합니다.
+                ➤ 상위 5명의 사용자가 전체 이상 로그 <b><span style='color:red;'>{anomaly_count:,}건</span></b> 중 <b style='color:red;'>{top_ratio}</b>을 차지합니다.
             </div>
             </div>
             """
@@ -190,12 +194,13 @@ def generate_description(df, user_col, time_col):
 
     # 2. 사용자별 이상 로그 수
     user_counts = Counter(df[user_col])
-    total = len(df)
+    anomaly_count = count_anomaly if count_anomaly is not None else len(df)
+    total = total_count if total_count is not None else len(df)
 
     top_users = user_counts.most_common(5)
-    top_summary = ", ".join([f"{u}: {c}건 ({c/total:.1%})" for u, c in top_users])
+    top_summary = ", ".join([f"{u}: {c}건 ({c/anomaly_count:.1%})" for u, c in top_users])
     top_total = sum([c for _, c in top_users])
-    top_ratio = f"{top_total}건({top_total/total:.1%})"
+    top_ratio = f"{top_total}건({top_total/anomaly_count:.1%})"
 
     # 3. HTML 생성
     items = [item.strip() for item in top_summary.split(',') if item.strip()]
@@ -209,9 +214,11 @@ def generate_description(df, user_col, time_col):
     <div style='background:#e3f2fd; border-left:4px solid #2196f3; padding:1rem; margin-top:2rem;'>
     <h3 style='margin-top:0;'>종합 평가</h3>
     <div style='margin-bottom:1rem;'>
+        <b>&lt;전체 데이터 분석&gt;</b><br>
+        이상치 <b><span style='color:red;'>{anomaly_count:,}건</span></b> / 전체 <b>{total:,}건</b><br><br>
         <b>&lt;시간대별 이상 로그 분포&gt;</b><br>
         {"<br>".join([
-            f"{k}: <b><span style='color:red;'>{v}건</span></b>"
+            f"{k}: <b><span style='color:red;'>{v}건</span></b> ({v/anomaly_count:.1%})"
             for k, v in sorted(period_counts.items())
         ])}<br>
         ➤ <b><span style='color:red;'>{max(period_counts, key=period_counts.get)}</b>에 가장 많은 이상 로그가 집중되어 있습니다.
@@ -219,7 +226,7 @@ def generate_description(df, user_col, time_col):
     <div>
         <b>&lt;상위 사용자 이상 로그 개수&gt;</b><br>
         {formatted_top_summary}<br>
-        ➤ 상위 5명의 사용자가 전체 이상 로그 <b><span style='color:red;'>{total}건</span></b> 중 <b style='color:red;'>{top_ratio}</b>을 차지합니다.
+        ➤ 상위 5명의 사용자가 전체 이상 로그 <b><span style='color:red;'>{anomaly_count:,}건</span></b> 중 <b style='color:red;'>{top_ratio}</b>을 차지합니다.
     </div>
     </div>
     """
@@ -331,6 +338,8 @@ def fit_predict_ensemble_fast(
         ]
         if include_iforest:
             ms = min(if_max_samples, X.shape[0]) if isinstance(if_max_samples, int) else if_max_samples
+            # feature_names 경고 해결을 위해 numpy array로 변환
+            X_array = X.values if hasattr(X, 'values') else X
             models.append(("iforest", IForest(n_estimators=if_n_estimators,
                                               max_samples=ms,
                                               random_state=if_random_state)))
@@ -339,8 +348,14 @@ def fit_predict_ensemble_fast(
         raw_scores = {}
         names = []
         for name, clf in models:
-            clf.fit(X)
-            s = clf.decision_function(X)   # 클수록 이상치
+            # IsolationForest feature_names 경고 해결
+            if name == "iforest":
+                X_input = X.values if hasattr(X, 'values') else X
+            else:
+                X_input = X
+            
+            clf.fit(X_input)
+            s = clf.decision_function(X_input)   # 클수록 이상치
             raw_scores[name] = s
             scores_norm.append(cdf_normalize(s))
             names.append(name)
@@ -473,11 +488,13 @@ def detect_anomalies(
     encoded_columns = [col for col in categorical_cols if col in results.columns]  
     results_cleaned = results.drop(columns=encoded_columns, errors='ignore') 
 
-    # 5. SHAP 그래프를 그리기 위한 파일 생성(1)
-    model_path = f"{base_filename}_model.pkl"    # SHAP값계산을위해 모델을 pkl파일로추출
-    joblib.dump(models, model_path)
-    shap_input_path = f"{base_filename}_X_for_shap.csv"
-    forshap_input.to_csv(shap_input_path, index=False)  #forshap_input을 _X_for_shap.csv 라는 이름으로 저장
+    # 파일명 생성을 먼저 수행
+    from datetime import datetime
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    base_filename = file_path.replace('.csv', '') + f"_{timestamp}"
+
+    # 5. SHAP 그래프를 그리기 위한 파일 생성(1) - 서비스로 분리
+    ShapService.save_model_and_data(models, forshap_input, base_filename)
 
     # 이상치 점수 컬럼명 통일
     if 'Anomaly_Score' not in results.columns and 'Anomaly_Score' in results.columns:
@@ -493,9 +510,6 @@ def detect_anomalies(
     # 6. 결과 저장
     # results_with_info = pd.concat([results_cleaned.drop(columns=tfidf_cols, errors='ignore'), original_info], axis=1)
     # results_with_info = pd.concat([results, original_info], axis=1)
-    from datetime import datetime
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    base_filename = file_path.replace('.csv', '') + f"_{timestamp}"
     full_anomaly_path = f"{base_filename}_full_data_with_anomaly_info.csv"
     results_with_info.to_csv(full_anomaly_path, index=False)
 
@@ -522,43 +536,30 @@ def detect_anomalies(
                 df_full.drop(columns=[orig_col], inplace=True)
             df_full.rename(columns={col: orig_col}, inplace=True)
 
-    # 그래프 시각화 (이상치만)
-    score_distribution_html = None
-    user_graph_html = None
-    hour_graph_html = None
-    
-    try:
-        print("그래프 생성 시작...")
-        score_distribution_html = plot_anomaly_score_distribution(df_full, threshold=-0.20, score_col='Anomaly_Score')
-        print("이상치 점수 분포 그래프 생성 완료")
-        
-        print(f"사용자별 그래프 생성 시작... user_col={user_col}")
-        user_graph_html = plot_anomaly_by_user(df_full[df_full['Anomaly'] == 1], user_col=user_col, top_n=5, for_dashboard=True)
-        print(f"사용자별 그래프 생성 완료, 길이: {len(user_graph_html) if user_graph_html else 0}")
-        
-        # 시간 칼럼이 있는 경우에만 시간 그래프 생성
-        if time_col is not None:
-            hour_graph_html = plot_anomaly_by_hour(df_full[df_full['Anomaly'] == 1], user_col=user_col, time_col=time_col)
-        else:
-            hour_graph_html = None
-            print("시간 칼럼이 없어 시간대별 그래프를 생략합니다.")
-    except Exception as e:
-        print("그래프 시각화 중 오류:", e)
-        import traceback
-        traceback.print_exc()
+    # 그래프 시각화 - 서비스로 분리
+    graphs = VisualizationService.generate_all_graphs(
+        df_full=df_full, 
+        user_col=user_col, 
+        time_col=time_col, 
+        score_col='Anomaly_Score', 
+        threshold=-0.20
+    )
+    score_distribution_html = graphs['score_distribution_html']
+    user_graph_html = graphs['user_graph_html']
+    hour_graph_html = graphs['hour_graph_html']
 
-    # 7. 탐지 개수 집계
-    count_anomaly = int(df_full['Anomaly'].sum())
-    total         = len(df_full)
+    # 7. 탐지 개수 집계 - 그래프와 동일한 df_full 사용
+    count_anomaly = int(df_full['Anomaly'].sum())  # df_full에서 이상치 개수
+    total = len(df_full)  # df_full의 전체 개수
 
-    # 8. 이상 탐지된 항목만 추출
-    detected = df_full[df_full['Anomaly'] == 1]
+    # 8. 이상 탐지된 항목만 추출 - 그래프와 동일한 데이터 사용
+    df_anomaly_only = df_full[df_full['Anomaly'] == 1]  # 그래프와 동일한 변수명 사용
     detected_anomalies_path = f"{base_filename}_pyod_detected_anomalies.csv"
-    detected.to_csv(detected_anomalies_path, index=False)
+    df_anomaly_only.to_csv(detected_anomalies_path, index=False)
 
     # TF-IDF 컬럼은 제외하고 표를 생성
-    tfidf_cols = [col for col in detected.columns if '_tfidf_' in col]
-    detected_for_table = detected.drop(columns=tfidf_cols)
+    tfidf_cols = [col for col in df_anomaly_only.columns if '_tfidf_' in col]
+    detected_for_table = df_anomaly_only.drop(columns=tfidf_cols)
 
     # Anomaly_Score 기준 내림차순 정렬 후 상위 100개 추출
     preview_top100 = detected_for_table.sort_values(by="Anomaly_Score", ascending=False).head(100)
@@ -588,11 +589,17 @@ def detect_anomalies(
             return obj
 
     # 전체/이상치 records (다운로드용)
-    anomaly_records = clean_for_json(detected_for_table.head(100).to_dict(orient="records"))
-    all_records = clean_for_json(df_full.drop(columns=tfidf_cols).head(100).to_dict(orient="records"))
+    # 대시보드 표시용: 상위 100개만
+    anomaly_records_preview = clean_for_json(detected_for_table.head(100).to_dict(orient="records"))
+    all_records_preview = clean_for_json(df_full.drop(columns=tfidf_cols).head(100).to_dict(orient="records"))
+    
+    # 다운로드용: 전체 데이터
+    anomaly_records = clean_for_json(detected_for_table.to_dict(orient="records"))
+    all_records = clean_for_json(df_full.drop(columns=tfidf_cols).to_dict(orient="records"))
 
-    # Description HTML 생성
-    text_html = generate_description(detected, user_col=user_col, time_col=time_col)
+    # Description HTML 생성 - 그래프와 동일한 데이터 사용 (df_anomaly_only는 위에서 이미 정의됨)
+    text_html = generate_description(df_anomaly_only, user_col=user_col, time_col=time_col, 
+                                    count_anomaly=count_anomaly, total_count=total)
 
     # 9. 결과를 HTML 테이블 + 요약 문자열로 반환
     result = {
@@ -601,8 +608,10 @@ def detect_anomalies(
         "total": int(total),  # numpy int를 Python int로 변환
         "q": float(q),  # q(이상치 비율) 값 추가
         "table_html": preview_table_html,  # TF-IDF 컬럼이 빠진 표(대시보드용)
-        "records": anomaly_records,   # 이상치 결과 (여긴 TF-IDF 제외)
-        "all_records": all_records,   # 전체 결과
+        "records": anomaly_records,   # 이상치 결과 전체 (다운로드용)
+        "records_preview": anomaly_records_preview,  # 이상치 결과 상위 100개 (표시용)
+        "all_records": all_records,   # 전체 결과 전체 (다운로드용)
+        "all_records_preview": all_records_preview,  # 전체 결과 상위 100개 (표시용)
         "user_col": user_col,
         "time_col": time_col,
         "columns": [str(col) for col in df_full.columns],  # 컬럼명도 문자열로 변환
@@ -615,23 +624,7 @@ def detect_anomalies(
     }
 
     # 10. SHAP 그래프를 그리기 위한 파일 생성(2)
-    try:
-        # 만약 models이 리스트(list)라면, 앙상블 모델 중 IForest 모델만 정확하게 선택
-        iforest_model = next((m for n, m in models if n == 'iforest'), None)
-        if iforest_model:
-            shap_values = shap.TreeExplainer(iforest_model).shap_values(forshap_input)
-
-        if iforest_model is not None and not forshap_input.empty:
-            print("TreeExplainer로 SHAP 계산 중...")
-            shap_values = shap.TreeExplainer(iforest_model).shap_values(forshap_input)
-            np.save(f"{base_filename}_shap_values.npy", shap_values)
-        else:
-            print("트리 기반 모델이 없어 SHAP 계산 생략.")
-
-    except Exception as e:
-        print("SHAP 계산 중 오류 발생:", e)
-        import traceback
-        traceback.print_exc()
+    ShapService.calculate_and_save_shap_values(models, forshap_input, base_filename)
 
     return result
 

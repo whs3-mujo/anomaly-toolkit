@@ -313,8 +313,14 @@
           .then(response => response.json())
           .then(data => {
               const descDiv = document.getElementById('description-content');
-              descDiv.innerHTML = `전체 이상 로그 건수: <b>${data.total_count}건</b><br>
-                                  필터 기능을 사용하여 특정 사용자나 상위 사용자들의 로그를 조회할 수 있습니다.`;
+              // 대시보드와 동일한 형식으로 표시
+              const anomalyCount = Number(data.anomaly_count || 0).toLocaleString('ko-KR');
+              const totalCount = Number(data.total || 0).toLocaleString('ko-KR');
+              
+              descDiv.innerHTML = `
+                  <b><span style='color:red;'>전체 이상 로그 건수: ${anomalyCount}건<br>
+                  <span style='color:black;'>필터 기능을 사용하여 특정 사용자나 상위 사용자들의 로그를 조회할 수 있습니다.
+              `;
           })
           .catch(error => {
               document.getElementById('description-content').innerHTML = 
@@ -389,9 +395,9 @@
 
                 descDiv.innerHTML = 
                   `<b><span style="color:green;">${data.username}</span></b> 사용자의 이상 로그 분석 결과:<br>
-                  • 사용자 이상 로그 수: <b><span style="color:green;">${fmt(a)}건</span></b><br>
-                  • 사용자 로그 중 이상 로그 비율: <b><span style="color:green;">${pctUserLogs}%</span></b> <small>(${aSpan}/${bSpan})</small><br>
-                  • 전체 이상 로그 중 사용자 비중: <b><span style="color:green;">${pctGlobal}%</span></b> <small>(${aSpan}/${cSpan})</small>`;
+                  • 개별 이상 로그 수: <b><span style="color:green;">${fmt(a)}건</span></b><br>
+                  • 전체 이상 로그 대비 비율: <b><span style="color:green;">${pctGlobal}%</span></b> <small>(${aSpan}/${cSpan})</small><br>
+                  • 전체 이상 로그 수: <b><span style="color:green;">${fmt(c)}건</span></b>`;
 
               })
 
@@ -409,9 +415,9 @@
 
                 descDiv.innerHTML =
                   `<b><span style="color:green;">${data.username}</span></b> 사용자의 이상 로그 분석 결과:<br>
-                  • 사용자 이상 로그 수: <b><span style="color:green;">${fmt(a)}건</span></b><br>
-                  • 사용자 로그 중 이상 로그 비율: <b><span style="color:green;">${pctUserLogs}%</span></b> <small>(${aSpan}/${bSpan})</small><br>
-                  • 전체 이상 로그 중 사용자 비중: <span style="color:#999;">불러오기 실패</span> <small>(a/c)</small>`;
+                  • 개별 이상 로그 수: <b><span style="color:green;">${fmt(a)}건</span></b><br>
+                  • 전체 이상 로그 대비 비율: <span style="color:#999;">불러오기 실패</span><br>
+                  • 전체 이상 로그 수: <span style="color:#999;">불러오기 실패</span>`;
               });
               
 

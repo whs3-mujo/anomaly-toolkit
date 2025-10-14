@@ -450,7 +450,7 @@ def plot_anomaly_by_user(df, user_col, top_n=10, show_more=False, for_dashboard=
 
     fig.update_layout(
         title=dict(
-            text='<b>Anomaly By Use</b>',
+            text='<b>Anomaly By User</b>',
             font=dict(size=20, color='#1f4e8c')
         ),
         xaxis_title='User',

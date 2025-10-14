@@ -1,12 +1,17 @@
 """
-SHAP 관련 분석 서비스
+SHAP 분석을 위한 서비스 모듈
 
-이 모듈은 SHAP 값 계산 및 시각화 관련 기능을 담당합니다.
+이 모듈은 SHAP(SHapley Additive exPlanations) 값 계산과 관련된 
+모든 기능을 제공합니다.
 """
 
-import os
-import pandas as pd
 import numpy as np
+import pandas as pd
+import joblib
+import shap
+from typing import Optional, Any, List, Tuple
+import warnings
+import os
 import matplotlib.pyplot as plt
 import matplotlib
 from io import BytesIO
@@ -320,3 +325,115 @@ class ShapService:
         """
         
         return table_html
+    
+    @staticmethod
+    def save_model_and_data(models: List[Tuple], shap_input_data: pd.DataFrame, base_filename: str) -> dict:
+        """
+        SHAP 계산을 위한 모델과 데이터를 저장합니다.
+        
+        Args:
+            models: 학습된 모델들의 리스트 [(name, model), ...]
+            shap_input_data: SHAP 계산용 입력 데이터
+            base_filename: 파일명 prefix
+            
+        Returns:
+            저장된 파일 경로들이 포함된 딕셔너리
+        """
+        try:
+            # 모델 저장
+            model_path = f"{base_filename}_model.pkl"
+            joblib.dump(models, model_path)
+            
+            # SHAP 입력 데이터 저장
+            shap_input_path = f"{base_filename}_X_for_shap.csv"
+            shap_input_data.to_csv(shap_input_path, index=False)
+            
+            return {
+                'model_path': model_path,
+                'shap_input_path': shap_input_path,
+                'success': True
+            }
+        except Exception as e:
+            print(f"모델 및 데이터 저장 중 오류: {e}")
+            return {
+                'model_path': None,
+                'shap_input_path': None,
+                'success': False,
+                'error': str(e)
+            }
+    
+    @staticmethod
+    def calculate_and_save_shap_values(models: List[Tuple], shap_input_data: pd.DataFrame, base_filename: str) -> Optional[str]:
+        """
+        SHAP 값을 계산하고 저장합니다.
+        
+        Args:
+            models: 학습된 모델들의 리스트 [(name, model), ...]
+            shap_input_data: SHAP 계산용 입력 데이터
+            base_filename: 파일명 prefix
+            
+        Returns:
+            저장된 SHAP 파일 경로 또는 None
+        """
+        try:
+            # IsolationForest 모델 찾기
+            iforest_model = None
+            for name, model in models:
+                if name == 'iforest':
+                    iforest_model = model
+                    break
+            
+            if iforest_model is None or shap_input_data.empty:
+                print("IsolationForest 모델이 없거나 입력 데이터가 비어있어 SHAP 계산을 생략합니다.")
+                return None
+            
+            # SHAP 값 계산
+            print("TreeExplainer로 SHAP 계산 중...")
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")  # SHAP 관련 경고 무시
+                explainer = shap.TreeExplainer(iforest_model)
+                
+                # 입력 데이터가 DataFrame인 경우 numpy array로 변환
+                input_data = shap_input_data.values if hasattr(shap_input_data, 'values') else shap_input_data
+                shap_values = explainer.shap_values(input_data)
+            
+            # SHAP 값 저장
+            shap_file_path = f"{base_filename}_shap_values.npy"
+            np.save(shap_file_path, shap_values)
+            
+            print(f"SHAP 값이 '{shap_file_path}'에 저장되었습니다.")
+            return shap_file_path
+            
+        except Exception as e:
+            print(f"SHAP 계산 중 오류 발생: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+    
+    @staticmethod
+    def prepare_shap_input_data(processed_data: pd.DataFrame, max_samples: int = 100) -> pd.DataFrame:
+        """
+        SHAP 계산을 위한 입력 데이터를 준비합니다.
+        
+        Args:
+            processed_data: 전처리된 데이터
+            max_samples: 최대 샘플 수 (성능을 위해 제한)
+            
+        Returns:
+            SHAP 계산용으로 준비된 데이터
+        """
+        try:
+            # Anomaly, Anomaly_Score 컬럼 제거
+            shap_input = processed_data.drop(columns=['Anomaly', 'Anomaly_Score'], errors='ignore').copy()
+            
+            # 소수점 6자리로 반올림 (파일 크기 최적화)
+            shap_input = shap_input.round(6)
+            
+            # 상위 max_samples개만 선택 (성능 최적화)
+            shap_input = shap_input.head(max_samples)
+            
+            return shap_input
+            
+        except Exception as e:
+            print(f"SHAP 입력 데이터 준비 중 오류: {e}")
+            return pd.DataFrame()
