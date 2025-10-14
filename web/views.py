@@ -1077,8 +1077,12 @@ def top_anomaly_users(request, top_n):
             {'username': username, 'anomaly_count': int(count)} 
             for username, count in user_counts.items()
         ]
+        unique_user_count = len(user_counts)
         
-        return JsonResponse({'top_users': formatted_users})
+        return JsonResponse({
+            'top_users': formatted_users,
+            'unique_user_count': unique_user_count
+        })
         
     except AnalysisSession.DoesNotExist:
         return JsonResponse({'error': '분석 세션을 찾을 수 없습니다.'}, status=404)

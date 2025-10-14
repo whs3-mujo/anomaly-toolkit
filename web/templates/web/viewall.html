@@ -471,9 +471,13 @@
           const descDiv = document.getElementById('description-content');
           
           if (data.top_users && data.top_users.length > 0) {
-            resultDiv.innerHTML = '<h4><b><span style="color:red;">상위 ' + n + '명 사용자</span></h4></b>' +
-              data.top_users.map((u, index) => `${index + 1}. ${u.username}: ${u.anomaly_count}건`).join('<br>');
-            
+              resultDiv.innerHTML = data.top_users.map((u, index) => {
+              const rank = index + 1;  // 순위
+              const count = u.anomaly_count;  // 이상 로그 건수
+              const username = u.username;  // 사용자 이름
+              return `<b><span style="color:#f08080;">[Top${rank}] ${count}건:</span> <span style="color:black;">${username}</span></b>`;
+            }).join('<br>');  // 줄바꿈으로 구분
+
             const topTotal = data.top_users.reduce((sum, u) => sum + u.anomaly_count, 0);
 
             /* 전체 로그 수 가져와서 비율 계산 */
@@ -481,6 +485,10 @@
             if (sessionId) {
               totalUrl += `?session_id=${sessionId}`;
             }
+
+            // 평균 개별 로그 수 계산
+            const uniqueUserCount = data.unique_user_count;  
+            const unique_user_num = Math.min(uniqueUserCount, n); 
             
             fetch(totalUrl)
               .then(r => r.json())
@@ -489,9 +497,9 @@
                   ((topTotal / totalData.total_count) * 100).toFixed(2) : '0.00';
                 descDiv.innerHTML = `<b><span style="color:green;">상위 ${n}명</span></b> 사용자 이상 로그 분석 결과:<br>
                     • 상위 ${n}명 총 이상 로그 수: <b><span style="color:green;">${topTotal}건</span></b><br>
-                    • 전체 로그 수 대비 비율: <b><span style="color:green;">${percentage}%</span></b><br>
+                    • 전체 이상 로그 수 대비 비율: <b><span style="color:green;">${percentage}%</span></b><br>
                     • 전체 이상 로그 수: <b><span style="color:green;">${totalData.total_count}건</span></b><br>
-                    • 평균 개별 로그 수: <b><span style="color:green;">${Math.round(topTotal/n)}건</span></b>
+                    • 평균 개별 로그 수: <b><span style="color:green;">${Math.round(topTotal/unique_user_num)}건</span></b>
                 `;
               })
               .catch(() => {
