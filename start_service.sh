@@ -40,7 +40,7 @@ echo -e "${YELLOW}Docker 이미지 로딩 중...${NC}"
 docker load -i anomalytoolkit.tar > /dev/null 2>&1
 
 echo -e "${YELLOW}서비스 시작 중...${NC}"
-docker run -d -p 8000:8000 --name anomaly-detector anomaly-toolkit:offline
+docker run -d -p 8000:8000 --name anomaly-detector --platform linux/amd64 anomaly-toolkit:offline > /dev/null 2>&1
 
 echo ""
 echo -e "${GREEN}서비스가 성공적으로 시작되었습니다!${NC}"
