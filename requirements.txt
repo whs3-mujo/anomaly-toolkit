@@ -13,4 +13,4 @@ plotly==6.3.1
 chardet==5.2.0
 joblib==1.5.2
 
-category-encoders==2.81
+category-encoders==2.8.1

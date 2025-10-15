@@ -19,7 +19,7 @@ docker save -o anomalytoolkit.tar anomaly-toolkit:offline
 Write-Host "배포 패키지 생성 중..." -ForegroundColor Yellow
 New-Item -Path "offline-package" -ItemType Directory -Force
 
-# Docker Compose 파일 복사 및 컨테이너 이름 수정
+# Docker Compose 파일 복사 및 수정
 $dockerComposeContent = Get-Content "docker-compose.offline.yml" -Raw
 $dockerComposeContent = $dockerComposeContent -replace "container_name: anomalytoolkit-web", "container_name: anomaly-detector"
 $dockerComposeContent | Out-File -FilePath "offline-package\docker-compose.yml" -Encoding utf8
