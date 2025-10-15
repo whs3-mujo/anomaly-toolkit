@@ -10,19 +10,18 @@ docker load -i anomalytoolkit.tar
 REM .env 파일 확인 및 생성
 if not exist .env (
     echo 환경 설정 파일 생성 중...
-    copy .env.example .env
-    echo SECRET_KEY를 변경하세요!
+    copy .env.example .env >nul
+    echo SECRET_KEY 자동 생성 중...
+    powershell -Command "$key = 'django-insecure-' + (Get-Date -Format 'yyyyMMddHHmmss') + '-auto-generated'; (Get-Content '.env') -replace 'SECRET_KEY=.*', \"SECRET_KEY=$key\" | Set-Content '.env'" 2>nul
+    echo 환경 설정 완료!
 )
 
-REM 서비스 시작 (볼륨 마운트 포함)
+REM 기존 서비스 정리
+docker-compose stop 2>nul
+
+REM 서비스 시작 (Docker Compose 사용)
 echo 서비스 시작 중...
-docker run -d ^
-    -p 8000:8000 ^
-    --name anomaly-detector ^
-    -v "%cd%\media:/app/media" ^
-    -v "%cd%\logs:/app/logs" ^
-    --env-file .env ^
-    anomaly-toolkit:offline
+docker-compose up -d
 
 echo.
 echo 서비스가 시작되었습니다!

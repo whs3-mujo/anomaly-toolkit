@@ -5,15 +5,11 @@ powershell.exe -ExecutionPolicy Bypass -Command "& {[Console]::OutputEncoding=[S
 echo.
 
 REM 컨테이너 상태 확인
-docker ps -a --filter "name=anomaly-detector" --format "table {{.Names}}\t{{.Status}}"
+docker-compose ps
 
-REM 컨테이너 중지
-echo 컨테이너 중지 중...
-docker stop anomaly-detector 2>nul
-
-REM 컨테이너 제거  
-echo 컨테이너 제거 중...
-docker rm anomaly-detector 2>nul
+REM 서비스 중지
+echo 서비스 중지 중...
+docker-compose stop
 
 echo.
 echo 서비스가 종료되었습니다.
