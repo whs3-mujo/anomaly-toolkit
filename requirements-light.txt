@@ -1,0 +1,18 @@
+# Python >=3.10, <=3.11
+# Lightweight version without pyod/shap for faster container loading
+
+Django==5.2.7
+gunicorn==23.0.0
+python-dotenv==1.1.1
+
+pandas==2.3.3
+scikit-learn==1.7.2
+numpy==2.3.3
+plotly==6.3.1
+chardet==5.2.0
+joblib==1.5.2
+
+category-encoders==2.8.1
+
+# Additional lightweight anomaly detection packages (optional)
+scipy==1.16.2

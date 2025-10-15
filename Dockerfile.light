@@ -1,0 +1,32 @@
+FROM python:3.11-slim
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 시스템 패키지 업데이트 및 필요한 패키지 설치
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# requirements 복사 및 설치 (경량화 버전)
+COPY requirements-light.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 애플리케이션 코드 복사
+COPY . /app/
+
+# 미디어 및 로그 디렉토리 생성
+RUN mkdir -p /app/media/uploads /app/logs /app/db_data
+
+# 정적 파일 수집
+RUN python manage.py collectstatic --noinput
+
+# 포트 노출
+EXPOSE 8000
+
+# 엔트리포인트 스크립트 실행 권한 부여
+RUN chmod +x /app/docker-entrypoint.offline.sh
+
+# 엔트리포인트 설정
+ENTRYPOINT ["/app/docker-entrypoint.offline.sh"]
