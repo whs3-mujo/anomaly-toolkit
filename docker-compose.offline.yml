@@ -9,5 +9,9 @@ services:
     volumes:
       - ./media:/app/media  # 사용자가 업로드할 빈 디렉터리
       - ./logs:/app/logs    # 로그 저장용 빈 디렉터리
+      - db_data:/app/db_data  # 데이터베이스 저장용 named volume
     env_file:
       - .env
+
+volumes:
+  db_data:
