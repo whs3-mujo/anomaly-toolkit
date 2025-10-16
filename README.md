@@ -94,56 +94,60 @@ docker --version
 docker compose version
 ```
 
-### 3) 이미지 다운로드  
+### 3) 파일 다운로드 
+[Docker 이미지•실행 파일 다운로드](https://drive.google.com/drive/folders/1nwI_TW3FTxpsm7FXuqzWbMWsnxUHTQAQ?usp=sharing)
+
+### 4) 다운로드한 압축 파일을 새로운 폴더에 압축 해제 후 이동
+Windows)
+anomaly-toolkit-offline-windows.zip 파일 압축 해제
+
+MacOS) 
+명령어 입력
 ```bash
-docker pull ynjii/anomaly-toolkit:latest
+tar -xzf anomaly-toolkit-offline-macos-arm64.tar.gz
+chmod +x *.sh
 ```
 
-### 4) 환경 설정  
+### 5) 폴더 내 실행 스크립트 실행
+Windows)
 ```bash
-mkdir logscope && cd logscope
-```
+   a. setup.bat 파일을 더블클릭하여 실행(최초 1회)
+   b. 서비스 시작 - start_service.bat 파일을 더블클릭하여 실행
 
-`docker-compose.yml` 작성
-```yaml
-version: '3.8'
-services:
-  web:
-    image: ynjii/anomaly-toolkit:latest
-    container_name: anomalytoolkit-web
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
+   * 종료: stop_service.bat 파일 실행
 ```
-
-`.env` 작성
+MacOS)
 ```bash
-SECRET_KEY="django-insecure-abc123456789"
-```
+   # a. 초기 설정 (최초 1회)
+   ./setup.sh
+   # b. 서비스 시작
+   ./start_service.sh
 
-**새 SECRET_KEY 발급**
-```bash
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-```
-
-### 5) 실행  
-```bash
-docker compose up -d
+   *종료: 
+   ./stop_service.sh 실행
 ```
 
 **접속 경로**
 - 업로드: http://localhost:8000/upload  
 - 대시보드: http://localhost:8000/dashboard  
 
+**트러블 슈팅**
+  문제상황 | 해결방법 |
+  |-----------|------|
+  | 포트 8000 사용중 | 다른 프로그램 종료 후 재시작 |
+  | Docker 오류 | Docker Desktop 재시작 |
+  | 도커 이미지 로딩 오류(윈도우) | Docker Hub에서 이미지 직접 다운로드(docker pull ynjii/anomaly-toolkit:windows-latest) |
+  | 업로드 실패 | 파일 확장자, 용량 확인 |
 ---
 
 ## 6. 개발자 환경 세팅  
 
 ```bash
-# 1. 가상환경 생성
-virtualenv --python=3.11 .venv
-. .venv/bin/activate
+# 1. python 3.11로 가상환경 생성 및 활성화
+virtualenv --python=3.11 .venv 또는 py -3.11 -m venv .venv
+
+가상환경 활성화
+. .venv/bin/activate 또는 . .venv\Scripts\Activate.ps1
 
 # 2. 의존성 설치
 pip install -r requirements.txt
@@ -152,14 +156,19 @@ pip install -r requirements.txt
 python manage.py makemigrations
 python manage.py migrate
 
-# 4. 관리자 계정 생성
+# 4. 관리자 계정 생성(생략 가능)
 python manage.py createsuperuser
 
-# 5. SECRET_KEY 등록
+# 5. SECRET_KEY 등록(필수)
 export SECRET_KEY=[비밀키]
+
+**오류 발생 시 직접`.env` 파일 내 아래 내용 작성**
+SECRET_KEY=YOUR_SECRET_KEY
 
 # 6. 서버 실행
 python manage.py runserver 0.0.0.0:8000
+또는
+python manage.py runserver
 ```
 
 ---
