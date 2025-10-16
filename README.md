@@ -55,7 +55,7 @@ Mac: https://www.notion.so/2420363bd07c807191bde6b6acfee091?source=copy_link <br
 - **온프레미스(오프라인)** 환경 지원  
 
 > ⚙️ **업로드 제한 안내**  
-> - 기본적으로 5분 이하의 로그 데이터만 업로드 가능합니다.  
+> - 기본적으로 10분 이하의 로그 데이터만 업로드 가능합니다.  
 > - 더 큰 데이터는 [GitHub Issue](https://github.com/whs3-mujo/anomaly-toolkit/issues)를 통해 문의해주세요.  
 >   (기술적으로 가능하지만, 서비스 효율성을 위해 제한되어 있습니다.)
 
@@ -168,7 +168,7 @@ python manage.py runserver 0.0.0.0:8000
 
 | 이름 | 역할 | GitHub |
 |------|------|---------|
-| 김윤지 | 웹 베이스코드 | [@ynjii](https://github.com/ynjii) |
+| 김윤지 | 웹 개발 총괄 / DevOps | [@ynjii](https://github.com/ynjii) |
 | 김지윤 | XAI 및 그래프 시각화 / DevOps | [@JIYUN02](https://github.com/JIYUN02) |
 | 백형철 | XAI 및 그래프 시각화 | [@BAEK10000](https://github.com/BAEK10000) |
 | 심준호 | XAI 및 그래프 시각화 | [@junho462](https://github.com/junho462) |
@@ -210,7 +210,7 @@ git push origin feature/새기능명
 모든 사용자는 자유롭게 이용·수정·배포할 수 있으며,  
 원 저작권 표기와 라이선스 전문을 포함해야 합니다.  
 소프트웨어는 **보증 없이 "있는 그대로(AS IS)" 제공**됩니다.  
-[전체 전문 보기](./docs/LICENSE)
+[전체 전문 보기](./LICENSE)
 
 ---
 
@@ -233,9 +233,6 @@ LOGSCO는 다음 오픈소스 라이브러리들을 포함합니다.
 | chardet | 5.2.0 | LGPL 2.1-or-later | 인코딩 탐지기 |
 | category-encoders | 2.81 | BSD 3-Clause | 데이터 전처리 |
 | joblib | 1.5.2 | BSD 3-Clause | 병렬처리 유틸리티 |
-
-> **참고:** LGPL(예: chardet) 기반 모듈은  
-> 사용자가 교체 가능한 형태로 제공되어야 합니다.
 
 ---
 

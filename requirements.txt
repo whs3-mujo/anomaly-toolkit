@@ -1,32 +1,16 @@
-# Python >=3.10, <= 3.11
+# Python >=3.10, <=3.11
 
-# Web Framework
-Django==5.1
+Django==5.2.7
 gunicorn==23.0.0
+python-dotenv==1.1.1
 
-# Configuration Management
-python-dotenv==1.1.0
+pandas==2.3.3
+scikit-learn==1.7.2
+numpy==2.3.3
+pyod==2.0.5
+shap==0.48.0
+plotly==6.3.1
+chardet==5.2.0
+joblib==1.5.2
 
-# Data Processing
-pandas==2.1.4
-numpy
-
-# Machine Learning
-scikit-learn==1.4.2
-pyod>=1.0.0
-category-encoders
-
-# Legacy support (for backward compatibility)
-pycaret==3.3.2
-
-# Model Explanation
-shap
-
-# File Processing
-chardet
-
-# Visualization
-plotly
-
-# Model Persistence
-joblib
+category-encoders==2.8.1
