@@ -178,7 +178,7 @@ python manage.py runserver
 | 이름 | 역할 | GitHub |
 |------|------|---------|
 | 김윤지 | 웹 개발 총괄 / DevOps / PM | [@ynjii](https://github.com/ynjii) |
-| 김지윤 | 대시보드 UI / Frontend | [@JIYUN02](https://github.com/JIYUN02) |
+| 김지윤 | XAI / Frontend / Backend | [@JIYUN02](https://github.com/JIYUN02) |
 | 백형철 | 그래프 UI / Cross-role | [@BAEK10000](https://github.com/BAEK10000) |
 | 심준호 | 라이선스 관리 / License | [@junho462](https://github.com/junho462) |
 | 이준혁 | AI 모델링 / Backend | [@hubkorea](https://github.com/hubkorea) |
