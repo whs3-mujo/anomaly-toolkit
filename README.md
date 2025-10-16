@@ -177,14 +177,14 @@ python manage.py runserver
 
 | 이름 | 역할 | GitHub |
 |------|------|---------|
-| 김윤지 | 웹 개발 총괄 / DevOps | [@ynjii](https://github.com/ynjii) |
-| 김지윤 | XAI 및 그래프 시각화 / DevOps | [@JIYUN02](https://github.com/JIYUN02) |
-| 백형철 | XAI 및 그래프 시각화 | [@BAEK10000](https://github.com/BAEK10000) |
-| 심준호 | XAI 및 그래프 시각화 | [@junho462](https://github.com/junho462) |
-| 이준혁 | XAI 및 그래프 시각화 | [@hubkorea](https://github.com/hubkorea) |
-| 정원재 | AI 모델 개발 | [@daljoa](https://github.com/daljoa) |
-| 정채윤 | AI 모델 개발 | [@jcy333](https://github.com/jcy333) |
-| 최아현 | AI 모델 개발 | [@ChoiAh](https://github.com/ChoiAh) |
+| 김윤지 | 웹 개발 총괄 / DevOps / PM | [@ynjii](https://github.com/ynjii) |
+| 김지윤 | 대시보드 UI / Frontend | [@JIYUN02](https://github.com/JIYUN02) |
+| 백형철 | 그래프 UI / Cross-role | [@BAEK10000](https://github.com/BAEK10000) |
+| 심준호 | 라이선스 관리 / License | [@junho462](https://github.com/junho462) |
+| 이준혁 | AI 모델링 / Backend | [@hubkorea](https://github.com/hubkorea) |
+| 정원재 | 데이터 엔지니어링 / Backend | [@daljoa](https://github.com/daljoa) |
+| 정채윤 | AI 연구 / Backend | [@jcy333](https://github.com/jcy333) |
+| 최아현 | AI 개발 / Backend | [@ChoiAh](https://github.com/ChoiAh) |
 
 ---
 
