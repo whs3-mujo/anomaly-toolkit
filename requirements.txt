@@ -1,4 +1,4 @@
-# Python >=3.10, <=3.11
+# Python 3.11
 
 Django==5.2.7
 gunicorn==23.0.0
