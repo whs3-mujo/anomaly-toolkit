@@ -183,7 +183,7 @@ python manage.py runserver
 | 심준호 | 라이선스 관리 / License | [@junho462](https://github.com/junho462) |
 | 이준혁 | AI 모델링 / Backend | [@hubkorea](https://github.com/hubkorea) |
 | 정원재 | 데이터 엔지니어링 / Backend | [@daljoa](https://github.com/daljoa) |
-| 정채윤 | AI 연구 / Backend | [@jcy333](https://github.com/jcy333) |
+| 정채윤 | AI 연구 및 개발 / Backend | [@jcy333](https://github.com/jcy333) |
 | 최아현 | AI 개발 / Backend | [@ChoiAh](https://github.com/ChoiAh) |
 
 ---
